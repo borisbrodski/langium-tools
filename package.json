@@ -1,0 +1,26 @@
+{
+  "name": "langium-tools",
+  "version": "0.1.0",
+  "description": "A set of tools for Langium",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest"
+  },
+  "author": "Boris Brodski",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^9.8.0",
+    "eslint": "^9.8.0",
+    "globals": "^15.8.0",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^7.18.0",
+    "vitest": "~1.4.0"
+  },
+  "overrides": {
+    "eslint": "^9.8.0"
+  },
+  "dependencies": {
+    "@types/node": "^22.0.0"
+  }
+}
