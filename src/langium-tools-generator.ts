@@ -96,4 +96,36 @@ export class GeneratorOutputCollector {
   getGeneratedContent(): GeneratedContent {
     return this.generatedContent;
   }
+
+  /**
+   * Writes the generated content to the file system.
+   * Existing files are only overwritten if the overwrite flag is set (default behavior).
+   * If the file already exists and the content is the same, the file is not overwritten
+   * preveserving the timestamp and not triggering file system file change events.
+   *
+   * @param workspaceDir - The workspace directory.
+   * @since 0.1.0
+   */
+  createFiles(workspaceDir: string) {
+    if (!fs.existsSync(workspaceDir)) {
+      fs.mkdirSync(workspaceDir, { recursive: true });
+    }
+
+    this.generatedContent.forEach((content, file) => {
+      const absoluteFilePath = path.join(workspaceDir, file);
+      const filePath = path.dirname(absoluteFilePath);
+      if (!fs.existsSync(filePath)) {
+        fs.mkdirSync(filePath, { recursive: true });
+      } else if (fs.existsSync(absoluteFilePath)) {
+        if (!content.overwrite) {
+          return;
+        }
+        const existingContent = fs.readFileSync(absoluteFilePath);
+        if (existingContent.toString() === content.content) {
+          return;
+        }
+      }
+      fs.writeFileSync(absoluteFilePath, content.content);
+    });
+  }
 }
