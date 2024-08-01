@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
-import { GeneratorOutput, GeneratorOutputCollector } from '../src/langium-tools-generator'
+import { GeneratorOutput, GeneratorOutputCollector } from '../src/generator/generator-output-collector'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'
@@ -352,14 +352,14 @@ describe('GeneratorOutputCollector', () => {
 
     test('No files to create - dir get created', () => {
       const collector = new GeneratorOutputCollector()
-      collector.createFiles(tmpDir)
+      collector.writeToDisk(tmpDir)
       expect(fs.readdirSync(tmpDir)).toStrictEqual([])
     })
 
     test('No files to create - dir get created recursively', () => {
       const collector = new GeneratorOutputCollector()
       const workspacePath = path.join(tmpDir, 'path', 'to')
-      collector.createFiles(workspacePath)
+      collector.writeToDisk(workspacePath)
       expect(fs.readdirSync(workspacePath)).toStrictEqual([])
     })
 
@@ -367,7 +367,7 @@ describe('GeneratorOutputCollector', () => {
       const collector = new GeneratorOutputCollector()
       const generatorOutput = collector.generatorOutputFor('test.dsl')
       generatorOutput.createFile('file1.js', '// Model content1')
-      collector.createFiles(tmpDir)
+      collector.writeToDisk(tmpDir)
       expect(fs.readFileSync(path.join(tmpDir, 'file1.js'), 'utf8')).toBe('// Model content1')
     })
 
@@ -375,7 +375,7 @@ describe('GeneratorOutputCollector', () => {
       const collector = new GeneratorOutputCollector()
       const generatorOutput = collector.generatorOutputFor('test.dsl')
       generatorOutput.createFile('path/to/file1.js', '// Model content1')
-      collector.createFiles(tmpDir)
+      collector.writeToDisk(tmpDir)
       expect(fs.readFileSync(path.join(tmpDir, 'path', 'to', 'file1.js'), 'utf8')).toBe('// Model content1')
     })
 
@@ -389,7 +389,7 @@ describe('GeneratorOutputCollector', () => {
       const generatorOutput = collector.generatorOutputFor('test.dsl')
       generatorOutput.createFile('file1.js', '// New content1', false)
       generatorOutput.createFile('file2.js', '// New content2', true)
-      collector.createFiles(tmpDir)
+      collector.writeToDisk(tmpDir)
       expect(fs.readFileSync(filePath1, 'utf8')).toBe('// Existing content 1')
       expect(fs.readFileSync(filePath2, 'utf8')).toBe('// New content2')
     })
@@ -410,7 +410,7 @@ describe('GeneratorOutputCollector', () => {
       const generatorOutput = collector.generatorOutputFor('test.dsl')
       generatorOutput.createFile('file1.js', '// Existing content 1', true)
       generatorOutput.createFile('file2.js', '// New content2', true)
-      collector.createFiles(tmpDir)
+      collector.writeToDisk(tmpDir)
       expect(fs.readFileSync(filePath1, 'utf8')).toBe('// Existing content 1')
       expect(fs.readFileSync(filePath2, 'utf8')).toBe('// New content2')
       expect(fs.statSync(filePath1).mtimeMs).toBe(lastModified1)
@@ -440,7 +440,7 @@ describe('GeneratorOutputCollector', () => {
           overwrite: false
         }]
       }, collector.generatorOutputFor('test.dsl'))
-      collector.createFiles(tmpDir)
+      collector.writeToDisk(tmpDir)
       expect(fs.readFileSync(path.join(tmpDir, 'file1.js'), 'utf8')).toBe('// Model content1')
       expect(fs.readFileSync(path.join(tmpDir, 'path', 'to', 'file2.js'), 'utf8')).toBe('// Model content2')
       expect(fs.readFileSync(path.join(tmpDir, 'path', 'to', 'file3.js'), 'utf8')).toBe('// Model content3')

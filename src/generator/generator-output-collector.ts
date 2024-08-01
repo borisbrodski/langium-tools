@@ -1,7 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-
 /**
  * Generated content.
  *
@@ -106,7 +105,7 @@ export class GeneratorOutputCollector {
    * @param workspaceDir - The workspace directory.
    * @since 0.1.0
    */
-  createFiles(workspaceDir: string) {
+  writeToDisk(workspaceDir: string) {
     if (!fs.existsSync(workspaceDir)) {
       fs.mkdirSync(workspaceDir, { recursive: true });
     }

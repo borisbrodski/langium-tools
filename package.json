@@ -2,10 +2,18 @@
   "name": "langium-tools",
   "version": "0.1.0",
   "description": "A set of tools for Langium",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "lint": "eslint 'src/**/*.{ts,tsx}'",
+    "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
     "test": "vitest"
+  },
+  "exports": {
+    "./base": "./dist/base/index.js",
+    "./generator": "./dist/generator/index.js",
+    "./testing": "./dist/testing/index.js"
   },
   "author": "Boris Brodski",
   "license": "MIT",
