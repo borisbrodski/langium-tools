@@ -1,4 +1,4 @@
-import { toFirstUpper } from "../src/base/string";
+import { toFirstUpper } from "../../src/base/string";
 import { describe, expect, it } from "vitest";
 
 describe("langium-tools-base", () => {

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
-import { GeneratorOutput, GeneratorOutputCollector } from '../src/generator/generator-output-collector'
+import { GeneratorOutput, GeneratorOutputCollector } from '../../src/generator/generator-output-collector'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'

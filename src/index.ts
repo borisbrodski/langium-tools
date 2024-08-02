@@ -1,4 +1,4 @@
-export * as base from './base'
-export * as generator from './generator'
-export * as testing from './testing'
+export * as base from './base/index.js'
+export * as generator from './generator/index.js'
+export * as testing from './testing/index.js'
 

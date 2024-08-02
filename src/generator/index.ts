@@ -1,1 +1,1 @@
-export * from './generator-output-collector'
+export * from './generator-output-collector.js'
