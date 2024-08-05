@@ -26,8 +26,8 @@ export function langiumGeneratorSuite<SERVICES, MODEL>(testSuiteDir: string, opt
     .forEach((dirent) => {
       const testDirName = dirent.name;
 
-      test(`DSL-Workspace "${testDirName}"${generateMode ? ' (generating)' : ''})}`, async () => {
-        langiumGeneratorTest<SERVICES, MODEL>(path.join(testSuiteDir, testDirName), options);
+      test(`DSL-Workspace "${testDirName}"${generateMode ? ' (generating)' : ''}`, async () => {
+        await langiumGeneratorTest<SERVICES, MODEL>(path.join(testSuiteDir, testDirName), options);
       })
     })
 }
