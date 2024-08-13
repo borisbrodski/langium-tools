@@ -92,7 +92,7 @@ export async function buildDocuments({ shared }: { shared: LangiumSharedServices
 
 export async function validateDocuments(_service: object, documents: LangiumDocument<AstNode>[]): Promise<void> {
   documents.forEach(doc => {
-    const summery = getDocumentIssues(doc, false);
+    const summery = getDocumentIssues(doc, { skipValidation: true });
     if (summery.countTotal > 0) {
       expect(summery.summary, `DSL file ${doc.uri} has errors:\n${summery.message}`).toBe('No errors');
     }
