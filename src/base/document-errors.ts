@@ -10,6 +10,13 @@ export type DocumentIssueSummary = {
   message: string;
 }
 
+export interface GetDocumentIssuesParams {
+  skipNonErrorDiagnostics?: boolean,
+  skipLexerErrors?: boolean,
+  skipParserErrors?: boolean,
+  skipValidation?: boolean,
+}
+
 /**
  * Return summary and details of errors and other issues in a langium document.
  *
@@ -18,10 +25,15 @@ export type DocumentIssueSummary = {
  *                         Otherwise, only errors are included. Default is true.
  * @returns A summary of the issues in the document
  */
-export function getDocumentIssues(document: LangiumDocument, includeNonErrors: boolean = true): DocumentIssueSummary {
-  const lexerErrors = document.parseResult.lexerErrors;
-  const parserErrors = document.parseResult.parserErrors;
-  const diagnostics = document.diagnostics || [];
+export function getDocumentIssues(document: LangiumDocument, params?: GetDocumentIssuesParams): DocumentIssueSummary {
+  const skipNonErrorDiagnostics = params?.skipNonErrorDiagnostics || false;
+  const skipLexerErrors = params?.skipLexerErrors || false;
+  const skipParserErrors = params?.skipParserErrors || false;
+  const skipValidation = params?.skipValidation || false;
+
+  const lexerErrors = skipLexerErrors ? [] : document.parseResult.lexerErrors;
+  const parserErrors = skipParserErrors ? [] : document.parseResult.parserErrors;
+  const diagnostics = skipValidation ? [] : document.diagnostics || [];
 
   let countErrors = 0;
   let countNonErrors = 0;
@@ -51,7 +63,7 @@ export function getDocumentIssues(document: LangiumDocument, includeNonErrors: b
   if (diagnosticsErrors.length > 0) {
     summary.push(`${diagnosticsErrors.length} error diagnostic(s)`)
   }
-  if (includeNonErrors) {
+  if (!skipNonErrorDiagnostics) {
     const diagnosticsNonErrorCount = diagnostics.length - diagnosticsErrors.length
     if (diagnosticsNonErrorCount > 0) {
       summary.push(`${diagnosticsNonErrorCount} non-error diagnostic(s)`)

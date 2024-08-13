@@ -45,6 +45,24 @@ describe('Document Errors', () => {
     expect(summary.message).not.toContain('NaN:NaN');
   });
 
+  test('Lexer error skipped', async () => {
+    const services = createLangiumGrammarServices(EmptyFileSystem)
+    const parse = parseHelper<Grammar>(services.grammar);
+    const document = await parse(`
+      grammar LangiumGrammar
+
+      entry Grammar: id=ID;
+
+      terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      terminal Error: 'err
+    `)
+    const summary = getDocumentIssues(document, { skipLexerErrors: true });
+    expect(summary.countTotal).toBe(1);
+    expect(summary.countErrors).toBe(1);
+    expect(summary.countNonErrors).toBe(0);
+    expect(summary.summary).toEqual('1 parser error(s)');
+  });
+
   test('Parser error', async () => {
     const services = createLangiumGrammarServices(EmptyFileSystem)
     const parse = parseHelper<Grammar>(services.grammar);
@@ -66,6 +84,25 @@ describe('Document Errors', () => {
     expect(summary.message).toContain(summary.summary);
   });
 
+  test('Parser error skipped', async () => {
+    const services = createLangiumGrammarServices(EmptyFileSystem)
+    const parse = parseHelper<Grammar>(services.grammar);
+    const document = await parse(`
+      grammar LangiumGrammar
+
+      entry Grammar: id=ID;
+
+      terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      terminal ID2: ;
+    `)
+    const summary = getDocumentIssues(document, { skipParserErrors: true });
+    expect(summary.countTotal).toBe(0);
+    expect(summary.countErrors).toBe(0);
+    expect(summary.countNonErrors).toBe(0);
+    expect(summary.summary).toEqual('No errors');
+    expect(summary.message).toEqual('');
+  });
+
   test('Diagnosic errors', async () => {
     const services = createLangiumGrammarServices(EmptyFileSystem)
     const parse = parseHelper<Grammar>(services.grammar);
@@ -78,7 +115,7 @@ describe('Document Errors', () => {
 
       terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
     `, { validation: true })
-    const summary = getDocumentIssues(document, false);
+    const summary = getDocumentIssues(document, { skipNonErrorDiagnostics: true });
     expect(summary.countTotal).toBe(3);
     expect(summary.countErrors).toBe(3);
     expect(summary.countNonErrors).toBe(0);
@@ -86,6 +123,26 @@ describe('Document Errors', () => {
     expect(summary.message).toContain('Diagnostics:');
     expect(summary.message).toContain("The entry rule cannot be a data type rule.");
     expect(summary.message).toContain(summary.summary);
+  });
+
+  test('Diagnosic errors skipped', async () => {
+    const services = createLangiumGrammarServices(EmptyFileSystem)
+    const parse = parseHelper<Grammar>(services.grammar);
+    const document = await parse(`
+      grammar LangiumGrammar
+
+      entry Grammar: ID;
+
+      Unused: name=ID;
+
+      terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+    `, { validation: true })
+    const summary = getDocumentIssues(document, { skipValidation: true });
+    expect(summary.countTotal).toBe(0);
+    expect(summary.countErrors).toBe(0);
+    expect(summary.countNonErrors).toBe(0);
+    expect(summary.summary).toEqual('No errors');
+    expect(summary.message).toEqual('');
   });
 
   test('Diagnosic non-errors', async () => {
@@ -122,7 +179,7 @@ describe('Document Errors', () => {
 
       terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
     `, { validation: true })
-    const summary = getDocumentIssues(document, false);
+    const summary = getDocumentIssues(document, { skipNonErrorDiagnostics: true });
     expect(summary.countTotal).toBe(0);
     expect(summary.countErrors).toBe(0);
     expect(summary.countNonErrors).toBe(0);
