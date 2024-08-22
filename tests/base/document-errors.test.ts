@@ -1,21 +1,28 @@
-import { EmptyFileSystem, Grammar } from "langium";
+import { EmptyFileSystem, Grammar, LangiumDocument } from "langium";
 import { createLangiumGrammarServices } from "langium/grammar";
-import { describe, expect, test } from "vitest";
 import { parseHelper } from "langium/test";
-import { getDocumentIssues } from "../../src/base/document-errors.ts"
+import { beforeAll, describe, expect, test } from "vitest";
+import { getDocumentIssueSummary } from "../../src/base/document-errors.ts";
 
 describe('Document Errors', () => {
+  let services: ReturnType<typeof createLangiumGrammarServices>;
+  let parse: ReturnType<typeof parseHelper<Grammar>>;
+  let document: LangiumDocument<Grammar> | undefined;
+
+  beforeAll(() => {
+    services = createLangiumGrammarServices(EmptyFileSystem)
+    parse = parseHelper<Grammar>(services.grammar);
+  })
+
   test('No errors', async () => {
-    const services = createLangiumGrammarServices(EmptyFileSystem)
-    const parse = parseHelper<Grammar>(services.grammar);
-    const document = await parse(`
+    document = await parse(`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
 
       terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
     `)
-    const summary = getDocumentIssues(document);
+    const summary = getDocumentIssueSummary(document);
     expect(summary.countTotal).toBe(0);
     expect(summary.countErrors).toBe(0);
     expect(summary.countNonErrors).toBe(0);
@@ -24,9 +31,7 @@ describe('Document Errors', () => {
   });
 
   test('Lexer error', async () => {
-    const services = createLangiumGrammarServices(EmptyFileSystem)
-    const parse = parseHelper<Grammar>(services.grammar);
-    const document = await parse(`
+    document = await parse(`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
@@ -34,21 +39,19 @@ describe('Document Errors', () => {
       terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
       terminal Error: 'err
     `)
-    const summary = getDocumentIssues(document);
+    const summary = getDocumentIssueSummary(document);
     expect(summary.countTotal).toBe(2);
     expect(summary.countErrors).toBe(2);
     expect(summary.countNonErrors).toBe(0);
     expect(summary.summary).toEqual('1 lexer error(s), 1 parser error(s)');
-    expect(summary.message).toContain('Lexer Errors:');
+    expect(summary.message).toContain('Lexer errors:');
     expect(summary.message).toContain("unexpected character: ->'<- at offset:");
     expect(summary.message).toContain(summary.summary);
     expect(summary.message).not.toContain('NaN:NaN');
   });
 
   test('Lexer error skipped', async () => {
-    const services = createLangiumGrammarServices(EmptyFileSystem)
-    const parse = parseHelper<Grammar>(services.grammar);
-    const document = await parse(`
+    document = await parse(`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
@@ -56,7 +59,7 @@ describe('Document Errors', () => {
       terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
       terminal Error: 'err
     `)
-    const summary = getDocumentIssues(document, { skipLexerErrors: true });
+    const summary = getDocumentIssueSummary(document, { skipLexerErrors: true });
     expect(summary.countTotal).toBe(1);
     expect(summary.countErrors).toBe(1);
     expect(summary.countNonErrors).toBe(0);
@@ -64,9 +67,7 @@ describe('Document Errors', () => {
   });
 
   test('Parser error', async () => {
-    const services = createLangiumGrammarServices(EmptyFileSystem)
-    const parse = parseHelper<Grammar>(services.grammar);
-    const document = await parse(`
+    document = await parse(`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
@@ -74,20 +75,18 @@ describe('Document Errors', () => {
       terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
       terminal ID2: ;
     `)
-    const summary = getDocumentIssues(document);
+    const summary = getDocumentIssueSummary(document);
     expect(summary.countTotal).toBe(1);
     expect(summary.countErrors).toBe(1);
     expect(summary.countNonErrors).toBe(0);
     expect(summary.summary).toEqual('1 parser error(s)');
-    expect(summary.message).toContain('Parser Errors:');
+    expect(summary.message).toContain('Parser errors:');
     expect(summary.message).toContain("Expecting: one of these possible Token sequences");
     expect(summary.message).toContain(summary.summary);
   });
 
   test('Parser error skipped', async () => {
-    const services = createLangiumGrammarServices(EmptyFileSystem)
-    const parse = parseHelper<Grammar>(services.grammar);
-    const document = await parse(`
+    document = await parse(`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
@@ -95,7 +94,7 @@ describe('Document Errors', () => {
       terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
       terminal ID2: ;
     `)
-    const summary = getDocumentIssues(document, { skipParserErrors: true });
+    const summary = getDocumentIssueSummary(document, { skipParserErrors: true });
     expect(summary.countTotal).toBe(0);
     expect(summary.countErrors).toBe(0);
     expect(summary.countNonErrors).toBe(0);
@@ -104,9 +103,7 @@ describe('Document Errors', () => {
   });
 
   test('Diagnosic errors', async () => {
-    const services = createLangiumGrammarServices(EmptyFileSystem)
-    const parse = parseHelper<Grammar>(services.grammar);
-    const document = await parse(`
+    document = await parse(`
       grammar LangiumGrammar
 
       entry Grammar: ID;
@@ -115,7 +112,7 @@ describe('Document Errors', () => {
 
       terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
     `, { validation: true })
-    const summary = getDocumentIssues(document, { skipNonErrorDiagnostics: true });
+    const summary = getDocumentIssueSummary(document, { skipNonErrorDiagnostics: true });
     expect(summary.countTotal).toBe(3);
     expect(summary.countErrors).toBe(3);
     expect(summary.countNonErrors).toBe(0);
@@ -126,9 +123,7 @@ describe('Document Errors', () => {
   });
 
   test('Diagnosic errors skipped', async () => {
-    const services = createLangiumGrammarServices(EmptyFileSystem)
-    const parse = parseHelper<Grammar>(services.grammar);
-    const document = await parse(`
+    document = await parse(`
       grammar LangiumGrammar
 
       entry Grammar: ID;
@@ -137,7 +132,7 @@ describe('Document Errors', () => {
 
       terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
     `, { validation: true })
-    const summary = getDocumentIssues(document, { skipValidation: true });
+    const summary = getDocumentIssueSummary(document, { skipValidation: true });
     expect(summary.countTotal).toBe(0);
     expect(summary.countErrors).toBe(0);
     expect(summary.countNonErrors).toBe(0);
@@ -146,9 +141,7 @@ describe('Document Errors', () => {
   });
 
   test('Diagnosic non-errors', async () => {
-    const services = createLangiumGrammarServices(EmptyFileSystem)
-    const parse = parseHelper<Grammar>(services.grammar);
-    const document = await parse(`
+    document = await parse(`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
@@ -157,7 +150,7 @@ describe('Document Errors', () => {
 
       terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
     `, { validation: true })
-    const summary = getDocumentIssues(document);
+    const summary = getDocumentIssueSummary(document);
     expect(summary.countTotal).toBe(1);
     expect(summary.countErrors).toBe(0);
     expect(summary.countNonErrors).toBe(1);
@@ -168,9 +161,7 @@ describe('Document Errors', () => {
   });
 
   test('Diagnosic non-errors ignored', async () => {
-    const services = createLangiumGrammarServices(EmptyFileSystem)
-    const parse = parseHelper<Grammar>(services.grammar);
-    const document = await parse(`
+    document = await parse(`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
@@ -179,7 +170,7 @@ describe('Document Errors', () => {
 
       terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
     `, { validation: true })
-    const summary = getDocumentIssues(document, { skipNonErrorDiagnostics: true });
+    const summary = getDocumentIssueSummary(document, { skipNonErrorDiagnostics: true });
     expect(summary.countTotal).toBe(0);
     expect(summary.countErrors).toBe(0);
     expect(summary.countNonErrors).toBe(0);

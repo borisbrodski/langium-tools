@@ -4,7 +4,7 @@ import { NodeFileSystem } from 'langium/node';
 import path from 'path';
 import fs from 'fs';
 import { expect, test } from 'vitest';
-import { getDocumentIssues } from '../base/document-errors.js';
+import { getDocumentIssueSummary } from '../base/document-errors.js';
 import { GeneratedContent, GeneratorOutput, GeneratorOutputCollector } from '../generator/generator-output-collector.js';
 
 type DslServices<SERVICES> = { shared: LangiumSharedServices } & SERVICES;
@@ -92,7 +92,7 @@ export async function buildDocuments({ shared }: { shared: LangiumSharedServices
 
 export async function validateDocuments(_service: object, documents: LangiumDocument<AstNode>[]): Promise<void> {
   documents.forEach(doc => {
-    const summery = getDocumentIssues(doc, { skipValidation: true });
+    const summery = getDocumentIssueSummary(doc, { skipValidation: true });
     if (summery.countTotal > 0) {
       expect(summery.summary, `DSL file ${doc.uri} has errors:\n${summery.message}`).toBe('No errors');
     }
