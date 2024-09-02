@@ -8,6 +8,7 @@ export interface IgnoreParameters {
   ignoreParserErors?: boolean,
   ignoreLexerErors?: boolean,
   ignoreValidationErrors?: boolean,
+  ignoreNonErrorDiagnostics?: boolean,
 }
 
 /**
@@ -18,7 +19,6 @@ function toHaveNoErrors(document: LangiumDocument, parameters?: IgnoreParameters
     ignoreParserErors = false,
     ignoreLexerErors = false,
     ignoreValidationErrors = false,
-
   } = (parameters || {});
   const issues = getDocumentIssueSummary(document, {
     skipLexerErrors: ignoreLexerErors,
@@ -46,13 +46,14 @@ function toHaveValidationIssues(parsedDocument: ParsedDocument, expectedIssues: 
     ignoreParserErors = false,
     ignoreLexerErors = false,
     ignoreValidationErrors = false,
+    ignoreNonErrorDiagnostics = false,
 
   } = (parameters || {});
   const isIssues = getDocumentIssues(parsedDocument.document, {
     skipLexerErrors: ignoreLexerErors,
     skipParserErrors: ignoreParserErors,
     skipValidation: ignoreValidationErrors,
-    skipNonErrorDiagnostics: true,
+    skipNonErrorDiagnostics: ignoreNonErrorDiagnostics,
   });
 
   if (!isIssues || isIssues.length === 0) {
@@ -65,7 +66,7 @@ function toHaveValidationIssues(parsedDocument: ParsedDocument, expectedIssues: 
     return {
       pass: false,
       message: () => `No of expected ${expectedIssues.length} issues were present in document\n${ //
-        expectedIssues.map((issue) => issueExpectationToString(parsedDocument, issue))
+        expectedIssues.map((issue) => issueExpectationToString(parsedDocument, issue)).join("\n")
         }`
     }
   }
@@ -153,14 +154,14 @@ function issueExpectationToString(parsedDocument: ParsedDocument, issue: IssueEx
   let message = `${severity}`
   if (issue.markerId !== undefined) {
     const marker = parsedDocument.markerData.markers[issue.markerId]
-    message += ` at ${marker.startLine}:${marker.startColumn}`
+    message += ` at ${marker.startLine + 1}:${marker.startColumn + 1}`
     if (marker.startOffset < marker.endOffset) {
       message += "-"
       if (marker.startLine < marker.endLine) {
-        message += `${marker.endLine}:`
+        message += `${marker.endLine + 1}:`
 
       }
-      message += `${marker.endColumn}`
+      message += `${marker.endColumn + 1}`
     }
   }
   message += ` - ${issue.message}`

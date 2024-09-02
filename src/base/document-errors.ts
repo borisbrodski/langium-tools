@@ -236,14 +236,14 @@ export function severityToString(severity: DiagnosticSeverity | number | undefin
 function at(startLine?: number, startColumn?: number, endLine?: number, endColumn?: number): string {
   let result = ''
   if (startLine !== undefined && !isNaN(startLine)) {
-    result += ` at ${startLine}`
+    result += ` at ${startLine + 1}`
     if (startColumn !== undefined && !isNaN(startColumn)) {
-      result += `:${startColumn}`
+      result += `:${startColumn + 1}`
       if (endLine !== undefined && !isNaN(endLine) && endColumn !== undefined && !isNaN(endColumn)) {
         if (startLine !== endLine) {
-          result += `-${endLine}:${endColumn}`
+          result += `-${endLine + 1}:${endColumn + 1}`
         } else {
-          result += `-${endColumn}`
+          result += `-${endColumn + 1}`
         }
       }
     }

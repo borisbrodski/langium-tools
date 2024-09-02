@@ -7,33 +7,39 @@ import { expect, test } from 'vitest';
 import { getDocumentIssueSummary } from '../base/document-errors.js';
 import { GeneratedContent, GeneratorOutput, GeneratorOutputCollector } from '../generator/generator-output-collector.js';
 
-type DslServices<SERVICES> = { shared: LangiumSharedServices } & SERVICES;
 
-export interface GeneratorTestOptions<SERVICES, MODEL> {
-  createServices: (context: DefaultSharedModuleContext) => DslServices<SERVICES>;
-  initWorkspace?: (service: DslServices<SERVICES>, workspaceDir: string) => Promise<WorkspaceFolder>;
-  buildDocuments?: (service: DslServices<SERVICES>, workspaceFolder: WorkspaceFolder) => Promise<LangiumDocument<AstNode>[]>;
-  validateDocuments?: (service: DslServices<SERVICES>, documents: LangiumDocument<AstNode>[]) => Promise<LangiumDocument<AstNode>[]>;
-  generateForWorkspace?: (service: DslServices<SERVICES>, documents: LangiumDocument<AstNode>[], workspaceFolder: WorkspaceFolder) => Promise<GeneratorOutputCollector>;
-  generateForModel?: (document: MODEL, generatorOutput: GeneratorOutput) => Promise<void>;
+type DslServices<SERVICES, SHARED_SERVICES> = { shared: LangiumSharedServices & SHARED_SERVICES } & SERVICES;
+type ValueOf<T> = T[keyof T];
+
+type ExtractServiceType<T> = ValueOf<Omit<T, 'shared'>>;
+
+
+export interface GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL> {
+  createServices: (context: DefaultSharedModuleContext) => DslServices<SERVICES, SHARED_SERVICES>;
+  initWorkspace?: (service: DslServices<SERVICES, SHARED_SERVICES>, workspaceDir: string) => Promise<WorkspaceFolder>;
+  buildDocuments?: (service: DslServices<SERVICES, SHARED_SERVICES>, workspaceFolder: WorkspaceFolder) => Promise<LangiumDocument<AstNode>[]>;
+  validateDocuments?: (service: DslServices<SERVICES, SHARED_SERVICES>, documents: LangiumDocument<AstNode>[]) => Promise<LangiumDocument<AstNode>[]>;
+  generateForWorkspace?: (service: DslServices<SERVICES, SHARED_SERVICES>, documents: LangiumDocument<AstNode>[], workspaceFolder: WorkspaceFolder) => Promise<GeneratorOutputCollector>;
+  generateForModel?: (services: ExtractServiceType<SERVICES>, document: MODEL, generatorOutput: GeneratorOutput) => Promise<void>;
 }
 
 const generateMode = process.env.GENERATOR_TEST === "generate";
 
-export function langiumGeneratorSuite<SERVICES, MODEL>(testSuiteDir: string, options: GeneratorTestOptions<SERVICES, MODEL>): void {
+export function langiumGeneratorSuite<SERVICES, SHARED_SERVICES, MODEL>(testSuiteDir: string, options: GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL>): void {
   fs.readdirSync(testSuiteDir, { withFileTypes: true })
     .filter((dirent) => dirent.isDirectory())
     .forEach((dirent) => {
       const testDirName = dirent.name;
 
       test(`DSL-Workspace "${testDirName}"${generateMode ? ' (generating)' : ''}`, async () => {
-        await langiumGeneratorTest<SERVICES, MODEL>(path.join(testSuiteDir, testDirName), options);
+        await langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL>(path.join(testSuiteDir, testDirName), options);
       })
     })
 }
 
-export async function langiumGeneratorTest<SERVICES, MODEL>(testDir: string, options: GeneratorTestOptions<SERVICES, MODEL>): Promise<void> {
-  async function generateForWorkspace(_service: DslServices<SERVICES>, documents: LangiumDocument<AstNode>[], workspaceFolder: WorkspaceFolder): Promise<GeneratorOutputCollector> {
+export async function langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL>(testDir: string, options: GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL>): Promise<void> {
+
+  async function generateForWorkspace(services: DslServices<SERVICES, SHARED_SERVICES>, documents: LangiumDocument<AstNode>[], workspaceFolder: WorkspaceFolder): Promise<GeneratorOutputCollector> {
     const optionsGenerator = options.generateForModel
     if (!optionsGenerator) {
       throw new Error('One of generateForDocument or generateForWorkspace must be defined')
@@ -43,7 +49,13 @@ export async function langiumGeneratorTest<SERVICES, MODEL>(testDir: string, opt
     for (const document of documents) {
       const model = document.parseResult.value as MODEL;
       const relativeFileName = path.relative(workspaceFolder.uri, document.uri.toString());
-      await optionsGenerator(model, collector.generatorOutputFor(relativeFileName));
+
+      const nonSharedServices = Object.keys(services as object).filter(key => key !== 'shared');
+      if (nonSharedServices.length !== 1) {
+        throw new Error('Expected exactly one non-shared service');
+      }
+      const serviceName = nonSharedServices[0];
+      await optionsGenerator(services[serviceName as keyof SERVICES] as ExtractServiceType<SERVICES>, model, collector.generatorOutputFor(relativeFileName));
     }
     return collector;
   }
@@ -53,7 +65,7 @@ export async function langiumGeneratorTest<SERVICES, MODEL>(testDir: string, opt
   const optionsGenerateForWorkspace = options.generateForWorkspace || generateForWorkspace;
 
   const services = options.createServices(NodeFileSystem)
-  const workspaceFolder = await optionsInitWorkspace(services, path.join(testDir, 'dsls'));
+  const workspaceFolder = await optionsInitWorkspace(services, testDir);
   const documents = await optionsBuildDocuments(services, workspaceFolder);
   await optionsValidateDocuments(services, documents);
   const generatorOutputCollector = await optionsGenerateForWorkspace(services, documents, workspaceFolder);
@@ -130,18 +142,37 @@ function cleanDir(outputDir: string) {
  * @param fileContentMap
  * @param outputDir
  */
-function verifyFiles(content: GeneratedContent, outputDir: string) {
+function verifyFiles(generatedContent: GeneratedContent, outputDir: string) {
   const files = (fs.readdirSync(outputDir, { recursive: true }) as string[])
-    .filter(file => fs.statSync(path.join(outputDir, file)).isFile());
-  content.forEach((content, fileName) => {
-    expect(files, "Unexpected generated file").toContain(fileName);
-    const filePath = path.join(outputDir, fileName);
+    .filter(file => fs.statSync(path.join(outputDir, file)).isFile())
+    .map(path.normalize);
+  generatedContent.forEach((content, fileName) => {
+    const normFileName = path.normalize(fileName)
+    try {
+      expect(files).toContain(normFileName);
+    } catch (error) {
+      console.error('ERROR: Unexpected generated file:')
+      console.error(`- '${URI.parse(normFileName)}')`)
+      console.error('Expecting files:')
+      files.forEach(file =>
+        console.error(`- '${URI.parse(file)}'`)
+      )
+      throw error
+    }
+    const filePath = path.join(outputDir, normFileName);
     const fileContent = fs.readFileSync(filePath, "utf-8");
-    expect(fileContent, "File: " + fileName).toBe(content.content);
+    expect(content.content, "File: " + fileName).toBe(fileContent);
   });
-  if (files.length !== content.size) {
-    const missingFiles = Array.from(content.keys()).filter((file) => !files.includes(file));
-    expect("Missing files: " + missingFiles).toBe("No missing files");
+  try {
+    expect(files.length, "Missing generated files").toBe(generatedContent.size)
+  } catch (error) {
+    console.error("ERROR: Missing generated files:")
+    const generatedFiles = Array.from(generatedContent.keys()).map(path.normalize)
+    files.filter((file) => !generatedFiles.includes(file))
+      .forEach(file => {
+        console.error(`- ${file}`)
+      })
+    throw error
   }
 
 }
