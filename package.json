@@ -24,7 +24,7 @@
   "dependencies": {
     "@types/node": "^22.0.0",
     "escape-string-regexp": "^5.0.0",
-    "langium": "^3.1.0"
+    "langium": "^3.2.0"
   },
   "peerDependencies": {
     "vitest": "~2.0.5"
