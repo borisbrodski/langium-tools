@@ -53,7 +53,7 @@ export class GeneratorOutputCollector {
    */
   generatorOutputFor(dslWorkspacePath: string): GeneratorOutput {
     return {
-      createFile: (filePath: string, content: string, overwrite: boolean = false) => {
+      createFile: (filePath: string, content: string, overwrite: boolean = true) => {
         this.createFile(filePath, content, overwrite, dslWorkspacePath);
       },
       getDslWorkspacePath: () => dslWorkspacePath
