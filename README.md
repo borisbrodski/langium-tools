@@ -122,9 +122,13 @@ You can check out The Umltimative Example: the default langium example project <
 
 ## Documentation
 
+See [typedoc documentation](https://borisbrodski.github.io/langium-tools)
+
 ### Generators
 
-TODO
+The main class is [GeneratorOutputCollector](https://borisbrodski.github.io/langium-tools/classes/generator.GeneratorOutputCollector.html)
+
+
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
