@@ -14,7 +14,7 @@ type ValueOf<T> = T[keyof T];
 type ExtractServiceType<T> = ValueOf<Omit<T, 'shared'>>;
 
 
-export interface GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL> {
+export interface GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL extends AstNode> {
   createServices: (context: DefaultSharedModuleContext) => DslServices<SERVICES, SHARED_SERVICES>;
   initWorkspace?: (service: DslServices<SERVICES, SHARED_SERVICES>, workspaceDir: string) => Promise<WorkspaceFolder>;
   buildDocuments?: (service: DslServices<SERVICES, SHARED_SERVICES>, workspaceFolder: WorkspaceFolder) => Promise<LangiumDocument<AstNode>[]>;
@@ -25,7 +25,7 @@ export interface GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL> {
 
 const generateMode = process.env.GENERATOR_TEST === "generate";
 
-export function langiumGeneratorSuite<SERVICES, SHARED_SERVICES, MODEL>(testSuiteDir: string, options: GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL>): void {
+export function langiumGeneratorSuite<SERVICES, SHARED_SERVICES, MODEL extends AstNode>(testSuiteDir: string, options: GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL>): void {
   fs.readdirSync(testSuiteDir, { withFileTypes: true })
     .filter((dirent) => dirent.isDirectory())
     .forEach((dirent) => {
@@ -37,7 +37,7 @@ export function langiumGeneratorSuite<SERVICES, SHARED_SERVICES, MODEL>(testSuit
     })
 }
 
-export async function langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL>(testDir: string, options: GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL>): Promise<void> {
+export async function langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL extends AstNode>(testDir: string, options: GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL>): Promise<void> {
 
   async function generateForWorkspace(services: DslServices<SERVICES, SHARED_SERVICES>, documents: LangiumDocument<AstNode>[], workspaceFolder: WorkspaceFolder): Promise<GeneratorOutputCollector> {
     const optionsGenerator = options.generateForModel
@@ -48,14 +48,14 @@ export async function langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL>(tes
     const collector = new GeneratorOutputCollector();
     for (const document of documents) {
       const model = document.parseResult.value as MODEL;
-      const relativeFileName = path.relative(workspaceFolder.uri, document.uri.toString());
+      // const relativeFileName = path.relative(workspaceFolder.uri, document.uri.toString()); // TODO
 
       const nonSharedServices = Object.keys(services as object).filter(key => key !== 'shared');
       if (nonSharedServices.length !== 1) {
         throw new Error('Expected exactly one non-shared service');
       }
       const serviceName = nonSharedServices[0];
-      await optionsGenerator(services[serviceName as keyof SERVICES] as ExtractServiceType<SERVICES>, model, collector.generatorOutputFor(relativeFileName));
+      await optionsGenerator(services[serviceName as keyof SERVICES] as ExtractServiceType<SERVICES>, model, collector.generatorOutputFor(model)); // TODO relativeFileName
     }
     return collector;
   }

@@ -1,37 +1,99 @@
-import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest'
 import { GeneratorOutput, GeneratorOutputCollector } from '../../src/generator/generator-output-collector'
+import { using } from '../../src/testing'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'
-
-type Model = {
-  name: string,
-  files: {
-    name: string,
-    content: string,
-    overwrite?: boolean | undefined,
-  }[]
-}
-
-function modelGenerator(model: Model, generatorOutput: GeneratorOutput): void {
-  for (const file of model.files) {
-    if (file.overwrite === undefined) {
-      generatorOutput.createFile(file.name, file.content, true)
-    } else {
-      generatorOutput.createFile(file.name, file.content, file.overwrite)
-    }
-  }
-}
+import { EmptyFileSystem, Grammar, LangiumDocument, URI } from 'langium'
+import { createLangiumGrammarServices } from 'langium/grammar'
+import { parseHelper } from 'langium/test'
 
 describe('GeneratorOutputCollector', () => {
+  let document: LangiumDocument<Grammar>
+  let document2: LangiumDocument<Grammar>
+  let model: Grammar
+  let model2: Grammar
+  beforeAll(async () => {
+    const services = createLangiumGrammarServices(EmptyFileSystem)
+    const parse = parseHelper<Grammar>(services.grammar);
+    document = await parse(`
+        grammar LangiumGrammar
+
+        entry Grammar: id=ID;
+
+        A: a=ID;
+
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `, { validation: true, documentUri: "file:///workspace/dir/doc1.langium" })
+    model = document.parseResult.value
+    document2 = await parse(`
+        grammar LangiumGrammar
+
+        entry Grammar: id=ID;
+
+        A: a=ID;
+
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `, { validation: true, documentUri: "file:///workspace/dir/doc2.langium" })
+    model2 = document2.parseResult.value
+  })
+
   describe('Collecting content', () => {
-    test('Get DSL workspace path in generator', () => {
+    test('Generating without workspace', () => {
+      const model = document.parseResult.value
+      const collector = new GeneratorOutputCollector()
+      using(collector.generatorOutputFor(model), output => {
+        expect(output.getModel()).toBe(model)
+        expect(output.getDocument()).toBe(document)
+        expect(output.getWorkspaceURI()).toBeUndefined()
+        expect(output.getDocumentLocalPath()).toBeUndefined()
+      })
+    })
+
+    test('Generating with document outside of workspace', () => {
       function generator(generatorOutput: GeneratorOutput): void {
-        expect(generatorOutput.getDslWorkspacePath()).toBe('test.dsl')
+        generatorOutput.createFile('path/to/file1', 'Model content1')
       }
 
-      const collector = new GeneratorOutputCollector()
-      generator(collector.generatorOutputFor('test.dsl'))
+      const model = document.parseResult.value
+      const workspaceURI1 = URI.parse('file:///tmp1')
+      const workspaceURI2 = URI.parse('file:///tmp2')
+      const collector = new GeneratorOutputCollector([workspaceURI1, workspaceURI2])
+      using(collector.generatorOutputFor(model), output => {
+        expect(output.getModel()).toBe(model)
+        expect(output.getDocument()).toBe(document)
+        expect(output.getWorkspaceURI()).toBeUndefined()
+        expect(output.getDocumentLocalPath()).toBeUndefined()
+      })
+      generator(collector.generatorOutputFor(model))
+      expect(collector.getGeneratedContent().get('path/to/file1')).toStrictEqual({
+        content: 'Model content1',
+        documentPath: document.uri.toString(),
+        overwrite: true
+      })
+    })
+
+    test('Generating with document in workspace', () => {
+      function generator(generatorOutput: GeneratorOutput): void {
+        generatorOutput.createFile('path/to/file1', 'Model content1')
+      }
+
+      const model = document.parseResult.value
+      const workspaceURI = URI.parse('file:///workspace')
+      const otherWorkspaceURI = URI.parse('file:///other-workspace')
+      const collector = new GeneratorOutputCollector([workspaceURI, otherWorkspaceURI])
+      using(collector.generatorOutputFor(model), output => {
+        expect(output.getModel()).toBe(model)
+        expect(output.getDocument()).toBe(document)
+        expect(output.getWorkspaceURI()).toBe(workspaceURI)
+        expect(output.getDocumentLocalPath()).toBe('/dir/doc1.langium')
+      })
+      generator(collector.generatorOutputFor(model))
+      expect(collector.getGeneratedContent().get('path/to/file1')).toStrictEqual({
+        content: 'Model content1',
+        documentPath: '/dir/doc1.langium',
+        overwrite: true
+      })
     })
 
     test('Generate no files', () => {
@@ -45,13 +107,14 @@ describe('GeneratorOutputCollector', () => {
         generatorOutput.createFile('path/to/file1', 'Model content1')
       }
 
-      const collector = new GeneratorOutputCollector()
-      generator(collector.generatorOutputFor('test.dsl'))
+      const workspaceURI = URI.parse('file:///workspace')
+      const collector = new GeneratorOutputCollector([workspaceURI])
+      generator(collector.generatorOutputFor(model))
       expect(collector.getGeneratedContent().size).toBe(1)
       expect(collector.getGeneratedContent().get('path/to/file1')).toStrictEqual({
         content: 'Model content1',
-        dslWorkspacePath: 'test.dsl',
-        overwrite: false
+        documentPath: '/dir/doc1.langium',
+        overwrite: true
       })
     })
 
@@ -61,19 +124,20 @@ describe('GeneratorOutputCollector', () => {
         generatorOutput.createFile('path/to/file2', 'Model content2')
       }
 
-      const collector = new GeneratorOutputCollector()
-      generator(collector.generatorOutputFor('test.dsl'))
+      const workspaceURI = URI.parse('file:///workspace')
+      const collector = new GeneratorOutputCollector([workspaceURI])
+      generator(collector.generatorOutputFor(model))
       const content = collector.getGeneratedContent()
       expect(content.size).toBe(2)
       expect(content.get('path/to/file1')).toStrictEqual({
         content: 'Model content1',
-        dslWorkspacePath: 'test.dsl',
-        overwrite: false
+        documentPath: '/dir/doc1.langium',
+        overwrite: true
       })
       expect(content.get('path/to/file2')).toStrictEqual({
         content: 'Model content2',
-        dslWorkspacePath: 'test.dsl',
-        overwrite: false
+        documentPath: '/dir/doc1.langium',
+        overwrite: true
       })
     })
 
@@ -83,18 +147,19 @@ describe('GeneratorOutputCollector', () => {
         generatorOutput.createFile('path/to/file2', 'Model content2', true)
       }
 
-      const collector = new GeneratorOutputCollector()
-      generator(collector.generatorOutputFor('test.dsl'))
+      const workspaceURI = URI.parse('file:///workspace')
+      const collector = new GeneratorOutputCollector([workspaceURI])
+      generator(collector.generatorOutputFor(model))
       const content = collector.getGeneratedContent()
       expect(content.size).toBe(2)
       expect(content.get('path/to/file1')).toStrictEqual({
         content: 'Model content1',
-        dslWorkspacePath: 'test.dsl',
+        documentPath: '/dir/doc1.langium',
         overwrite: false
       })
       expect(content.get('path/to/file2')).toStrictEqual({
         content: 'Model content2',
-        dslWorkspacePath: 'test.dsl',
+        documentPath: '/dir/doc1.langium',
         overwrite: true
       })
     })
@@ -104,229 +169,173 @@ describe('GeneratorOutputCollector', () => {
         generatorOutput.createFile(`path/to/${name}`, `Model ${name}`)
       }
 
-      const collector = new GeneratorOutputCollector()
-      generator("dsl1", collector.generatorOutputFor('test1.dsl'))
-      generator("dsl2", collector.generatorOutputFor('test2.dsl'))
+      const workspaceURI = URI.parse('file:///workspace')
+      const collector = new GeneratorOutputCollector([workspaceURI])
+      generator("dsl1", collector.generatorOutputFor(model))
+      generator("dsl2", collector.generatorOutputFor(model2))
 
       const content = collector.getGeneratedContent()
       expect(content.size).toBe(2)
       expect(content.get('path/to/dsl1')).toStrictEqual({
         content: 'Model dsl1',
-        dslWorkspacePath: 'test1.dsl',
-        overwrite: false
+        documentPath: '/dir/doc1.langium',
+        overwrite: true
       })
       expect(content.get('path/to/dsl2')).toStrictEqual({
         content: 'Model dsl2',
-        dslWorkspacePath: 'test2.dsl',
-        overwrite: false
+        documentPath: '/dir/doc2.langium',
+        overwrite: true
       })
     })
 
-
     test('Generate multiple files', () => {
-      const collector = new GeneratorOutputCollector()
-      modelGenerator({
-        name: 'my-model',
-        files: [{
-          name: 'path/to/file1',
-          content: 'Model content1'
-        },
-        {
-          name: 'path/to/file2',
-          content: 'Model content2'
-        },
-        {
-          name: 'path/to/file3',
-          content: 'Model content3',
-          overwrite: true
-        },
-        {
-          name: 'path/to/file4',
-          content: 'Model content4',
-          overwrite: false
-        }]
-      }, collector.generatorOutputFor('test.dsl'))
+      function generator(generatorOutput: GeneratorOutput): void {
+        generatorOutput.createFile('path/to/file1', 'Model content1')
+        generatorOutput.createFile('path/to/file2', 'Model content2')
+        generatorOutput.createFile('path/to/file3', 'Model content3', true)
+        generatorOutput.createFile('path/to/file4', 'Model content4', false)
+      }
+      const workspaceURI = URI.parse('file:///workspace')
+      const collector = new GeneratorOutputCollector([workspaceURI])
+      generator(collector.generatorOutputFor(model))
       const content = collector.getGeneratedContent()
       expect(content.size).toBe(4)
       expect(content.get('path/to/file1')).toStrictEqual({
         content: 'Model content1',
-        dslWorkspacePath: 'test.dsl',
+        documentPath: '/dir/doc1.langium',
         overwrite: true
       })
       expect(content.get('path/to/file2')).toStrictEqual({
         content: 'Model content2',
-        dslWorkspacePath: 'test.dsl',
+        documentPath: '/dir/doc1.langium',
         overwrite: true
       })
       expect(content.get('path/to/file3')).toStrictEqual({
         content: 'Model content3',
-        dslWorkspacePath: 'test.dsl',
+        documentPath: '/dir/doc1.langium',
         overwrite: true
       })
       expect(content.get('path/to/file4')).toStrictEqual({
         content: 'Model content4',
-        dslWorkspacePath: 'test.dsl',
+        documentPath: '/dir/doc1.langium',
         overwrite: false
       })
     })
+
     test('Generate multiple files from multiple dsls', () => {
-      const collector = new GeneratorOutputCollector()
-      modelGenerator({
-        name: 'my-model',
-        files: [{
-          name: 'path/to/file1',
-          content: 'Model content1'
-        },
-        {
-          name: 'path/to/file2',
-          content: 'Model content2'
-        },
-        {
-          name: 'path/to/file3',
-          content: 'Model content3',
-          overwrite: true
-        },
-        {
-          name: 'path/to/file4',
-          content: 'Model content4',
-          overwrite: false
-        }]
-      }, collector.generatorOutputFor('test1.dsl'))
-      modelGenerator({
-        name: 'my-model',
-        files: [{
-          name: 'path/to/file5',
-          content: 'Model content5'
-        },
-        {
-          name: 'path/to/file6',
-          content: 'Model content6'
-        },
-        {
-          name: 'path/to/file7',
-          content: 'Model content7',
-          overwrite: true
-        },
-        {
-          name: 'path/to/file8',
-          content: 'Model content8',
-          overwrite: false
-        }]
-      }, collector.generatorOutputFor('test2.dsl'))
+      function generator(generatorOutput: GeneratorOutput): void {
+        generatorOutput.createFile('path/to/file1', 'Model content1')
+        generatorOutput.createFile('path/to/file2', 'Model content2')
+        generatorOutput.createFile('path/to/file3', 'Model content3', true)
+        generatorOutput.createFile('path/to/file4', 'Model content4', false)
+      }
+      function generator2(generatorOutput: GeneratorOutput): void {
+        generatorOutput.createFile('path/to/file5', 'Model content5')
+        generatorOutput.createFile('path/to/file6', 'Model content6')
+        generatorOutput.createFile('path/to/file7', 'Model content7', true)
+        generatorOutput.createFile('path/to/file8', 'Model content8', false)
+      }
+      const workspaceURI = URI.parse('file:///workspace')
+      const collector = new GeneratorOutputCollector([workspaceURI])
+      generator(collector.generatorOutputFor(model))
+      generator2(collector.generatorOutputFor(model2))
+
       const content = collector.getGeneratedContent()
       expect(content.size).toBe(8)
       expect(content.get('path/to/file1')).toStrictEqual({
         content: 'Model content1',
-        dslWorkspacePath: 'test1.dsl',
+        documentPath: '/dir/doc1.langium',
         overwrite: true
       })
       expect(content.get('path/to/file2')).toStrictEqual({
         content: 'Model content2',
-        dslWorkspacePath: 'test1.dsl',
+        documentPath: '/dir/doc1.langium',
         overwrite: true
       })
       expect(content.get('path/to/file3')).toStrictEqual({
         content: 'Model content3',
-        dslWorkspacePath: 'test1.dsl',
+        documentPath: '/dir/doc1.langium',
         overwrite: true
       })
       expect(content.get('path/to/file4')).toStrictEqual({
         content: 'Model content4',
-        dslWorkspacePath: 'test1.dsl',
+        documentPath: '/dir/doc1.langium',
         overwrite: false
       })
       expect(content.get('path/to/file5')).toStrictEqual({
         content: 'Model content5',
-        dslWorkspacePath: 'test2.dsl',
+        documentPath: '/dir/doc2.langium',
         overwrite: true
       })
       expect(content.get('path/to/file6')).toStrictEqual({
         content: 'Model content6',
-        dslWorkspacePath: 'test2.dsl',
+        documentPath: '/dir/doc2.langium',
         overwrite: true
       })
       expect(content.get('path/to/file7')).toStrictEqual({
         content: 'Model content7',
-        dslWorkspacePath: 'test2.dsl',
+        documentPath: '/dir/doc2.langium',
         overwrite: true
       })
     })
+
     test('Same file with same content are ok', () => {
-      const collector = new GeneratorOutputCollector()
-      modelGenerator({
-        name: 'my-model',
-        files: [{
-          name: 'path/to/file1',
-          content: 'Model content1'
-        },
-        {
-          name: 'path/to/file1',
-          content: 'Model content1'
-        }]
-      }, collector.generatorOutputFor('test.dsl'))
+      function generator(generatorOutput: GeneratorOutput): void {
+        generatorOutput.createFile('path/to/file1', 'Model content1')
+        generatorOutput.createFile('path/to/file1', 'Model content1')
+      }
+      const workspaceURI = URI.parse('file:///workspace')
+      const collector = new GeneratorOutputCollector([workspaceURI])
+      generator(collector.generatorOutputFor(model))
       const content = collector.getGeneratedContent()
       expect(content.size).toBe(1)
       expect(content.get('path/to/file1')).toStrictEqual({
         content: 'Model content1',
-        dslWorkspacePath: 'test.dsl',
+        documentPath: '/dir/doc1.langium',
         overwrite: true
       })
     })
+
     test('Same file with different content are not ok - same dsl', () => {
-      const collector = new GeneratorOutputCollector()
+      function generator(generatorOutput: GeneratorOutput): void {
+        generatorOutput.createFile('path/to/file1', 'Model content1')
+        generatorOutput.createFile('path/to/file1', 'Model content2')
+      }
+      const workspaceURI = URI.parse('file:///workspace')
+      const collector = new GeneratorOutputCollector([workspaceURI])
       expect(() => {
-        modelGenerator({
-          name: 'my-model',
-          files: [{
-            name: 'path/to/file1',
-            content: 'Model content1'
-          },
-          {
-            name: 'path/to/file1',
-            content: 'Model content2'
-          }]
-        }, collector.generatorOutputFor('test.dsl'))
-      }).toThrowError('ERROR generating test.dsl -> path/to/file1: File with different content was already generated from test.dsl')
+        generator(collector.generatorOutputFor(model))
+      }).toThrowError('ERROR generating /dir/doc1.langium -> path/to/file1: File with different content was already generated from /dir/doc1.langium')
     })
+
     test('Same file with different content are not ok - different dsl', () => {
-      const collector = new GeneratorOutputCollector()
-      modelGenerator({
-        name: 'my-model',
-        files: [{
-          name: 'path/to/file1',
-          content: 'Model content1'
-        }]
-      }, collector.generatorOutputFor('test1.dsl'))
+      function generator(generatorOutput: GeneratorOutput): void {
+        generatorOutput.createFile('path/to/file1', 'Model content1')
+      }
+      function generator2(generatorOutput: GeneratorOutput): void {
+        generatorOutput.createFile('path/to/file1', 'Model content2')
+      }
+      const workspaceURI = URI.parse('file:///workspace')
+      const collector = new GeneratorOutputCollector([workspaceURI])
+      generator(collector.generatorOutputFor(model))
       expect(() => {
-        modelGenerator({
-          name: 'my-model',
-          files: [{
-            name: 'path/to/file1',
-            content: 'Model content2'
-          }]
-        }, collector.generatorOutputFor('test2.dsl'))
-      }).toThrowError('ERROR generating test2.dsl -> path/to/file1: File with different content was already generated from test1.dsl')
+        generator2(collector.generatorOutputFor(model))
+      }).toThrowError('ERROR generating /dir/doc1.langium -> path/to/file1: File with different content was already generated from /dir/doc1.langium')
     })
+
     test('Same file with different overwrite are not ok', () => {
-      const collector = new GeneratorOutputCollector()
-      modelGenerator({
-        name: 'my-model',
-        files: [{
-          name: 'path/to/file1',
-          content: 'Model content1',
-          overwrite: true
-        }]
-      }, collector.generatorOutputFor('test1.dsl'))
+      function generator(generatorOutput: GeneratorOutput): void {
+        generatorOutput.createFile('path/to/file1', 'Model content1', true)
+      }
+      function generator2(generatorOutput: GeneratorOutput): void {
+        generatorOutput.createFile('path/to/file1', 'Model content1', false)
+      }
+      const workspaceURI = URI.parse('file:///workspace')
+      const collector = new GeneratorOutputCollector([workspaceURI])
+      generator(collector.generatorOutputFor(model))
       expect(() => {
-        modelGenerator({
-          name: 'my-model',
-          files: [{
-            name: 'path/to/file1',
-            content: 'Model content1',
-            overwrite: false
-          }]
-        }, collector.generatorOutputFor('test2.dsl'))
-      }).toThrowError('ERROR generating test2.dsl -> path/to/file1: File with different overwrite flag was already generated from test1.dsl')
+        generator2(collector.generatorOutputFor(model))
+      }).toThrowError('ERROR generating /dir/doc1.langium -> path/to/file1: File with different overwrite flag was already generated from /dir/doc1.langium')
     })
   })
 
@@ -365,7 +374,7 @@ describe('GeneratorOutputCollector', () => {
 
     test('Create 1 file', () => {
       const collector = new GeneratorOutputCollector()
-      const generatorOutput = collector.generatorOutputFor('test.dsl')
+      const generatorOutput = collector.generatorOutputFor(model)
       generatorOutput.createFile('file1.js', '// Model content1')
       collector.writeToDisk(tmpDir)
       expect(fs.readFileSync(path.join(tmpDir, 'file1.js'), 'utf8')).toBe('// Model content1')
@@ -373,7 +382,7 @@ describe('GeneratorOutputCollector', () => {
 
     test('Create 1 file in a subdirectory', () => {
       const collector = new GeneratorOutputCollector()
-      const generatorOutput = collector.generatorOutputFor('test.dsl')
+      const generatorOutput = collector.generatorOutputFor(model)
       generatorOutput.createFile('path/to/file1.js', '// Model content1')
       collector.writeToDisk(tmpDir)
       expect(fs.readFileSync(path.join(tmpDir, 'path', 'to', 'file1.js'), 'utf8')).toBe('// Model content1')
@@ -386,7 +395,7 @@ describe('GeneratorOutputCollector', () => {
       fs.writeFileSync(filePath2, '// Existing content 2')
 
       const collector = new GeneratorOutputCollector()
-      const generatorOutput = collector.generatorOutputFor('test.dsl')
+      const generatorOutput = collector.generatorOutputFor(model)
       generatorOutput.createFile('file1.js', '// New content1', false)
       generatorOutput.createFile('file2.js', '// New content2', true)
       collector.writeToDisk(tmpDir)
@@ -407,7 +416,7 @@ describe('GeneratorOutputCollector', () => {
       await new Promise(resolve => setTimeout(resolve, 10))
 
       const collector = new GeneratorOutputCollector()
-      const generatorOutput = collector.generatorOutputFor('test.dsl')
+      const generatorOutput = collector.generatorOutputFor(model)
       generatorOutput.createFile('file1.js', '// Existing content 1', true)
       generatorOutput.createFile('file2.js', '// New content2', true)
       collector.writeToDisk(tmpDir)
@@ -418,28 +427,15 @@ describe('GeneratorOutputCollector', () => {
     })
 
     test('Create multiple files and directories', () => {
-      const collector = new GeneratorOutputCollector()
-      modelGenerator({
-        name: 'my-model',
-        files: [{
-          name: 'file1.js',
-          content: '// Model content1'
-        },
-        {
-          name: 'path/to/file2.js',
-          content: '// Model content2'
-        },
-        {
-          name: 'path/to/file3.js',
-          content: '// Model content3',
-          overwrite: true
-        },
-        {
-          name: 'path/to/file4.js',
-          content: '// Model content4',
-          overwrite: false
-        }]
-      }, collector.generatorOutputFor('test.dsl'))
+      function generator(generatorOutput: GeneratorOutput): void {
+        generatorOutput.createFile('file1.js', '// Model content1')
+        generatorOutput.createFile('path/to/file2.js', '// Model content2')
+        generatorOutput.createFile('path/to/file3.js', '// Model content3', true)
+        generatorOutput.createFile('path/to/file4.js', '// Model content4', false)
+      }
+      const workspaceURI = URI.parse('file:///workspace')
+      const collector = new GeneratorOutputCollector([workspaceURI])
+      generator(collector.generatorOutputFor(model))
       collector.writeToDisk(tmpDir)
       expect(fs.readFileSync(path.join(tmpDir, 'file1.js'), 'utf8')).toBe('// Model content1')
       expect(fs.readFileSync(path.join(tmpDir, 'path', 'to', 'file2.js'), 'utf8')).toBe('// Model content2')
