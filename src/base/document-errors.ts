@@ -65,8 +65,7 @@ function mapSeverity(severity?: DiagnosticSeverity): DocumentIssueSeverity {
  * Return summary and details of errors and other issues in a langium document.
  *
  * @param document The document to check for issues
- * @param includeNonErrors If true, non-error diagnostics are included in the summary.
- *                         Otherwise, only errors are included. Default is true.
+ * @param params parameter object
  * @returns A summary of the issues in the document
  */
 export function getDocumentIssues(document: LangiumDocument, params?: GetDocumentIssuesParams): Array<DocumentIssue> {
@@ -130,8 +129,7 @@ export function getDocumentIssues(document: LangiumDocument, params?: GetDocumen
  * Return summary and details of errors and other issues in a langium document.
  *
  * @param document The document to check for issues
- * @param includeNonErrors If true, non-error diagnostics are included in the summary.
- *                         Otherwise, only errors are included. Default is true.
+ * @param params parameter object
  * @returns A summary of the issues in the document
  */
 export function getDocumentIssueSummary(document: LangiumDocument, params?: GetDocumentIssuesParams): DocumentIssueSummary {

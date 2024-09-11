@@ -45,17 +45,16 @@ export async function langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL exte
       throw new Error('One of generateForDocument or generateForWorkspace must be defined')
     }
 
-    const collector = new GeneratorOutputCollector();
+    const collector = new GeneratorOutputCollector([workspaceFolder.uri]);
     for (const document of documents) {
       const model = document.parseResult.value as MODEL;
-      // const relativeFileName = path.relative(workspaceFolder.uri, document.uri.toString()); // TODO
 
       const nonSharedServices = Object.keys(services as object).filter(key => key !== 'shared');
       if (nonSharedServices.length !== 1) {
         throw new Error('Expected exactly one non-shared service');
       }
       const serviceName = nonSharedServices[0];
-      await optionsGenerator(services[serviceName as keyof SERVICES] as ExtractServiceType<SERVICES>, model, collector.generatorOutputFor(model)); // TODO relativeFileName
+      await optionsGenerator(services[serviceName as keyof SERVICES] as ExtractServiceType<SERVICES>, model, collector.generatorOutputFor(model));
     }
     return collector;
   }
