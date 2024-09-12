@@ -119,7 +119,7 @@ export class GeneratorOutputCollector {
    * @returns A new instance of GeneratorOutput.
    * @since 0.1.0
    */
-  generatorOutputFor<MODEL extends AstNode = AstNode>(model: MODEL): GeneratorOutput {
+  generatorOutputFor<MODEL extends AstNode = AstNode>(model: MODEL): GeneratorOutput<MODEL> {
     const documentURI = model.$document?.uri
     const workspaceURI = getWorkspaceForDocument(documentURI, this.workspaceURIs)
     const relativePath = workspaceURI !== undefined ? documentURI?.toString().slice(workspaceURI.toString().length) : undefined
@@ -129,7 +129,7 @@ export class GeneratorOutputCollector {
         this.createFile(filePath, content, overwrite, documentPath);
       },
       getModel: () => model,
-      getDocument: () => model.$document,
+      getDocument: () => model.$document as LangiumDocument<MODEL> | undefined,
       getWorkspaceURI: () => workspaceURI,
       getDocumentLocalPath: () => relativePath
     };
