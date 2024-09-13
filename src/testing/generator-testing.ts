@@ -5,7 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import { expect, test } from 'vitest';
 import { getDocumentIssueSummary } from '../base/document-errors.js';
-import { GeneratedContent, GeneratorOutput, GeneratorOutputCollector } from '../generator/generator-output-collector.js';
+import { GeneratedContent, GeneratorManager, GeneratedContentManager } from '../generator/generated-content-manager.js';
 
 
 type DslServices<SERVICES, SHARED_SERVICES> = { shared: LangiumSharedServices & SHARED_SERVICES } & SERVICES;
@@ -19,8 +19,8 @@ export interface GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL extends A
   initWorkspace?: (service: DslServices<SERVICES, SHARED_SERVICES>, workspaceDir: string) => Promise<WorkspaceFolder>;
   buildDocuments?: (service: DslServices<SERVICES, SHARED_SERVICES>, workspaceFolder: WorkspaceFolder) => Promise<LangiumDocument<AstNode>[]>;
   validateDocuments?: (service: DslServices<SERVICES, SHARED_SERVICES>, documents: LangiumDocument<AstNode>[]) => Promise<LangiumDocument<AstNode>[]>;
-  generateForWorkspace?: (service: DslServices<SERVICES, SHARED_SERVICES>, documents: LangiumDocument<AstNode>[], workspaceFolder: WorkspaceFolder) => Promise<GeneratorOutputCollector>;
-  generateForModel?: (services: ExtractServiceType<SERVICES>, document: MODEL, generatorOutput: GeneratorOutput) => Promise<void>;
+  generateForWorkspace?: (service: DslServices<SERVICES, SHARED_SERVICES>, documents: LangiumDocument<AstNode>[], workspaceFolder: WorkspaceFolder) => Promise<GeneratedContentManager>;
+  generateForModel?: (services: ExtractServiceType<SERVICES>, document: MODEL, generatorOutput: GeneratorManager) => Promise<void>;
 }
 
 const generateMode = process.env.GENERATOR_TEST === "generate";
@@ -39,13 +39,13 @@ export function langiumGeneratorSuite<SERVICES, SHARED_SERVICES, MODEL extends A
 
 export async function langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL extends AstNode>(testDir: string, options: GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL>): Promise<void> {
 
-  async function generateForWorkspace(services: DslServices<SERVICES, SHARED_SERVICES>, documents: LangiumDocument<AstNode>[], workspaceFolder: WorkspaceFolder): Promise<GeneratorOutputCollector> {
+  async function generateForWorkspace(services: DslServices<SERVICES, SHARED_SERVICES>, documents: LangiumDocument<AstNode>[], workspaceFolder: WorkspaceFolder): Promise<GeneratedContentManager> {
     const optionsGenerator = options.generateForModel
     if (!optionsGenerator) {
       throw new Error('One of generateForDocument or generateForWorkspace must be defined')
     }
 
-    const collector = new GeneratorOutputCollector([workspaceFolder.uri]);
+    const collector = new GeneratedContentManager([workspaceFolder.uri]);
     for (const document of documents) {
       const model = document.parseResult.value as MODEL;
 
@@ -54,7 +54,7 @@ export async function langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL exte
         throw new Error('Expected exactly one non-shared service');
       }
       const serviceName = nonSharedServices[0];
-      await optionsGenerator(services[serviceName as keyof SERVICES] as ExtractServiceType<SERVICES>, model, collector.generatorOutputFor(model));
+      await optionsGenerator(services[serviceName as keyof SERVICES] as ExtractServiceType<SERVICES>, model, collector.generatorManagerFor(model));
     }
     return collector;
   }

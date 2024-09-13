@@ -1,2 +1,2 @@
-export * from './generator-output-collector.js'
+export * from './generated-content-manager.js'
 export * from './tools.js'
