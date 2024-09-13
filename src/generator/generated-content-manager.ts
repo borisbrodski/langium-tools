@@ -4,123 +4,173 @@ import * as path from 'node:path';
 import { getWorkspaceForDocument } from './tools.js';
 
 /**
- * Generated content.
+ * Represents the generated content for files.
  *
- * Map: file path -> file description.
+ * The map keys are file paths (relative to the output directory), and the values are objects containing:
+ * - `content`: The generated content of the file.
+ * - `overwrite`: A flag indicating whether to overwrite existing files.
+ * - `documentPath`: The path to the source document from which the file was generated.
  */
-export type GeneratedContent = Map<string, {
-  content: string,
-  overwrite: boolean,
-  documentPath: string
-}>;
-
-export interface Target {
-  name: string
-}
-
-export const DEFAULT_TARGET: Target = { name: "DEFAULT" };
+export type GeneratedContent = Map<
+  string,
+  {
+    content: string;
+    overwrite: boolean;
+    documentPath: string;
+  }
+>;
 
 /**
- * Interface for generator manager.
- * 
- * - provides information about underlying workspace, document and model
- * - collects generated files
- * - supports multiple output directories (Xtext outlets)
+ * Represents a target output directory for generated files.
+ */
+export interface Target {
+  /** The name of the target. */
+  name: string;
+}
+
+/**
+ * The default target used when no specific target is provided.
+ */
+export const DEFAULT_TARGET: Target = { name: 'DEFAULT' };
+
+/**
+ * Options for creating a file.
+ */
+export interface CreateFileOptions {
+  /**
+   * If `true`, existing files on the filesystem will be overwritten with the new content.
+   * Value `false` can be used for initial generation of files.
+   * Defaults to `true` for the default target.
+   * Custom targets have their own default value for the `overwrite` flag.
+   */
+  overwrite?: boolean;
+
+  /**
+   * The target output directory to use.
+   * Defaults to {@link DEFAULT_TARGET}.
+   * Different targets can be written to different output directories and can have different default `overwrite` flags.
+   */
+  target?: Target;
+}
+
+/**
+ * Manages code generation for a specific model.
+ *
+ * Provides:
+ * - Access to the underlying workspace, document, and model.
+ * - Methods to collect generated files.
+ * - Support for multiple output directories (targets).
+ *
+ * @typeParam MODEL - The type of the AST node model.
  */
 export interface GeneratorManager<MODEL extends AstNode = AstNode> {
-
   /**
-   * Create new file with relative path and generated content.
+   * Creates a new file with the specified content and options.
    *
-   * @param filePath filename with optional relative path, relative to 'generated' directory.
-   *                          See <code>GeneratorOutputCollector.writeToDisk(dir)</code>
-   * @param content generated content of the new file
-   * @param [options] options are:
-   *  <code>overwrite</code> - if existing file on the filesystem should be overwritten with the new content.
-   *                           Can be used to make initial generation of files.
-   *                           Default is <code>true</code> for the default target,
-   *                           custom targets have their own default value for <code>overwrite</code> flag.
-   *  <code>target</code>    - target output directory to use.
-   *                           Default @{link DEFAULT_TARGET}.
-   *                           Different targets can to written to different output directories and can have different default <code>overwrite</code> flag.
+   * @param filePath - The file name with an optional relative path, relative to the output directory.
+   * @param content - The generated content of the new file.
+   * @param options - Optional settings for file generation.
    */
-  createFile(filePath: string, content: string, options?: { overwrite?: boolean, target?: Target }): void;
+  createFile(filePath: string, content: string, options?: CreateFileOptions): void;
 
   /**
-   * Return model ({AstNode} of generic type MODEL).
-   * @return {MODEL} model for current generator.
+   * Returns the model associated with the current generator.
+   *
+   * @returns The model of type `MODEL`.
    */
   getModel(): MODEL;
 
   /**
-   * Return associated document.
+   * Returns the associated Langium document, if known.
    *
-   * @return {LangiumDocument} associated langium document, if known.
+   * @returns The associated `LangiumDocument`, or `undefined` if not available.
    */
   getDocument(): LangiumDocument<MODEL> | undefined;
 
   /**
-   * Return workspace URI corresponding to the langium document URI.
+   * Returns the workspace URI corresponding to the Langium document URI.
+   *
    * The URI will be selected from a list of known workspace URIs.
-   * @return {URI} workspace URI if could be determined
+   *
+   * @returns The workspace `URI` if it could be determined, or `undefined` otherwise.
    */
   getWorkspaceURI(): URI | undefined;
 
   /**
-   * Return relative path of the langium document within the determined workspace.
-   * See <code>getWorkspaceURI()</code>.
+   * Returns the relative path of the Langium document within the determined workspace.
+   * See {@link getWorkspaceURI}.
    *
-   * @return {string} relative path, if workspace URI could be determined.
+   * @returns The relative path as a string, if the workspace URI could be determined, or `undefined` otherwise.
    */
   getDocumentLocalPath(): string | undefined;
 }
 
 /**
- * Collects generated content.
+ * Manages the collection of generated content for code generation.
  *
- * Usage:
+ * The `GeneratedContentManager` allows you to:
+ * - Collect generated files from multiple models.
+ * - Handle multiple targets (output directories) with custom overwrite settings.
+ * - Write the collected generated content to the filesystem.
  *
- * ```ts
+ * @example
+ * ```typescript
  * const manager = new GeneratedContentManager(optionalListOfWorkspaceURIs);
  *
+ * // Generate content for multiple models
  * generator(manager.generatorManagerFor(model1));
  * generator(manager.generatorManagerFor(model2));
  *
+ * // Retrieve the collected content (optional)
  * const content = manager.getGeneratedContent();
- * manager.writeToDisk('./');
+ *
+ * // Write the generated content to disk
+ * await manager.writeToDisk('./generated');
  * ```
  *
- * ```ts
+ * @example
+ * ```typescript
  * function generator(manager: GeneratorManager) {
  *   const model = manager.getModel();
  *   const document = manager.getDocument();
  *   const workspaceURI = manager.getWorkspaceURI();
  *   const localPath = manager.getDocumentLocalPath();
- *   
- *   manager.createFile("src-gen/abstract_process.ts", "// Generated by Langium. Don't edit.");
- *   manager.createFile("src/process.ts", "// Initially generated by Langium", { overwrite: false });
+ *
+ *   // Generate files
+ *   manager.createFile('src-gen/abstract_process.ts', '// Generated by Langium. Do not edit.');
+ *   manager.createFile('src/process.ts', '// Initially generated by Langium', { overwrite: false });
  * }
  * ```
  *
  * @see {@link GeneratorManager}
  * @category Generator
- * @since 0.1.0
  */
 export class GeneratedContentManager {
-
-  private readonly generatedContentMap: Map<string, GeneratedContent> = new Map([[DEFAULT_TARGET.name, new Map()]]);
+  private readonly generatedContentMap: Map<string, GeneratedContent> = new Map([
+    [DEFAULT_TARGET.name, new Map()],
+  ]);
   private readonly defaultOverwriteMap: Map<string, boolean> = new Map();
   private readonly workspaceURIs?: URI[];
 
+  /**
+   * Creates a new instance of `GeneratedContentManager`.
+   *
+   * @param workspaceDirs - Optional list of workspace directories (as strings or URIs).
+   *                        Used to determine the workspace URI for documents.
+   */
   constructor(workspaceDirs?: Array<string | URI>) {
-    this.workspaceURIs = workspaceDirs?.map(dir => typeof dir === 'string' ? URI.parse(dir) : dir);
+    this.workspaceURIs = workspaceDirs?.map((dir) => (typeof dir === 'string' ? URI.parse(dir) : dir));
     this.defaultOverwriteMap.set(DEFAULT_TARGET.name, true);
   }
 
   /**
    * Adds a new target to the generator output.
+   *
    * @param target - The target to add.
    * @param defaultOverwrite - The default overwrite flag for the target.
+   *                           Determines whether files in this target should be overwritten by default.
+   *
+   * @throws {Error} If the target has already been added.
    */
   addTarget(target: Target, defaultOverwrite: boolean): void {
     if (this.generatedContentMap.has(target.name)) {
@@ -131,19 +181,23 @@ export class GeneratedContentManager {
   }
 
   /**
-   * Creates a new instance of GeneratorOutput for the given AST model.
+   * Creates a new `GeneratorManager` for the given AST model.
    *
-   * @param model - The AST model
-   * @returns A new instance of GeneratorOutput.
-   * @since 0.1.0
+   * @typeParam MODEL - The type of the AST node model.
+   * @param model - The AST model for which to create the generator manager.
+   *
+   * @returns A new instance of `GeneratorManager` associated with the provided model.
    */
   generatorManagerFor<MODEL extends AstNode = AstNode>(model: MODEL): GeneratorManager<MODEL> {
     const documentURI = model.$document?.uri;
     const workspaceURI = getWorkspaceForDocument(documentURI, this.workspaceURIs);
-    const relativePath = workspaceURI !== undefined && documentURI !== undefined ? path.relative(workspaceURI.fsPath, documentURI.fsPath) : undefined;
+    const relativePath =
+      workspaceURI !== undefined && documentURI !== undefined
+        ? path.relative(workspaceURI.fsPath, documentURI.fsPath)
+        : undefined;
     const documentPath = relativePath || documentURI?.toString() || 'document URI undefined';
     return {
-      createFile: (filePath: string, content: string, options) => {
+      createFile: (filePath: string, content: string, options?: CreateFileOptions) => {
         const target = options?.target || DEFAULT_TARGET;
         const overwrite = options?.overwrite ?? this.defaultOverwriteMap.get(target.name) ?? true;
         this.createFile(target, filePath, content, overwrite, documentPath);
@@ -151,45 +205,60 @@ export class GeneratedContentManager {
       getModel: () => model,
       getDocument: () => model.$document as LangiumDocument<MODEL> | undefined,
       getWorkspaceURI: () => workspaceURI,
-      getDocumentLocalPath: () => relativePath
+      getDocumentLocalPath: () => relativePath,
     };
   }
 
   /**
-   * Creates a new file with the given content and DSL file identified by the provided workspace path..
+   * Creates a new file with the given content and metadata.
    *
-   * @param target - The target to generate the file for.
-   * @param filePath - The path of the file to create.
+   * @param target - The target for which the file is generated.
+   * @param filePath - The relative path of the file to create.
    * @param content - The content of the file.
    * @param overwrite - Whether to overwrite the file if it already exists.
-   * @param documentPath - The relative to workspace or absolute path to the langium document, source of the generated file.
-   *                       Used e.g. to reference to the langium document in the possible error messages.
+   * @param documentPath - The path to the source document from which the file was generated.
+   *
+   * @throws {Error} If a file with the same path and different content or overwrite flag has already been generated.
    */
-  createFile(target: Target, filePath: string, content: string, overwrite: boolean, documentPath: string): void {
+  createFile(
+    target: Target,
+    filePath: string,
+    content: string,
+    overwrite: boolean,
+    documentPath: string
+  ): void {
     const generatedContent = this.getGeneratedContent(target);
     const existingContent = generatedContent?.get(filePath);
     if (existingContent) {
-      if (existingContent.content !== content)
-        throw new Error(`Conflict generating file "${filePath}" from "${documentPath}": A file with different content was already generated from "${existingContent.documentPath}".`);
-
-      if (existingContent.overwrite !== overwrite)
-        throw new Error(`Conflict generating file "${filePath}" from "${documentPath}": A file with different overwrite flag was already generated from "${existingContent.documentPath}".`);
+      if (existingContent.content !== content) {
+        throw new Error(
+          `Conflict generating file "${filePath}" from "${documentPath}": A file with different content was already generated from "${existingContent.documentPath}".`
+        );
+      }
+      if (existingContent.overwrite !== overwrite) {
+        throw new Error(
+          `Conflict generating file "${filePath}" from "${documentPath}": A file with different overwrite flag was already generated from "${existingContent.documentPath}".`
+        );
+      }
       // Allow generating the same file multiple times with the same content and overwrite flag
     } else {
       generatedContent.set(filePath, {
         content,
         overwrite: overwrite,
-        documentPath: documentPath
+        documentPath: documentPath,
       });
     }
   }
 
   /**
-   * Returns the generated content for provided target or DEFAULT_TARGET.
+   * Returns the generated content for the provided target or the default target.
    *
-   * @param target - The target to get the generated content for.
-   * @returns The generated content.
-   * @since 0.1.0
+   * @param target - The target for which to get the generated content.
+   *                 If not provided, the default target is used.
+   *
+   * @returns A `GeneratedContent` map containing the generated files.
+   *
+   * @throws {Error} If the specified target is not registered.
    */
   getGeneratedContent(target?: Target): GeneratedContent {
     const targetName = (target || DEFAULT_TARGET).name;
@@ -200,14 +269,17 @@ export class GeneratedContentManager {
   }
 
   /**
-   * Writes the generated content (for a target) to the file system asynchronously.
+   * Writes the generated content for a target to the file system asynchronously.
    *
    * Existing files are only overwritten if the overwrite flag is set (default behavior).
    * If the file already exists and the content is the same, the file is not overwritten,
    * preserving the timestamp and not triggering file system file change events.
    *
-   * @param outputDir - The output directory.
-   * @param [target] - Content to write. {@link DEFAULT_TARGET} will be used if not provided.
+   * @param outputDir - The output directory where the files will be written.
+   * @param target - The target whose content should be written.
+   *                 If not provided, the default target is used.
+   *
+   * @throws {Error} If an error occurs during file or directory operations.
    */
   async writeToDisk(outputDir: string, target?: Target): Promise<void> {
     const generatedContent = this.getGeneratedContent(target);
@@ -224,6 +296,7 @@ export class GeneratedContentManager {
       const absoluteFilePath = path.join(outputDir, file);
       const fileDir = path.dirname(absoluteFilePath);
 
+      // Ensure the directory for the file exists
       try {
         await fsPromises.mkdir(fileDir, { recursive: true });
       } catch (error) {
@@ -234,6 +307,7 @@ export class GeneratedContentManager {
       let fileExists = false;
       let existingContent = '';
 
+      // Check if the file exists and read its content
       try {
         existingContent = await fsPromises.readFile(absoluteFilePath, 'utf8');
         fileExists = true;
@@ -245,10 +319,13 @@ export class GeneratedContentManager {
         // File does not exist, proceed to write
       }
 
+      // Determine whether to write the file
       if (fileExists && (!content.overwrite || existingContent === content.content)) {
+        // Skip writing the file if overwrite is false or content is the same
         continue;
       }
 
+      // Write the file
       try {
         await fsPromises.writeFile(absoluteFilePath, content.content);
       } catch (error) {
