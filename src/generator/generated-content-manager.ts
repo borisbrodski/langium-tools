@@ -108,7 +108,7 @@ export interface GeneratorManager<MODEL extends AstNode = AstNode> {
  */
 export class GeneratedContentManager {
 
-  private readonly generatedContent: GeneratedContent = new Map();
+  private readonly generatedContentMap: Map<string, GeneratedContent> = new Map([[DEFAULT_TARGET.name, new Map()]]);
   private readonly defaultOverwriteMap: Map<Target, boolean> = new Map();
   private readonly workspaceURIs?: URI[]
 
@@ -117,8 +117,17 @@ export class GeneratedContentManager {
     this.defaultOverwriteMap.set(DEFAULT_TARGET, true)
   }
 
+  /**
+   * Adds a new target to the generator output.
+   * @param target - The target to add.
+   * @param defaultOverwrite - The default overwrite flag for the target.
+   */
   addTarget(target: Target, defaultOverwrite: boolean) {
-
+    if (this.generatedContentMap.has(target.name)) {
+      throw new Error(`Target "${target.name}" has already been added`)
+    }
+    this.generatedContentMap.set(target.name, new Map())
+    this.defaultOverwriteMap.set(target, defaultOverwrite)
   }
 
   /**
@@ -134,8 +143,10 @@ export class GeneratedContentManager {
     const relativePath = workspaceURI !== undefined ? documentURI?.toString().slice(workspaceURI.toString().length) : undefined
     const documentPath = relativePath || documentURI?.toString() || 'document URI undefined'
     return {
-      createFile: (filePath: string, content: string, overwrite: boolean = true) => {
-        this.createFile(filePath, content, overwrite, documentPath);
+      createFile: (filePath: string, content: string, options) => {
+        const target = options?.target || DEFAULT_TARGET
+        const overwrite = options?.overwrite ?? this.defaultOverwriteMap.get(target) ?? true
+        this.createFile(target, filePath, content, overwrite, documentPath)
       },
       getModel: () => model,
       getDocument: () => model.$document as LangiumDocument<MODEL> | undefined,
@@ -147,14 +158,17 @@ export class GeneratedContentManager {
   /**
    * Creates a new file with the given content and DSL file identified by the provided workspace path..
    *
+   * @param target - The target to generate the file for.
    * @param filePath - The path of the file to create.
    * @param content - The content of the file.
    * @param overwrite - Whether to overwrite the file if it already exists.
    * @param documentPath - The relative to workspace or absolute path to the langium document, source of the generated file.
    *                       Used e.g. to reference to the langium document in the possible error messages.
    */
-  createFile(filePath: string, content: string, overwrite: boolean, documentPath: string): void {
-    const existingContent = this.generatedContent.get(filePath);
+  createFile(target: Target, filePath: string, content: string, overwrite: boolean, documentPath: string): void {
+    this.checkTargetRegistered(target)
+    const generatedContent = this.generatedContentMap.get(target.name) || new Map();
+    const existingContent = generatedContent?.get(filePath);
     if (existingContent) {
       if (existingContent.content != content)
         throw new Error(`ERROR generating ${documentPath} -> ${filePath}: File with different content was already generated from ${existingContent.documentPath}`);
@@ -162,7 +176,7 @@ export class GeneratedContentManager {
         throw new Error(`ERROR generating ${documentPath} -> ${filePath}: File with different overwrite flag was already generated from ${existingContent.documentPath}`);
       // Allow generating the same file multiple times with the same content and overwrite flag
     } else {
-      this.generatedContent.set(filePath, {
+      generatedContent.set(filePath, {
         content,
         overwrite: overwrite,
         documentPath: documentPath
@@ -176,8 +190,8 @@ export class GeneratedContentManager {
    * @returns The generated content.
    * @since 0.1.0
    */
-  getGeneratedContent(): GeneratedContent {
-    return this.generatedContent;
+  getGeneratedContent(target?: Target): GeneratedContent {
+    return this.generatedContentMap.get((target || DEFAULT_TARGET).name) || new Map();
   }
 
   /**
@@ -192,11 +206,13 @@ export class GeneratedContentManager {
    * @since 0.1.0
    */
   writeToDisk(outputDir: string, target?: Target) {
+    this.checkTargetRegistered(target)
+
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    this.generatedContent.forEach((content, file) => {
+    this.generatedContentMap.get((target || DEFAULT_TARGET).name)?.forEach((content, file) => {
       const absoluteFilePath = path.join(outputDir, file);
       const filePath = path.dirname(absoluteFilePath);
       if (!fs.existsSync(filePath)) {
@@ -212,5 +228,11 @@ export class GeneratedContentManager {
       }
       fs.writeFileSync(absoluteFilePath, content.content);
     });
+  }
+
+  private checkTargetRegistered(target?: Target) {
+    if (target && !this.generatedContentMap.has(target.name)) {
+      throw new Error(`Target "${target.name}" is not registered`)
+    }
   }
 }
