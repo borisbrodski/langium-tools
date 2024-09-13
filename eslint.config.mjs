@@ -7,4 +7,21 @@ export default [
   { languageOptions: {} },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    rules: {
+      "no-unused-vars": "off",
+    },
+  },
+  {
+    files: ["src/**/*.{js,mjs,cjs,ts}"],
+    rules: {
+      semi: ["error", "always"],
+    },
+  },
+  {
+    files: ["test/**/*.{js,mjs,cjs,ts}"],
+    rules: {
+      semi: "off",
+    },
+  },
 ];

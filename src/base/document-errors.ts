@@ -74,9 +74,9 @@ export function getDocumentIssues(document: LangiumDocument, params?: GetDocumen
     skipLexerErrors = false,
     skipParserErrors = false,
     skipValidation = false,
-  } = params || {}
+  } = params || {};
 
-  const issues: ReturnType<typeof getDocumentIssues> = []
+  const issues: ReturnType<typeof getDocumentIssues> = [];
   if (!skipLexerErrors) {
     document.parseResult.lexerErrors.forEach((lexerIssue) => {
       issues.push({
@@ -86,8 +86,8 @@ export function getDocumentIssues(document: LangiumDocument, params?: GetDocumen
         startOffset: lexerIssue.offset,
         startLine: lexerIssue.line,
         startColumn: lexerIssue.column
-      })
-    })
+      });
+    });
   }
 
   if (!skipParserErrors) {
@@ -102,8 +102,8 @@ export function getDocumentIssues(document: LangiumDocument, params?: GetDocumen
         endOffset: parserError.token.endOffset,
         endLine: parserError.token.endLine,
         endColumn: parserError.token.endColumn
-      })
-    })
+      });
+    });
   }
 
   if (!skipValidation) {
@@ -117,12 +117,12 @@ export function getDocumentIssues(document: LangiumDocument, params?: GetDocumen
           startColumn: diagnostic.range.start.character,
           endLine: diagnostic.range.end.line,
           endColumn: diagnostic.range.end.character,
-        })
+        });
       }
-    })
+    });
   }
 
-  return issues
+  return issues;
 }
 
 /**
@@ -149,10 +149,10 @@ export function getDocumentIssueSummary(document: LangiumDocument, params?: GetD
   let countErrors = 0;
   let countNonErrors = 0;
   let errorString = '';
-  const summary = []
+  const summary = [];
 
   if (lexerErrors.length > 0) {
-    summary.push(`${lexerErrors.length} lexer error(s)`)
+    summary.push(`${lexerErrors.length} lexer error(s)`);
     errorString += 'Lexer errors:\n';
     for (const error of lexerErrors) {
       errorString += `Error${at(error.line, error.column)} - ${error.message}\n`;
@@ -161,7 +161,7 @@ export function getDocumentIssueSummary(document: LangiumDocument, params?: GetD
   }
 
   if (parserErrors.length > 0) {
-    summary.push(`${parserErrors.length} parser error(s)`)
+    summary.push(`${parserErrors.length} parser error(s)`);
     errorString += 'Parser errors:\n';
     for (const error of parserErrors) {
       errorString += `Error${at(error.token.startLine, error.token.startColumn, error.token.endLine, error.token.endColumn)} - ${error.message}\n`;
@@ -169,15 +169,15 @@ export function getDocumentIssueSummary(document: LangiumDocument, params?: GetD
     }
   }
 
-  let diagnosticsToShow: Diagnostic[]
+  let diagnosticsToShow: Diagnostic[];
   const diagnosticsErrors = diagnostics.filter(d => d.severity === DiagnosticSeverity.Error);
   if (diagnosticsErrors.length > 0) {
-    summary.push(`${diagnosticsErrors.length} error diagnostic(s)`)
+    summary.push(`${diagnosticsErrors.length} error diagnostic(s)`);
   }
   if (!skipNonErrorDiagnostics) {
-    const diagnosticsNonErrorCount = diagnostics.length - diagnosticsErrors.length
+    const diagnosticsNonErrorCount = diagnostics.length - diagnosticsErrors.length;
     if (diagnosticsNonErrorCount > 0) {
-      summary.push(`${diagnosticsNonErrorCount} non-error diagnostic(s)`)
+      summary.push(`${diagnosticsNonErrorCount} non-error diagnostic(s)`);
     }
     countNonErrors += diagnosticsNonErrorCount;
     countErrors += diagnosticsErrors.length;
@@ -195,12 +195,12 @@ export function getDocumentIssueSummary(document: LangiumDocument, params?: GetD
   }
 
   if (summary.length === 0) {
-    summary.push('No errors')
+    summary.push('No errors');
   }
 
-  const summaryString = summary.join(', ')
+  const summaryString = summary.join(', ');
   if (errorString.length > 0) {
-    errorString = `${errorString}\n${summaryString}`
+    errorString = `${errorString}\n${summaryString}`;
   }
 
   return {
@@ -209,11 +209,11 @@ export function getDocumentIssueSummary(document: LangiumDocument, params?: GetD
     countNonErrors: countNonErrors,
     summary: summaryString,
     message: errorString
-  }
+  };
 }
 
 export function documentIssueToString(issue: DocumentIssue): string {
-  return `${issue.severity}${at(issue.startLine, issue.startColumn, issue.endLine, issue.endColumn)} - ${issue.message}`
+  return `${issue.severity}${at(issue.startLine, issue.startColumn, issue.endLine, issue.endColumn)} - ${issue.message}`;
 }
 
 export function severityToString(severity: DiagnosticSeverity | number | undefined): string {
@@ -232,16 +232,16 @@ export function severityToString(severity: DiagnosticSeverity | number | undefin
 }
 
 function at(startLine?: number, startColumn?: number, endLine?: number, endColumn?: number): string {
-  let result = ''
+  let result = '';
   if (startLine !== undefined && !isNaN(startLine)) {
-    result += ` at ${startLine + 1}`
+    result += ` at ${startLine + 1}`;
     if (startColumn !== undefined && !isNaN(startColumn)) {
-      result += `:${startColumn + 1}`
+      result += `:${startColumn + 1}`;
       if (endLine !== undefined && !isNaN(endLine) && endColumn !== undefined && !isNaN(endColumn)) {
         if (startLine !== endLine) {
-          result += `-${endLine + 1}:${endColumn + 1}`
+          result += `-${endLine + 1}:${endColumn + 1}`;
         } else {
-          result += `-${endColumn + 1}`
+          result += `-${endColumn + 1}`;
         }
       }
     }

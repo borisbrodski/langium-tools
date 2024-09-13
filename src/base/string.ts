@@ -7,9 +7,9 @@
  */
 export function toFirstUpper<T extends string | undefined>(s: T): T {
   if (s === undefined) {
-    return undefined as T
+    return undefined as T;
   }
-  return s.charAt(0).toUpperCase() + s.slice(1) as T
+  return s.charAt(0).toUpperCase() + s.slice(1) as T;
 }
 
 /**
@@ -21,9 +21,9 @@ export function toFirstUpper<T extends string | undefined>(s: T): T {
  */
 export function toFirstLower<T extends string | undefined>(s: T): T {
   if (s === undefined) {
-    return undefined as T
+    return undefined as T;
   }
-  return s.charAt(0).toLowerCase() + s.slice(1) as T
+  return s.charAt(0).toLowerCase() + s.slice(1) as T;
 }
 
 declare global {
@@ -35,10 +35,10 @@ declare global {
 
 String.prototype.toFirstUpper = function (): string {
   return toFirstUpper(this as string);
-}
+};
 String.prototype.toFirstLower = function (): string {
   return toFirstLower(this as string);
-}
+};
 
 
 

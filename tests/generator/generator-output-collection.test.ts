@@ -4,6 +4,7 @@ import { using } from '../../src/testing'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'
+import * as fsPromises from 'fs/promises';
 import { EmptyFileSystem, Grammar, LangiumDocument, URI } from 'langium'
 import { createLangiumGrammarServices } from 'langium/grammar'
 import { parseHelper } from 'langium/test'
@@ -86,12 +87,12 @@ describe('GeneratorOutputCollector', () => {
         expect(output.getModel()).toBe(model)
         expect(output.getDocument()).toBe(document)
         expect(output.getWorkspaceURI()).toBe(workspaceURI)
-        expect(output.getDocumentLocalPath()).toBe('/dir/doc1.langium')
+        expect(output.getDocumentLocalPath()).toBe('dir/doc1.langium')
       })
       generator(manager.generatorManagerFor(model))
       expect(manager.getGeneratedContent().get('path/to/file1')).toStrictEqual({
         content: 'Model content1',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: true
       })
     })
@@ -113,7 +114,7 @@ describe('GeneratorOutputCollector', () => {
       expect(manager.getGeneratedContent().size).toBe(1)
       expect(manager.getGeneratedContent().get('path/to/file1')).toStrictEqual({
         content: 'Model content1',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: true
       })
     })
@@ -131,12 +132,12 @@ describe('GeneratorOutputCollector', () => {
       expect(content.size).toBe(2)
       expect(content.get('path/to/file1')).toStrictEqual({
         content: 'Model content1',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: true
       })
       expect(content.get('path/to/file2')).toStrictEqual({
         content: 'Model content2',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: true
       })
     })
@@ -154,12 +155,12 @@ describe('GeneratorOutputCollector', () => {
       expect(content.size).toBe(2)
       expect(content.get('path/to/file1')).toStrictEqual({
         content: 'Model content1',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: false
       })
       expect(content.get('path/to/file2')).toStrictEqual({
         content: 'Model content2',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: true
       })
     })
@@ -178,12 +179,12 @@ describe('GeneratorOutputCollector', () => {
       expect(content.size).toBe(2)
       expect(content.get('path/to/dsl1')).toStrictEqual({
         content: 'Model dsl1',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: true
       })
       expect(content.get('path/to/dsl2')).toStrictEqual({
         content: 'Model dsl2',
-        documentPath: '/dir/doc2.langium',
+        documentPath: 'dir/doc2.langium',
         overwrite: true
       })
     })
@@ -202,22 +203,22 @@ describe('GeneratorOutputCollector', () => {
       expect(content.size).toBe(4)
       expect(content.get('path/to/file1')).toStrictEqual({
         content: 'Model content1',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: true
       })
       expect(content.get('path/to/file2')).toStrictEqual({
         content: 'Model content2',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: true
       })
       expect(content.get('path/to/file3')).toStrictEqual({
         content: 'Model content3',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: true
       })
       expect(content.get('path/to/file4')).toStrictEqual({
         content: 'Model content4',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: false
       })
     })
@@ -244,37 +245,37 @@ describe('GeneratorOutputCollector', () => {
       expect(content.size).toBe(8)
       expect(content.get('path/to/file1')).toStrictEqual({
         content: 'Model content1',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: true
       })
       expect(content.get('path/to/file2')).toStrictEqual({
         content: 'Model content2',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: true
       })
       expect(content.get('path/to/file3')).toStrictEqual({
         content: 'Model content3',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: true
       })
       expect(content.get('path/to/file4')).toStrictEqual({
         content: 'Model content4',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: false
       })
       expect(content.get('path/to/file5')).toStrictEqual({
         content: 'Model content5',
-        documentPath: '/dir/doc2.langium',
+        documentPath: 'dir/doc2.langium',
         overwrite: true
       })
       expect(content.get('path/to/file6')).toStrictEqual({
         content: 'Model content6',
-        documentPath: '/dir/doc2.langium',
+        documentPath: 'dir/doc2.langium',
         overwrite: true
       })
       expect(content.get('path/to/file7')).toStrictEqual({
         content: 'Model content7',
-        documentPath: '/dir/doc2.langium',
+        documentPath: 'dir/doc2.langium',
         overwrite: true
       })
     })
@@ -291,7 +292,7 @@ describe('GeneratorOutputCollector', () => {
       expect(content.size).toBe(1)
       expect(content.get('path/to/file1')).toStrictEqual({
         content: 'Model content1',
-        documentPath: '/dir/doc1.langium',
+        documentPath: 'dir/doc1.langium',
         overwrite: true
       })
     })
@@ -305,7 +306,7 @@ describe('GeneratorOutputCollector', () => {
       const manager = new GeneratedContentManager([workspaceURI])
       expect(() => {
         generator(manager.generatorManagerFor(model))
-      }).toThrowError('ERROR generating /dir/doc1.langium -> path/to/file1: File with different content was already generated from /dir/doc1.langium')
+      }).toThrowError('Conflict generating file "path/to/file1" from "dir/doc1.langium": A file with different content was already generated from "dir/doc1.langium".')
     })
 
     test('Same file with different content are not ok - different dsl', () => {
@@ -320,7 +321,7 @@ describe('GeneratorOutputCollector', () => {
       generator(manager.generatorManagerFor(model))
       expect(() => {
         generator2(manager.generatorManagerFor(model))
-      }).toThrowError('ERROR generating /dir/doc1.langium -> path/to/file1: File with different content was already generated from /dir/doc1.langium')
+      }).toThrowError('Conflict generating file "path/to/file1" from "dir/doc1.langium": A file with different content was already generated from "dir/doc1.langium".')
     })
 
     test('Same file with different overwrite are not ok', () => {
@@ -335,7 +336,7 @@ describe('GeneratorOutputCollector', () => {
       generator(manager.generatorManagerFor(model))
       expect(() => {
         generator2(manager.generatorManagerFor(model))
-      }).toThrowError('ERROR generating /dir/doc1.langium -> path/to/file1: File with different overwrite flag was already generated from /dir/doc1.langium')
+      }).toThrowError('Conflict generating file "path/to/file1" from "dir/doc1.langium": A file with different overwrite flag was already generated from "dir/doc1.langium".')
     })
   })
 

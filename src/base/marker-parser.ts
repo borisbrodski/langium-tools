@@ -1,4 +1,4 @@
-import escapeStringRegexp from "escape-string-regexp"
+import escapeStringRegexp from "escape-string-regexp";
 
 export type MarkerPosition = {
   /**
@@ -41,32 +41,32 @@ export type ParseMarkedTextResult = {
 
 export function parseMarkedText(text: string, beginMarker: string = "<<{|", endMarker: string = "|}>>"): ParseMarkedTextResult {
   const tokenRegex = new RegExp(`(${escapeStringRegexp(beginMarker)})|(${escapeStringRegexp(endMarker)})|(\r?\n)`, 'g');
-  const TOKEN_BEGIN_MARKER = 1
-  const TOKEN_END_MERKER = 2
-  const TOKEN_LN = 3
+  const TOKEN_BEGIN_MARKER = 1;
+  const TOKEN_END_MERKER = 2;
+  const TOKEN_LN = 3;
 
   const positions: MarkerPosition[] = [];
   const originalParts: string[] = [];
   let openMarker: { line: number; column: number; pos: number } | null = null;
 
-  let lastIndex = 0
-  let currentColumn = 0
-  let currentLine = 0
-  let currentPos = 0
+  let lastIndex = 0;
+  let currentColumn = 0;
+  let currentLine = 0;
+  let currentPos = 0;
 
-  let match
+  let match;
   while ((match = tokenRegex.exec(text))) {
-    currentColumn += match.index - lastIndex
-    currentPos += match.index - lastIndex
-    originalParts.push(text.slice(lastIndex, match.index))
-    lastIndex = tokenRegex.lastIndex
+    currentColumn += match.index - lastIndex;
+    currentPos += match.index - lastIndex;
+    originalParts.push(text.slice(lastIndex, match.index));
+    lastIndex = tokenRegex.lastIndex;
 
     if (match[TOKEN_BEGIN_MARKER] && !openMarker) {
       openMarker = {
         line: currentLine,
         column: currentColumn,
         pos: currentPos
-      }
+      };
     }
     if (match[TOKEN_END_MERKER] && openMarker) {
       positions.push({
@@ -76,18 +76,18 @@ export function parseMarkedText(text: string, beginMarker: string = "<<{|", endM
         endOffset: currentPos,
         endLine: currentLine,
         endColumn: currentColumn,
-      })
-      openMarker = null
+      });
+      openMarker = null;
     }
     if (match[TOKEN_LN]) {
-      currentLine += 1
-      currentColumn = 0
+      currentLine += 1;
+      currentColumn = 0;
       // Add token to output
-      currentPos += tokenRegex.lastIndex - match.index
-      originalParts.push(text.slice(match.index, tokenRegex.lastIndex))
+      currentPos += tokenRegex.lastIndex - match.index;
+      originalParts.push(text.slice(match.index, tokenRegex.lastIndex));
     }
   }
-  originalParts.push(text.slice(lastIndex))
+  originalParts.push(text.slice(lastIndex));
 
   return {
     text: originalParts.join(""),

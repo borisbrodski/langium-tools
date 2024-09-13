@@ -24,10 +24,10 @@ export async function parseMarkedDSL(
   endMarker: string = "|}>>"
 ): Promise<ParsedDocument> {
   const markerData = parseMarkedText(text, beginMarker, endMarker);
-  const document = await doParse(markerData.text)
+  const document = await doParse(markerData.text);
   return {
     markedText: text,
     document: document,
     markerData: markerData
-  }
+  };
 }

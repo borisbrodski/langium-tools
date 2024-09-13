@@ -1,7 +1,7 @@
-import 'vitest'
-import { LangiumDocument } from "langium"
-import { expect } from "vitest"
-import { DocumentIssueSeverity, documentIssueToString, getDocumentIssues as getDocumentIssues, getDocumentIssueSummary } from "../base/document-errors.js"
+import 'vitest';
+import { LangiumDocument } from "langium";
+import { expect } from "vitest";
+import { DocumentIssueSeverity, documentIssueToString, getDocumentIssues as getDocumentIssues, getDocumentIssueSummary } from "../base/document-errors.js";
 import { ParsedDocument } from './parser-tools.js';
 
 export interface IgnoreParameters {
@@ -29,7 +29,7 @@ function toHaveNoErrors(document: LangiumDocument, parameters?: IgnoreParameters
   return {
     pass: issues.countTotal === 0,
     message: () => issues.message
-  }
+  };
 }
 
 export interface IssueExpectation {
@@ -61,79 +61,79 @@ function toHaveValidationIssues(parsedDocument: ParsedDocument, expectedIssues: 
       return {
         pass: true,
         message: () => ""
-      }
+      };
     }
     return {
       pass: false,
       message: () => `No of expected ${expectedIssues.length} issues were present in document\n${ //
         expectedIssues.map((issue) => issueExpectationToString(parsedDocument, issue)).join("\n")
         }`
-    }
+    };
   }
 
-  const unmatchedExpectedIssues: Array<IssueExpectation> = []
-  let isIssuesToMatch = [...isIssues]
+  const unmatchedExpectedIssues: Array<IssueExpectation> = [];
+  let isIssuesToMatch = [...isIssues];
 
   expectedIssues.forEach(expectedIssue => {
     const matchedIsIssue = isIssuesToMatch.find((isIssue) => {
-      let match = (isIssue.message === expectedIssue.message)
-      match &&= (isIssue.severity === (expectedIssue.severity || DocumentIssueSeverity.ERROR))
+      let match = (isIssue.message === expectedIssue.message);
+      match &&= (isIssue.severity === (expectedIssue.severity || DocumentIssueSeverity.ERROR));
       if (expectedIssue.markerId) {
-        const marker = parsedDocument.markerData.markers[expectedIssue.markerId]
+        const marker = parsedDocument.markerData.markers[expectedIssue.markerId];
         expect(marker,
           `MarkerId ${expectedIssue.markerId} of expected issue "${expectedIssue.message} not found. There are only ${parsedDocument.markerData.markers.length} markers available`)
-          .toBeDefined()
+          .toBeDefined();
 
         if (isIssue.startLine !== undefined) {
-          match &&= (isIssue.startLine === marker.startLine)
+          match &&= (isIssue.startLine === marker.startLine);
         }
         if (isIssue.startColumn !== undefined) {
-          match &&= (isIssue.startColumn === marker.startColumn)
+          match &&= (isIssue.startColumn === marker.startColumn);
         }
         if (isIssue.startOffset !== undefined) {
-          match &&= (isIssue.startOffset === marker.startOffset)
+          match &&= (isIssue.startOffset === marker.startOffset);
         }
         if (isIssue.endLine !== undefined) {
-          match &&= (isIssue.endLine === marker.endLine)
+          match &&= (isIssue.endLine === marker.endLine);
         }
         if (isIssue.endColumn !== undefined) {
-          match &&= (isIssue.endColumn === marker.endColumn)
+          match &&= (isIssue.endColumn === marker.endColumn);
         }
         if (isIssue.endOffset !== undefined) {
-          match &&= (isIssue.endOffset === marker.endOffset)
+          match &&= (isIssue.endOffset === marker.endOffset);
         }
       }
 
       return match;
-    })
+    });
     if (matchedIsIssue) {
-      isIssuesToMatch = isIssuesToMatch.filter((issue) => issue !== matchedIsIssue)
+      isIssuesToMatch = isIssuesToMatch.filter((issue) => issue !== matchedIsIssue);
     } else {
       unmatchedExpectedIssues.push(expectedIssue);
     }
   });
 
-  const errors: Array<string> = []
+  const errors: Array<string> = [];
   if (isIssuesToMatch.length > 0) {
-    errors.push("Unmatched IS isssues:")
-    errors.push(...isIssuesToMatch.map((issue) => documentIssueToString(issue)))
+    errors.push("Unmatched IS isssues:");
+    errors.push(...isIssuesToMatch.map((issue) => documentIssueToString(issue)));
 
   }
   if (unmatchedExpectedIssues.length > 0) {
-    errors.push("Unmatched EXPECTED isssues:")
-    errors.push(...unmatchedExpectedIssues.map((issue) => issueExpectationToString(parsedDocument, issue)))
+    errors.push("Unmatched EXPECTED isssues:");
+    errors.push(...unmatchedExpectedIssues.map((issue) => issueExpectationToString(parsedDocument, issue)));
   }
 
   return {
     pass: errors.length === 0,
     message: () => errors.join("\n")
-  }
+  };
 }
 
 expect.extend({
   toHaveNoErrors: toHaveNoErrors,
   toHaveValidationIssues: toHaveValidationIssues
-})
+});
 
 
 interface LangiumMatchers<R = unknown> {
@@ -150,21 +150,21 @@ declare module 'vitest' {
 }
 
 function issueExpectationToString(parsedDocument: ParsedDocument, issue: IssueExpectation): string {
-  const severity = issue.severity || DocumentIssueSeverity.ERROR
-  let message = `${severity}`
+  const severity = issue.severity || DocumentIssueSeverity.ERROR;
+  let message = `${severity}`;
   if (issue.markerId !== undefined) {
-    const marker = parsedDocument.markerData.markers[issue.markerId]
-    message += ` at ${marker.startLine + 1}:${marker.startColumn + 1}`
+    const marker = parsedDocument.markerData.markers[issue.markerId];
+    message += ` at ${marker.startLine + 1}:${marker.startColumn + 1}`;
     if (marker.startOffset < marker.endOffset) {
-      message += "-"
+      message += "-";
       if (marker.startLine < marker.endLine) {
-        message += `${marker.endLine + 1}:`
+        message += `${marker.endLine + 1}:`;
 
       }
-      message += `${marker.endColumn + 1}`
+      message += `${marker.endColumn + 1}`;
     }
   }
-  message += ` - ${issue.message}`
-  return message
+  message += ` - ${issue.message}`;
+  return message;
 }
 

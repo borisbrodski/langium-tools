@@ -33,16 +33,16 @@ export function langiumGeneratorSuite<SERVICES, SHARED_SERVICES, MODEL extends A
 
       test(`DSL-Workspace "${testDirName}"${generateMode ? ' (generating)' : ''}`, async () => {
         await langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL>(path.join(testSuiteDir, testDirName), options);
-      })
-    })
+      });
+    });
 }
 
 export async function langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL extends AstNode>(testDir: string, options: GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL>): Promise<void> {
 
   async function generateForWorkspace(services: DslServices<SERVICES, SHARED_SERVICES>, documents: LangiumDocument<AstNode>[], workspaceFolder: WorkspaceFolder): Promise<GeneratedContentManager> {
-    const optionsGenerator = options.generateForModel
+    const optionsGenerator = options.generateForModel;
     if (!optionsGenerator) {
-      throw new Error('One of generateForDocument or generateForWorkspace must be defined')
+      throw new Error('One of generateForDocument or generateForWorkspace must be defined');
     }
 
     const collector = new GeneratedContentManager([workspaceFolder.uri]);
@@ -63,7 +63,7 @@ export async function langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL exte
   const optionsValidateDocuments = options.validateDocuments || validateDocuments;
   const optionsGenerateForWorkspace = options.generateForWorkspace || generateForWorkspace;
 
-  const services = options.createServices(NodeFileSystem)
+  const services = options.createServices(NodeFileSystem);
   const workspaceFolder = await optionsInitWorkspace(services, testDir);
   const documents = await optionsBuildDocuments(services, workspaceFolder);
   await optionsValidateDocuments(services, documents);
@@ -124,7 +124,7 @@ function cleanDir(outputDir: string) {
     return;
   }
 
-  const siblingDirs = fs.readdirSync(path.join(outputDir, ".."))
+  const siblingDirs = fs.readdirSync(path.join(outputDir, ".."));
   if (!siblingDirs.includes("dsls")) {
     throw new Error("The out directory ${outputDir} should have a sibling directory named 'dsls'");
   }
@@ -146,32 +146,32 @@ function verifyFiles(generatedContent: GeneratedContent, outputDir: string) {
     .filter(file => fs.statSync(path.join(outputDir, file)).isFile())
     .map(path.normalize);
   generatedContent.forEach((content, fileName) => {
-    const normFileName = path.normalize(fileName)
+    const normFileName = path.normalize(fileName);
     try {
       expect(files).toContain(normFileName);
     } catch (error) {
-      console.error('ERROR: Unexpected generated file:')
-      console.error(`- '${URI.parse(normFileName)}')`)
-      console.error('Expecting files:')
+      console.error('ERROR: Unexpected generated file:');
+      console.error(`- '${URI.parse(normFileName)}')`);
+      console.error('Expecting files:');
       files.forEach(file =>
         console.error(`- '${URI.parse(file)}'`)
-      )
-      throw error
+      );
+      throw error;
     }
     const filePath = path.join(outputDir, normFileName);
     const fileContent = fs.readFileSync(filePath, "utf-8");
     expect(content.content, "File: " + fileName).toBe(fileContent);
   });
   try {
-    expect(files.length, "Missing generated files").toBe(generatedContent.size)
+    expect(files.length, "Missing generated files").toBe(generatedContent.size);
   } catch (error) {
-    console.error("ERROR: Missing generated files:")
-    const generatedFiles = Array.from(generatedContent.keys()).map(path.normalize)
+    console.error("ERROR: Missing generated files:");
+    const generatedFiles = Array.from(generatedContent.keys()).map(path.normalize);
     files.filter((file) => !generatedFiles.includes(file))
       .forEach(file => {
-        console.error(`- ${file}`)
-      })
-    throw error
+        console.error(`- ${file}`);
+      });
+    throw error;
   }
 
 }

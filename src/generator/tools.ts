@@ -9,6 +9,6 @@ import { URI } from "langium";
  */
 export function getWorkspaceForDocument(documentURI?: URI, workspaceURIs?: URI[]): URI | undefined {
   return workspaceURIs?.find(workspaceURI => {
-    return documentURI?.toString().startsWith(workspaceURI.toString())
-  })
+    return documentURI?.toString().startsWith(workspaceURI.toString());
+  });
 }
