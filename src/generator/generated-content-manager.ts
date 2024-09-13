@@ -1,5 +1,5 @@
 import { AstNode, LangiumDocument, URI } from 'langium';
-import * as fs from 'node:fs';
+import * as fsPromises from 'fs/promises';
 import * as path from 'node:path';
 import { getWorkspaceForDocument } from './tools.js';
 
@@ -200,37 +200,61 @@ export class GeneratedContentManager {
   }
 
   /**
-   * Writes the generated content (for a target) to the file system.
+   * Writes the generated content (for a target) to the file system asynchronously.
    *
    * Existing files are only overwritten if the overwrite flag is set (default behavior).
-   * If the file already exists and the content is the same, the file is not overwritten
+   * If the file already exists and the content is the same, the file is not overwritten,
    * preserving the timestamp and not triggering file system file change events.
    *
    * @param outputDir - The output directory.
    * @param [target] - Content to write. {@link DEFAULT_TARGET} will be used if not provided.
-   * @since 0.1.0
    */
-  writeToDisk(outputDir: string, target?: Target): void {
+  async writeToDisk(outputDir: string, target?: Target): Promise<void> {
     const generatedContent = this.getGeneratedContent(target);
 
-    fs.mkdirSync(outputDir, { recursive: true });
+    // Ensure the output directory exists
+    try {
+      await fsPromises.mkdir(outputDir, { recursive: true });
+    } catch (error) {
+      console.error(`Error creating directory "${outputDir}": ${(error as Error).message}`);
+      throw error;
+    }
 
     for (const [file, content] of generatedContent) {
       const absoluteFilePath = path.join(outputDir, file);
-      const filePath = path.dirname(absoluteFilePath);
+      const fileDir = path.dirname(absoluteFilePath);
 
-      fs.mkdirSync(filePath, { recursive: true });
-
-      if (fs.existsSync(absoluteFilePath)) {
-        if (!content.overwrite) {
-          continue;
-        }
-        const existingContent = fs.readFileSync(absoluteFilePath, 'utf8');
-        if (existingContent.toString() === content.content) {
-          continue;
-        }
+      try {
+        await fsPromises.mkdir(fileDir, { recursive: true });
+      } catch (error) {
+        console.error(`Error creating directory "${fileDir}": ${(error as Error).message}`);
+        throw error;
       }
-      fs.writeFileSync(absoluteFilePath, content.content);
+
+      let fileExists = false;
+      let existingContent = '';
+
+      try {
+        existingContent = await fsPromises.readFile(absoluteFilePath, 'utf8');
+        fileExists = true;
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+          console.error(`Error reading file "${absoluteFilePath}": ${(error as Error).message}`);
+          throw error;
+        }
+        // File does not exist, proceed to write
+      }
+
+      if (fileExists && (!content.overwrite || existingContent === content.content)) {
+        continue;
+      }
+
+      try {
+        await fsPromises.writeFile(absoluteFilePath, content.content);
+      } catch (error) {
+        console.error(`Error writing file "${absoluteFilePath}": ${(error as Error).message}`);
+        throw error;
+      }
     }
   }
 }

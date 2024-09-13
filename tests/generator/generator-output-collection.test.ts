@@ -4,7 +4,6 @@ import { using } from '../../src/testing'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'
-import * as fsPromises from 'fs/promises';
 import { EmptyFileSystem, Grammar, LangiumDocument, URI } from 'langium'
 import { createLangiumGrammarServices } from 'langium/grammar'
 import { parseHelper } from 'langium/test'
@@ -40,7 +39,7 @@ describe('GeneratorOutputCollector', () => {
   })
 
   describe('Collecting content', () => {
-    test('Generating without workspace', () => {
+    test('Generating without workspace', async () => {
       const model = document.parseResult.value
       const manager = new GeneratedContentManager()
       using(manager.generatorManagerFor(model), output => {
@@ -51,7 +50,7 @@ describe('GeneratorOutputCollector', () => {
       })
     })
 
-    test('Generating with document outside of workspace', () => {
+    test('Generating with document outside of workspace', async () => {
       function generator(generatorManager: GeneratorManager): void {
         generatorManager.createFile('path/to/file1', 'Model content1')
       }
@@ -74,7 +73,7 @@ describe('GeneratorOutputCollector', () => {
       })
     })
 
-    test('Generating with document in workspace', () => {
+    test('Generating with document in workspace', async () => {
       function generator(generatorManager: GeneratorManager): void {
         generatorManager.createFile('path/to/file1', 'Model content1')
       }
@@ -97,13 +96,13 @@ describe('GeneratorOutputCollector', () => {
       })
     })
 
-    test('Generate no files', () => {
+    test('Generate no files', async () => {
       const manager = new GeneratedContentManager()
       const content = manager.getGeneratedContent()
       expect(content.size).toBe(0)
     })
 
-    test('Generate 1 file', () => {
+    test('Generate 1 file', async () => {
       function generator(generatorManager: GeneratorManager): void {
         generatorManager.createFile('path/to/file1', 'Model content1')
       }
@@ -119,7 +118,7 @@ describe('GeneratorOutputCollector', () => {
       })
     })
 
-    test('Generate 2 files', () => {
+    test('Generate 2 files', async () => {
       function generator(generatorManager: GeneratorManager): void {
         generatorManager.createFile('path/to/file1', 'Model content1')
         generatorManager.createFile('path/to/file2', 'Model content2')
@@ -142,7 +141,7 @@ describe('GeneratorOutputCollector', () => {
       })
     })
 
-    test('Generate 2 files with overwrite', () => {
+    test('Generate 2 files with overwrite', async () => {
       function generator(generatorManager: GeneratorManager): void {
         generatorManager.createFile('path/to/file1', 'Model content1', { overwrite: false })
         generatorManager.createFile('path/to/file2', 'Model content2', { overwrite: true })
@@ -165,7 +164,7 @@ describe('GeneratorOutputCollector', () => {
       })
     })
 
-    test('Generate 2 files from 2 dsls', () => {
+    test('Generate 2 files from 2 dsls', async () => {
       function generator(name: string, generatorManager: GeneratorManager): void {
         generatorManager.createFile(`path/to/${name}`, `Model ${name}`)
       }
@@ -189,7 +188,7 @@ describe('GeneratorOutputCollector', () => {
       })
     })
 
-    test('Generate multiple files', () => {
+    test('Generate multiple files', async () => {
       function generator(generatorManager: GeneratorManager): void {
         generatorManager.createFile('path/to/file1', 'Model content1')
         generatorManager.createFile('path/to/file2', 'Model content2')
@@ -223,7 +222,7 @@ describe('GeneratorOutputCollector', () => {
       })
     })
 
-    test('Generate multiple files from multiple dsls', () => {
+    test('Generate multiple files from multiple dsls', async () => {
       function generator(generatorManager: GeneratorManager): void {
         generatorManager.createFile('path/to/file1', 'Model content1')
         generatorManager.createFile('path/to/file2', 'Model content2')
@@ -280,7 +279,7 @@ describe('GeneratorOutputCollector', () => {
       })
     })
 
-    test('Same file with same content are ok', () => {
+    test('Same file with same content are ok', async () => {
       function generator(generatorManager: GeneratorManager): void {
         generatorManager.createFile('path/to/file1', 'Model content1')
         generatorManager.createFile('path/to/file1', 'Model content1')
@@ -297,7 +296,7 @@ describe('GeneratorOutputCollector', () => {
       })
     })
 
-    test('Same file with different content are not ok - same dsl', () => {
+    test('Same file with different content are not ok - same dsl', async () => {
       function generator(generatorManager: GeneratorManager): void {
         generatorManager.createFile('path/to/file1', 'Model content1')
         generatorManager.createFile('path/to/file1', 'Model content2')
@@ -309,7 +308,7 @@ describe('GeneratorOutputCollector', () => {
       }).toThrowError('Conflict generating file "path/to/file1" from "dir/doc1.langium": A file with different content was already generated from "dir/doc1.langium".')
     })
 
-    test('Same file with different content are not ok - different dsl', () => {
+    test('Same file with different content are not ok - different dsl', async () => {
       function generator(generatorManager: GeneratorManager): void {
         generatorManager.createFile('path/to/file1', 'Model content1')
       }
@@ -324,7 +323,7 @@ describe('GeneratorOutputCollector', () => {
       }).toThrowError('Conflict generating file "path/to/file1" from "dir/doc1.langium": A file with different content was already generated from "dir/doc1.langium".')
     })
 
-    test('Same file with different overwrite are not ok', () => {
+    test('Same file with different overwrite are not ok', async () => {
       function generator(generatorManager: GeneratorManager): void {
         generatorManager.createFile('path/to/file1', 'Model content1', { overwrite: true })
       }
@@ -368,36 +367,36 @@ describe('GeneratorOutputCollector', () => {
         })
       })
 
-      test('No files to create - dir get created', () => {
+      test('No files to create - dir get created', async () => {
         const manager = new GeneratedContentManager()
-        manager.writeToDisk(tmpDir)
+        await await manager.writeToDisk(tmpDir)
         expect(fs.readdirSync(tmpDir)).toStrictEqual([])
       })
 
-      test('No files to create - dir get created recursively', () => {
+      test('No files to create - dir get created recursively', async () => {
         const manager = new GeneratedContentManager()
         const workspacePath = path.join(tmpDir, 'path', 'to')
-        manager.writeToDisk(workspacePath)
+        await await manager.writeToDisk(workspacePath)
         expect(fs.readdirSync(workspacePath)).toStrictEqual([])
       })
 
-      test('Create 1 file', () => {
+      test('Create 1 file', async () => {
         const manager = new GeneratedContentManager()
         const generatorManager = manager.generatorManagerFor(model)
         generatorManager.createFile('file1.js', '// Model content1')
-        manager.writeToDisk(tmpDir)
+        await await manager.writeToDisk(tmpDir)
         expect(fs.readFileSync(path.join(tmpDir, 'file1.js'), 'utf8')).toBe('// Model content1')
       })
 
-      test('Create 1 file in a subdirectory', () => {
+      test('Create 1 file in a subdirectory', async () => {
         const manager = new GeneratedContentManager()
         const generatorManager = manager.generatorManagerFor(model)
         generatorManager.createFile('path/to/file1.js', '// Model content1')
-        manager.writeToDisk(tmpDir)
+        await await manager.writeToDisk(tmpDir)
         expect(fs.readFileSync(path.join(tmpDir, 'path', 'to', 'file1.js'), 'utf8')).toBe('// Model content1')
       })
 
-      test('Create 1 file without overwrite', () => {
+      test('Create 1 file without overwrite', async () => {
         const filePath1 = path.join(tmpDir, 'file1.js')
         fs.writeFileSync(filePath1, '// Existing content 1')
         const filePath2 = path.join(tmpDir, 'file2.js')
@@ -407,7 +406,7 @@ describe('GeneratorOutputCollector', () => {
         const generatorManager = manager.generatorManagerFor(model)
         generatorManager.createFile('file1.js', '// New content1', { overwrite: false })
         generatorManager.createFile('file2.js', '// New content2', { overwrite: true })
-        manager.writeToDisk(tmpDir)
+        await manager.writeToDisk(tmpDir)
         expect(fs.readFileSync(filePath1, 'utf8')).toBe('// Existing content 1')
         expect(fs.readFileSync(filePath2, 'utf8')).toBe('// New content2')
       })
@@ -428,14 +427,14 @@ describe('GeneratorOutputCollector', () => {
         const generatorManager = manager.generatorManagerFor(model)
         generatorManager.createFile('file1.js', '// Existing content 1', { overwrite: true })
         generatorManager.createFile('file2.js', '// New content2', { overwrite: true })
-        manager.writeToDisk(tmpDir)
+        await await manager.writeToDisk(tmpDir)
         expect(fs.readFileSync(filePath1, 'utf8')).toBe('// Existing content 1')
         expect(fs.readFileSync(filePath2, 'utf8')).toBe('// New content2')
         expect(fs.statSync(filePath1).mtimeMs).toBe(lastModified1)
         expect(fs.statSync(filePath2).mtimeMs).toBeGreaterThan(lastModified2)
       })
 
-      test('Create multiple files and directories', () => {
+      test('Create multiple files and directories', async () => {
         function generator(generatorManager: GeneratorManager): void {
           generatorManager.createFile('file1.js', '// Model content1')
           generatorManager.createFile('path/to/file2.js', '// Model content2')
@@ -445,7 +444,7 @@ describe('GeneratorOutputCollector', () => {
         const workspaceURI = URI.parse('file:///workspace')
         const manager = new GeneratedContentManager([workspaceURI])
         generator(manager.generatorManagerFor(model))
-        manager.writeToDisk(tmpDir)
+        await await manager.writeToDisk(tmpDir)
         expect(fs.readFileSync(path.join(tmpDir, 'file1.js'), 'utf8')).toBe('// Model content1')
         expect(fs.readFileSync(path.join(tmpDir, 'path', 'to', 'file2.js'), 'utf8')).toBe('// Model content2')
         expect(fs.readFileSync(path.join(tmpDir, 'path', 'to', 'file3.js'), 'utf8')).toBe('// Model content3')
@@ -455,7 +454,7 @@ describe('GeneratorOutputCollector', () => {
     })
 
     describe("Multiple output directories", () => {
-      test('Files are written to the correct output directories based on target', () => {
+      test('Files are written to the correct output directories based on target', async () => {
         const TARGET_SRC: Target = { name: "SRC" };
 
         const manager = new GeneratedContentManager();
@@ -465,8 +464,8 @@ describe('GeneratorOutputCollector', () => {
         generatorManager.createFile('file1.js', '// Model content1', { target: TARGET_SRC });
         generatorManager.createFile('file2.js', '// Model content2');
 
-        manager.writeToDisk(tmpDir); // Writes default target files
-        manager.writeToDisk(tmpDir2, TARGET_SRC); // Writes TARGET_SRC files
+        await await manager.writeToDisk(tmpDir); // Writes default target files
+        await manager.writeToDisk(tmpDir2, TARGET_SRC); // Writes TARGET_SRC files
 
         expect(fs.existsSync(path.join(tmpDir, 'file2.js'))).toBe(true);
         expect(fs.readFileSync(path.join(tmpDir, 'file2.js'), 'utf8')).toBe('// Model content2');
@@ -477,7 +476,7 @@ describe('GeneratorOutputCollector', () => {
         expect(fs.existsSync(path.join(tmpDir, 'file1.js'))).toBe(false);
         expect(fs.existsSync(path.join(tmpDir2, 'file2.js'))).toBe(false);
       });
-      test('Files with the same name in different targets and overwrite settings', () => {
+      test('Files with the same name in different targets and overwrite settings', async () => {
         const TARGET_SRC: Target = { name: "SRC" };
         const TARGET_LIB: Target = { name: "LIB" };
 
@@ -509,9 +508,9 @@ describe('GeneratorOutputCollector', () => {
         generatorManager.createFile('file2.js', '// Should not overwrite existing file', { overwrite: false });
 
         // Write files to their respective directories
-        manager.writeToDisk(tmpDir);           // Writes default target files
-        manager.writeToDisk(tmpDir2, TARGET_SRC); // Writes SRC target files
-        manager.writeToDisk(tmpDir3, TARGET_LIB); // Writes LIB target files
+        await manager.writeToDisk(tmpDir);           // Writes default target files
+        await manager.writeToDisk(tmpDir2, TARGET_SRC); // Writes SRC target files
+        await manager.writeToDisk(tmpDir3, TARGET_LIB); // Writes LIB target files
 
         // Assertions for the default target (tmpDir)
         expect(fs.readFileSync(sharedFileDefault, 'utf8')).toBe('// New content for default target');
@@ -523,7 +522,7 @@ describe('GeneratorOutputCollector', () => {
         // Assertions for the LIB target (tmpDir3)
         expect(fs.readFileSync(sharedFileLib, 'utf8')).toBe('// New content for LIB target');
       });
-      test('Target with overwrite defaulting to true overwrites existing files', () => {
+      test('Target with overwrite defaulting to true overwrites existing files', async () => {
         const TARGET_SRC: Target = { name: "SRC" };
 
         // Pre-existing file in the TARGET_SRC directory
@@ -540,12 +539,12 @@ describe('GeneratorOutputCollector', () => {
         generatorManager.createFile('file1.js', '// New content for SRC target', { target: TARGET_SRC });
 
         // Write files to the TARGET_SRC directory
-        manager.writeToDisk(tmpDir2, TARGET_SRC);
+        await manager.writeToDisk(tmpDir2, TARGET_SRC);
 
         // Assert that the existing file has been overwritten
         expect(fs.readFileSync(existingFilePath, 'utf8')).toBe('// New content for SRC target');
       });
-      test('createFile overwrite option overrides target default overwrite setting', () => {
+      test('createFile overwrite option overrides target default overwrite setting', async () => {
         const TARGET_SRC: Target = { name: "SRC" };
 
         // Pre-existing files in the target directories
@@ -568,8 +567,8 @@ describe('GeneratorOutputCollector', () => {
         generatorManager.createFile('file2.js', '// New content for default target', { overwrite: false });
 
         // Write files to their respective directories
-        manager.writeToDisk(tmpDir2, TARGET_SRC); // Writes SRC target files
-        manager.writeToDisk(tmpDir);              // Writes default target files
+        await manager.writeToDisk(tmpDir2, TARGET_SRC); // Writes SRC target files
+        await manager.writeToDisk(tmpDir);              // Writes default target files
 
         // Assertions for TARGET_SRC (tmpDir2)
         // The existing file should be overwritten because overwrite: true was passed to createFile
@@ -579,7 +578,7 @@ describe('GeneratorOutputCollector', () => {
         // The existing file should NOT be overwritten because overwrite: false was passed to createFile
         expect(fs.readFileSync(existingFileDefault, 'utf8')).toBe('// Existing content in default target');
       });
-      test('Adding the same target twice throws an error', () => {
+      test('Adding the same target twice throws an error', async () => {
         const TARGET_DUPLICATE: Target = { name: "DUPLICATE" };
 
         const manager = new GeneratedContentManager();
@@ -588,7 +587,7 @@ describe('GeneratorOutputCollector', () => {
           manager.addTarget(TARGET_DUPLICATE, false);
         }).toThrowError('Target "DUPLICATE" has already been added');
       });
-      test('Creating a file with a non-existing target throws an error', () => {
+      test('Creating a file with a non-existing target throws an error', async () => {
         const NON_EXISTING_TARGET: Target = { name: "NON_EXISTING" };
 
         const manager = new GeneratedContentManager();
@@ -597,13 +596,13 @@ describe('GeneratorOutputCollector', () => {
           generatorManager.createFile('file.js', '// Content', { target: NON_EXISTING_TARGET });
         }).toThrowError('Target "NON_EXISTING" is not registered');
       });
-      test('Writing to disk with a non-existing target throws an error', () => {
+      test('Writing to disk with a non-existing target throws an error', async () => {
         const NON_EXISTING_TARGET: Target = { name: "NON_EXISTING" };
 
         const manager = new GeneratedContentManager();
-        expect(() => {
-          manager.writeToDisk(tmpDir, NON_EXISTING_TARGET);
-        }).toThrowError('Target "NON_EXISTING" is not registered');
+        await expect(
+          manager.writeToDisk(tmpDir, NON_EXISTING_TARGET)
+        ).rejects.toThrowError('Target "NON_EXISTING" is not registered');
       });
     });
   })
