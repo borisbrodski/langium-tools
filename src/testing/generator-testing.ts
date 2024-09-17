@@ -4,7 +4,7 @@ import { NodeFileSystem } from 'langium/node';
 import path from 'path';
 import fs from 'fs';
 import { expect, test } from 'vitest';
-import { getDocumentIssueSummary } from '../base/document-errors.js';
+import { getDocumentIssueSummary } from '../base/document-issues.js';
 import { GeneratedContent, GeneratorManager, GeneratedContentManager } from '../generator/generated-content-manager.js';
 
 

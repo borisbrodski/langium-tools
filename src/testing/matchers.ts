@@ -1,7 +1,7 @@
 import 'vitest';
 import { LangiumDocument } from "langium";
 import { expect } from "vitest";
-import { DocumentIssueSeverity, documentIssueToString, getDocumentIssues as getDocumentIssues, getDocumentIssueSummary } from "../base/document-errors.js";
+import { DocumentIssueSeverity, documentIssueToString, getDocumentIssues as getDocumentIssues, getDocumentIssueSummary } from "../base/document-issues.js";
 import { ParsedDocument } from './parser-tools.js';
 
 export interface IgnoreParameters {
