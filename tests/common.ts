@@ -5,5 +5,5 @@ export function using<T>(obj: T, fnc: (t: T) => void) {
 }
 
 export function t(staticParts: TemplateStringsArray, ...substitutions: unknown[]): string {
-  return toString(expandToNode(staticParts, ...substitutions));
+  return toString(expandToNode(staticParts, ...substitutions)).replace(/\r/g, '');
 }
