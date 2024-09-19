@@ -46,7 +46,7 @@ describe('GeneratorOutputCollector', () => {
         expect(output.getModel()).toBe(model)
         expect(output.getDocument()).toBe(document)
         expect(output.getWorkspaceURI()).toBeUndefined()
-        expect(output.getDocumentLocalPath()).toBeUndefined()
+        expect(output.getDocumentLocalPath()).toBe("doc1.langium")
       })
     })
 
@@ -63,7 +63,7 @@ describe('GeneratorOutputCollector', () => {
         expect(output.getModel()).toBe(model)
         expect(output.getDocument()).toBe(document)
         expect(output.getWorkspaceURI()).toBeUndefined()
-        expect(output.getDocumentLocalPath()).toBeUndefined()
+        expect(output.getDocumentLocalPath()).toBe('doc1.langium')
       })
       generator(manager.generatorManagerFor(model))
       expect(manager.getGeneratedContent().get('path/to/file1')).toStrictEqual({

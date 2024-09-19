@@ -99,8 +99,10 @@ export interface GeneratorManager<MODEL extends AstNode = AstNode> {
   /**
    * Returns the relative path of the Langium document within the determined workspace.
    * See {@link getWorkspaceURI}.
+   * If DSL file is outside of all workspace directories, filename with extension (basename) is returned.
+   * `/` is used on all platforms as directory separator.
    *
-   * @returns The relative path as a string, if the workspace URI could be determined, or `undefined` otherwise.
+   * @returns The relative path as a string, if the workspace URI could be determined, filename with extension or `undefined` otherwise.
    */
   getDocumentLocalPath(): string | undefined;
 }
@@ -190,12 +192,17 @@ export class GeneratedContentManager {
    */
   generatorManagerFor<MODEL extends AstNode = AstNode>(model: MODEL): GeneratorManager<MODEL> {
     const documentURI = model.$document?.uri;
+    const documentURIString = documentURI?.toString();
     const workspaceURI = getWorkspaceForDocument(documentURI, this.workspaceURIs);
+    const workspaceRelativePath = workspaceURI !== undefined && documentURI !== undefined
+      ? path.posix.relative(workspaceURI.path, documentURI.path)
+      : undefined;
     const relativePath =
-      workspaceURI !== undefined && documentURI !== undefined
-        ? path.relative(workspaceURI.fsPath, documentURI.fsPath)
-        : undefined;
-    const documentPath = relativePath || documentURI?.toString() || 'document URI undefined';
+      workspaceRelativePath ||
+      (documentURIString !== undefined
+        ? path.basename(documentURIString)
+        : undefined);
+    const documentPath = workspaceRelativePath || documentURI?.toString() || 'document URI undefined';
     return {
       createFile: (filePath: string, content: string, options?: CreateFileOptions) => {
         const target = options?.target || DEFAULT_TARGET;
