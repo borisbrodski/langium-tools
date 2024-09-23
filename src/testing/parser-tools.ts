@@ -11,7 +11,8 @@ export interface ParsedDocument {
 type DoParse = ReturnType<typeof parseHelper>
 
 /**
- * Extract markers and parse dsl.
+ * Extract markers and parse dsl and run validation.
+ *
  * @param doParse parse method returned from `parseHelper` method.
  * @param text DSL with markers
  * @param [endMarker="|}>>"] (optional) begin marker
@@ -24,7 +25,7 @@ export async function parseMarkedDSL(
   endMarker: string = "|}>>"
 ): Promise<ParsedDocument> {
   const markerData = parseMarkedText(text, beginMarker, endMarker);
-  const document = await doParse(markerData.text);
+  const document = await doParse(markerData.text, { validation: true });
   return {
     markedText: text,
     document: document,

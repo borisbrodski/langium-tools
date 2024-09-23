@@ -1,9 +1,13 @@
 import 'vitest';
 import { LangiumDocument } from "langium";
 import { expect } from "vitest";
-import { DocumentIssueSeverity, documentIssueToString, getDocumentIssues as getDocumentIssues, getDocumentIssueSummary } from "../base/document-issues.js";
+import { DocumentIssueSeverity, DocumentIssueSource, documentIssueToString, getDocumentIssues as getDocumentIssues, getDocumentIssueSummary } from "../base/document-issues.js";
 import { ParsedDocument } from './parser-tools.js';
 
+/**
+ * Parameters to customize which types of errors to ignore in document validation.
+ * @interface IgnoreParameters
+ */
 export interface IgnoreParameters {
   ignoreParserErors?: boolean,
   ignoreLexerErors?: boolean,
@@ -12,15 +16,33 @@ export interface IgnoreParameters {
 }
 
 /**
- * Expect a document to have no errors after parsing.
+ * Expects a Langium document to have no errors after parsing.
+ * 
+ * @param {LangiumDocument|ParsedDocument} document - The Langium document to check for errors.
+ * @param {IgnoreParameters} [parameters] - Optional parameters to customize which errors to ignore.
+ * 
+ * @example
+ * import { expect, test } from 'vitest';
+ * import { parse } from './your-langium-test-setup';
+ * 
+ * test('document has no errors', async () => {
+ *   const doc = await parseMarkedDSL(parse, 'const x = 5;');
+ *   expect(doc).toHaveNoErrors();
+ * });
+ * 
+ * test('document has no errors, ignoring lexer errors', async () => {
+ *   const doc = await parse('const x = @;', { validation: true });
+ *   expect(doc).toHaveNoErrors({ ignoreLexerErors: true });
+ * });
  */
-function toHaveNoErrors(document: LangiumDocument, parameters?: IgnoreParameters) {
+function toHaveNoErrors(document: LangiumDocument | ParsedDocument, parameters?: IgnoreParameters) {
   const {
     ignoreParserErors = false,
     ignoreLexerErors = false,
     ignoreValidationErrors = false,
   } = (parameters || {});
-  const issues = getDocumentIssueSummary(document, {
+  const langiumDocument: LangiumDocument = 'document' in document ? document.document : document;
+  const issues = getDocumentIssueSummary(langiumDocument, {
     skipLexerErrors: ignoreLexerErors,
     skipParserErrors: ignoreParserErors,
     skipValidation: ignoreValidationErrors,
@@ -32,16 +54,72 @@ function toHaveNoErrors(document: LangiumDocument, parameters?: IgnoreParameters
   };
 }
 
+/**
+ * Represents an expected issue in a Langium document.
+ * @interface IssueExpectation
+ */
 export interface IssueExpectation {
   /**
    * Default: ERROR
    */
   severity?: DocumentIssueSeverity,
-  message: string,
+  /**
+   * Document issue source (lexer, parser, ...).
+   * Not asserted, if not provided. 
+   */
+  source?: DocumentIssueSource,
+
+  message: string, /* TODO Add regex support */
+  /**
+   * 0-based marker in DSL. Not asserted, if not provided.
+   */
   markerId?: number,
 }
 
+/**
+ * Expects a parsed Langium document with markers to have specific validation issues.
+ * 
+ * @param {ParsedDocument} parsedDocument - The parsed Langium document to check for issues.
+ * @param {Array<IssueExpectation>} expectedIssues - An array of expected issues.
+ * @param {IgnoreParameters} [parameters] - Optional parameters to customize which errors to ignore.
+ * 
+ * @example
+ * import { expect, test } from 'vitest';
+ * import { parse } from './your-langium-test-setup';
+ * 
+ * test('document has expected validation issues', async () => {
+ *   const parsedDoc = await parseDocument(parse, `
+ *       let [[x: string]] = 5;
+ *       print(x);
+ *   `, '[[', ']]');
+ *   expect(parsedDoc).toHaveValidationIssues([
+ *     {
+ *       message: "Type 'number' is not assignable to type 'string'",
+ *       markerId: 0
+ *     }
+ *   ]);
+ * });
+ * 
+ * test('document has warning, ignoring errors', () => {
+ *   const parsedDoc = await parseDocument(parse, `
+ *      let [[foo]];
+ *   `, '[[', ']]');
+ *   expect(parsedDoc).toHaveValidationIssues(
+ *     [
+ *       {
+ *         severity: DocumentIssueSeverity.WARNING,
+ *         message: "Variable 'foo' is never used",
+ *         markerId: 0
+ *       }
+ *     ],
+ *     { ignoreValidationErrors: true }
+ *   );
+ * });
+ */
 function toHaveValidationIssues(parsedDocument: ParsedDocument, expectedIssues: Array<IssueExpectation>, parameters?: IgnoreParameters) {
+  if (!('document' in parsedDocument)) {
+    throw Error("Expected ParsedDocument object. Use 'parseMarkedDSL' to parse.");
+  }
   const {
     ignoreParserErors = false,
     ignoreLexerErors = false,
@@ -132,7 +210,7 @@ function toHaveValidationIssues(parsedDocument: ParsedDocument, expectedIssues: 
 
 expect.extend({
   toHaveNoErrors: toHaveNoErrors,
-  toHaveValidationIssues: toHaveValidationIssues
+  toHaveDocumentIssues: toHaveValidationIssues
 });
 
 
@@ -140,8 +218,9 @@ interface LangiumMatchers<R = unknown> {
   /**
    * Expect a document to have no errors after parsing.
    */
-  toHaveNoErrors: R extends LangiumDocument ? (parameters?: IgnoreParameters) => void : never;
-  toHaveValidationIssues: R extends ParsedDocument ? (expectedIssues: Array<IssueExpectation>, parameters?: IgnoreParameters) => void : never;
+  toHaveNoErrors: R extends (LangiumDocument | ParsedDocument)
+  ? (parameters?: IgnoreParameters) => void : never;
+  toHaveDocumentIssues: R extends ParsedDocument ? (expectedIssues: Array<IssueExpectation>, parameters?: IgnoreParameters) => void : never;
 }
 
 declare module 'vitest' {

@@ -4,6 +4,9 @@ import { parseHelper } from 'langium/test'
 import 'vitest'
 import { beforeAll, describe, expect, test } from 'vitest'
 import '../../src/testing/matchers'
+import { ParsedDocument, parseMarkedDSL } from '../../src/testing/parser-tools'
+import { t } from '../common'
+import { DocumentIssueSeverity } from '../../src/base/document-issues'
 
 describe('Langium matchers', () => {
   let services: ReturnType<typeof createLangiumGrammarServices>;
@@ -13,7 +16,6 @@ describe('Langium matchers', () => {
   beforeAll(() => {
     services = createLangiumGrammarServices(EmptyFileSystem)
     parse = parseHelper<Grammar>(services.grammar);
-
   })
 
   describe("toHaveNoErrors", () => {
@@ -120,6 +122,63 @@ describe('Langium matchers', () => {
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
       `, { validation: true })
       expect(document).toHaveNoErrors({ ignoreValidationErrors: true })
+    })
+
+    test('using ParsedDocument with toHaveNoErrors works', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+
+        entry Grammar: name=ID;
+
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `)
+      expect(document).toHaveNoErrors()
+    })
+
+    test("using LangiumDocument with toHaveValidationIssues shows nice error message", async () => {
+      document = await parse(`
+        grammar LangiumGrammar
+
+        entry Grammar: name=ID;
+
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `, { validation: true })
+      expect(() => {
+        expect(document as object as ParsedDocument).toHaveDocumentIssues([])
+      }).toThrow("Expected ParsedDocument object. Use 'parseMarkedDSL' to parse.")
+    })
+
+    test('expect validation issue matched by severity and text', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+
+        entry Grammar: name=ID;
+
+        <<{|Unuse|}>>d: name=ID;
+
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `)
+      expect(document).toHaveDocumentIssues([{
+        severity: DocumentIssueSeverity.HINT,
+        message: "This rule is declared but never referenced.",
+      }], { ignoreNonErrorDiagnostics: false })
+    })
+    test('expect validation issue matched by severity and wrong text', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+
+        entry Grammar: name=ID;
+
+        <<{|Unuse|}>>d: name=ID;
+
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `)
+      expect(() => {
+        expect(document).toHaveDocumentIssues([{
+          severity: DocumentIssueSeverity.HINT,
+          message: "This rule is declared but never ever referenced.",
+        }])
+      }).toThrow("Unmatched IS isssues")
     })
   })
 })

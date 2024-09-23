@@ -1,4 +1,4 @@
-import "./string";
+import "./string.js";
 import { LangiumDocument } from "langium";
 import { DiagnosticSeverity } from "vscode-languageserver";
 import type { IToken } from 'chevrotain';
