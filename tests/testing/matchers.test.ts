@@ -700,7 +700,224 @@ describe('Langium matchers', () => {
         (Validation) Error - /Unmatched issue/
       `);
     });
+  });
 
+  describe('toContainIssue', () => {
+    test('document contains specific validation issue', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        entry Grammar: name ID;
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `);
+
+      expect(document).toContainIssue({
+        message: "Could not resolve reference to AbstractRule named 'name'.",
+      });
+    });
+
+    test('document contains specific issue matched by regex', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        entry Grammar: name ID;
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `);
+
+      expect(document).toContainIssue({
+        message: /Could not resolve reference/,
+      });
+    });
+
+    test('document contains issue with specific severity and source', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        entry Grammar: name ID;
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `);
+
+      expect(document).toContainIssue({
+        severity: DocumentIssueSeverity.ERROR,
+        source: DocumentIssueSource.VALIDATION,
+        message: "Could not resolve reference to AbstractRule named 'name'.",
+      });
+    });
+
+    test('document with no issues does not contain expected issue', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        entry Grammar: name=ID;
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `);
+
+      expect(() => {
+        expect(document).toContainIssue({
+          message: "Non-existent issue",
+        });
+      }).toThrow('No issues were found in the document.');
+    });
+
+    test('document does not contain specified issue', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        entry Grammar: name name;
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `);
+
+      expect(() => {
+        expect(document).toContainIssue({
+          message: "Non-existent issue",
+        });
+      }).toThrow('Expected issue was not found in the document');
+    });
+
+    test('document contains issue at specific markerId', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        entry Grammar: <<{|name|}>> ID;
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `);
+
+      expect(document).toContainIssue({
+        message: "Could not resolve reference to AbstractRule named 'name'.",
+        markerId: 0,
+      });
+    });
+
+    test('document does not contain issue at incorrect markerId', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        entry Grammar: <<{|name|}>> <<{|ID|}>>;
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `);
+
+      expect(document).toContainIssue({
+        message: "Could not resolve reference to AbstractRule named 'name'.",
+        markerId: 0,
+      });
+      expect(() => {
+        expect(document).toContainIssue({
+          message: "Could not resolve reference to AbstractRule named 'name'.",
+          markerId: 1,
+        });
+      }).toThrow('Expected issue was not found in the document');
+    });
+
+    test('document contains lexer error', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        terminal Error: 'err
+      `);
+
+      expect(document).toContainIssue({
+        source: DocumentIssueSource.LEXER,
+        severity: DocumentIssueSeverity.ERROR,
+        message: /unexpected character: ->'<- at offset/,
+      }, { ignoreValidationErrors: true, ignoreParserErrors: true });
+    });
+
+    test('document contains parser error', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        entry Grammar name=ID;
+      `);
+
+      expect(document).toContainIssue({
+        source: DocumentIssueSource.PARSER,
+        severity: DocumentIssueSeverity.ERROR,
+        message: /Expecting token of type ':' but found `name`/,
+      }, { ignoreValidationErrors: true });
+    });
+
+    test('document contains issue when ignoring non-error diagnostics', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        entry Grammar: name ID;
+        UnusedRule: name=ID;
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `);
+
+      expect(document).toContainIssue({
+        message: "Could not resolve reference to AbstractRule named 'name'.",
+      }, { ignoreNonErrorDiagnostics: false });
+    });
+
+    test('document does not contain issue when ignoring non-error diagnostics', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        entry Grammar: name=ID;
+        UnusedRule: name=ID;
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `);
+
+      expect(() => {
+        expect(document).toContainIssue({
+          message: 'This rule is declared but never referenced.',
+        }, { ignoreNonErrorDiagnostics: true });
+      }).toThrow('No issues were found in the document.');
+    });
+
+    test('document contains issue matching regex with special characters', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        entry Grammar: <<{|name|}>> ID; // Special case
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `);
+
+      expect(document).toContainIssue({
+        message: /Could not resolve reference to AbstractRule named '.*'/,
+        markerId: 0,
+      });
+    });
+
+    test('document does not contain issue due to incorrect severity', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        entry Grammar: name ID;
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `);
+
+      expect(document).toContainIssue({
+        severity: DocumentIssueSeverity.ERROR,
+        message: "Could not resolve reference to AbstractRule named 'name'.",
+      });
+      expect(() => {
+        expect(document).toContainIssue({
+          severity: DocumentIssueSeverity.WARNING,
+          message: "Could not resolve reference to AbstractRule named 'name'.",
+        });
+      }).toThrow('Expected issue was not found in the document');
+    });
+
+    test('document does not contain issue due to incorrect source', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        entry Grammar: name ID;
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `);
+
+      expect(() => {
+        expect(document).toContainIssue({
+          source: DocumentIssueSource.PARSER,
+          message: "Could not resolve reference to AbstractRule named 'name'.",
+        });
+      }).toThrow('Expected issue was not found in the document');
+    });
+
+    test('document does not contain issue when all issues are ignored', async () => {
+      const document = await parseMarkedDSL(parse, t`
+        grammar LangiumGrammar
+        entry Grammar: name=ID;
+        UnusedRule: name=ID;
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      `);
+
+      expect(() => {
+        expect(document).toContainIssue({
+          message: 'This rule is declared but never referenced.',
+        }, { ignoreValidationErrors: true, ignoreNonErrorDiagnostics: true });
+      }).toThrow('No issues were found in the document');
+    });
+
+    // Add more tests as needed to cover edge cases and additional scenarios
   });
 });
 

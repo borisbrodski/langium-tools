@@ -10,6 +10,7 @@ import {
   getDocumentIssueSummary
 } from "../base/document-issues.js";
 import { ParsedDocument } from './parser-tools.js';
+import { expandToNode, toString } from 'langium/generate';
 
 /**
  * Parameters to customize which types of issues to ignore during document validation.
@@ -332,8 +333,13 @@ function toContainIssue(
     );
     return {
       pass: false,
-      message: () =>
-        `Expected issue was not found in the document:\n${issueDescription}`,
+      message: () => toString(expandToNode`
+        Expected issue was not found in the document:
+        ${issueDescription}
+
+        Issues in the document:
+        ${getDocumentIssueSummary(langiumDocument).message}
+      `)
     };
   }
 }
