@@ -2,9 +2,6 @@ declare global {
   interface Array<T> {
     sortBy<K extends keyof T, V>(key: K | ((item: T) => V)): this;
   }
-  interface Iterable<T> {
-    sortBy<K extends keyof T, V>(key: K | ((item: T) => V)): this;
-  }
 }
 
 Array.prototype.sortBy = function <T, K extends keyof T, V>(key: K | ((item: T) => V)): T[] {
