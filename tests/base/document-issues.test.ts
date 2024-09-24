@@ -3,6 +3,7 @@ import { createLangiumGrammarServices } from "langium/grammar";
 import { parseHelper } from "langium/test";
 import { beforeAll, describe, expect, test } from "vitest";
 import { DocumentIssue, DocumentIssueSeverity, DocumentIssueSource, getDocumentIssues, getDocumentIssueSummary, getDocumentIssueSummaryFromIssues } from "../../src/base/document-issues.ts";
+import "../../src/base/arrays.ts";
 import { t, using } from "../common";
 
 describe('Document issues', () => {
@@ -30,13 +31,13 @@ describe('Document issues', () => {
 
     test('Lexer error', async () => {
       document = await parse(t`
-      grammar LangiumGrammar
+        grammar LangiumGrammar
 
-      entry Grammar: id=ID;
+        entry Grammar: id=ID;
 
-      terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
-      terminal Error: 'err
-    `)
+        terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+        terminal Error: 'err
+      `)
       const issues = getDocumentIssues(document);
       expect(issues).toHaveLength(2);
       using(issues[0], issue => {
@@ -44,19 +45,32 @@ describe('Document issues', () => {
         expect(issue.severity).toEqual(DocumentIssueSeverity.ERROR);
         expect(issue.message).toContain("unexpected character: ->'<- at offset:");
         expect(issue.startOffset).toEqual(98);
-        expect(issue.startLine).toEqual(6);
-        expect(issue.startColumn).toEqual(17);
+        expect(issue.startLine).toEqual(5);
+        expect(issue.startColumn).toEqual(16);
+      })
+      using(issues[1], issue => {
+        expect(issue.source).toEqual(DocumentIssueSource.PARSER);
+      })
+    });
+
+    test('Lexer error in one line', async () => {
+      document = await parse(t`
+        grammar test '
+      `)
+      const issues = getDocumentIssues(document);
+      expect(issues).toHaveLength(2);
+      using(issues[0], issue => {
+        expect(issue.source).toEqual(DocumentIssueSource.LEXER);
+        expect(issue.severity).toEqual(DocumentIssueSeverity.ERROR);
+        expect(issue.message).toContain("unexpected character: ->'<- at offset: 13, skipped 1 characters.");
+        expect(issue.startOffset).toEqual(13);
+        expect(issue.startLine).toEqual(0);
+        expect(issue.startColumn).toEqual(13);
       })
       using(issues[1], issue => {
         expect(issue.source).toEqual(DocumentIssueSource.PARSER);
         expect(issue.severity).toEqual(DocumentIssueSeverity.ERROR);
-        expect(issue.message).toContain("Expecting token of type");
-        expect(issue.startOffset).toEqual(99);
-        expect(issue.endOffset).toEqual(101);
-        expect(issue.startLine).toEqual(6);
-        expect(issue.endLine).toEqual(6);
-        expect(issue.startColumn).toEqual(18);
-        expect(issue.endColumn).toEqual(20);
+        expect(issue.message).toContain("Expecting: expecting at least one iteration which starts");
       })
     });
 
@@ -79,13 +93,14 @@ describe('Document issues', () => {
     });
 
     test('Parser error', async () => {
-      document = await parse(`
+      document = await parse(t`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
 
       terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
       terminal ID2: ;
+      terminal ID3: 'x';
     `)
       const issues = getDocumentIssues(document);
       expect(issues).toHaveLength(1);
@@ -93,12 +108,33 @@ describe('Document issues', () => {
         expect(issue.source).toEqual(DocumentIssueSource.PARSER);
         expect(issue.severity).toEqual(DocumentIssueSeverity.ERROR);
         expect(issue.message).toContain("Expecting: one of these possible Token sequences");
-        expect(issue.startOffset).toEqual(121);
-        expect(issue.endOffset).toEqual(121);
-        expect(issue.startLine).toEqual(7);
-        expect(issue.endLine).toEqual(7);
-        expect(issue.startColumn).toEqual(21);
-        expect(issue.endColumn).toEqual(21);
+        expect(issue.startOffset).toEqual(96);
+        expect(issue.startLine).toEqual(5);
+        expect(issue.startColumn).toEqual(14);
+      })
+    });
+
+    test('Parser error in one line', async () => {
+      document = await parse(t`
+      grammar LangiumGrammar entry Grammar: id=terminal ; terminal ID: 'x';
+    `)
+      const issues = getDocumentIssues(document).sortBy((i) => i.startOffset);
+      expect(issues).toHaveLength(2);
+      using(issues[0], issue => {
+        expect(issue.source).toEqual(DocumentIssueSource.PARSER);
+        expect(issue.severity).toEqual(DocumentIssueSeverity.ERROR);
+        expect(issue.message).toContain("Expecting: one of these possible Token sequences");
+        expect(issue.startOffset).toEqual(41);
+        expect(issue.startLine).toEqual(0);
+        expect(issue.startColumn).toEqual(41);
+      })
+      using(issues[1], issue => {
+        expect(issue.source).toEqual(DocumentIssueSource.PARSER);
+        expect(issue.severity).toEqual(DocumentIssueSeverity.ERROR);
+        expect(issue.message).toContain("Expecting: one of these possible Token sequences");
+        expect(issue.startOffset).toEqual(50);
+        expect(issue.startLine).toEqual(0);
+        expect(issue.startColumn).toEqual(50);
       })
     });
 
@@ -119,18 +155,40 @@ describe('Document issues', () => {
       document = await parse(t`
       grammar LangiumGrammar
 
-      entry Grammar: ID;
+      entry Grammar : ID;
 
       Unused: name=ID;
 
       terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
     `, { validation: true })
-      const issues = getDocumentIssues(document, { skipNonErrorDiagnostics: true });
+      const issues = getDocumentIssues(document, { skipNonErrorDiagnostics: true }).sortBy((i) => i.message);
       expect(issues).toHaveLength(3);
       using(issues[0], issue => {
         expect(issue.source).toEqual(DocumentIssueSource.VALIDATION);
         expect(issue.severity).toEqual(DocumentIssueSeverity.ERROR);
+        expect(issue.message).toContain("Data type rules cannot infer a type.");
+        expect(issue.startLine).toEqual(2);
+        expect(issue.endLine).toEqual(2);
+        expect(issue.startColumn).toEqual(0);
+        expect(issue.endColumn).toEqual(19);
+      })
+      using(issues[1], issue => {
+        expect(issue.source).toEqual(DocumentIssueSource.VALIDATION);
+        expect(issue.severity).toEqual(DocumentIssueSeverity.ERROR);
         expect(issue.message).toContain("The entry rule cannot be a data type rule.");
+        expect(issue.startLine).toEqual(2);
+        expect(issue.endLine).toEqual(2);
+        expect(issue.startColumn).toEqual(6);
+        expect(issue.endColumn).toEqual(13);
+      })
+      using(issues[2], issue => {
+        expect(issue.source).toEqual(DocumentIssueSource.VALIDATION);
+        expect(issue.severity).toEqual(DocumentIssueSeverity.ERROR);
+        expect(issue.message).toContain("This parser rule does not create an object. Add a primitive return type or an action to the start of the rule to force object instantiation.");
+        expect(issue.startLine).toEqual(2);
+        expect(issue.endLine).toEqual(2);
+        expect(issue.startColumn).toEqual(6);
+        expect(issue.endColumn).toEqual(13);
       })
     });
 
@@ -197,9 +255,8 @@ describe('Document issues', () => {
           source: DocumentIssueSource.LEXER,
           severity: DocumentIssueSeverity.ERROR,
           message: "unexpected character: ->'<- at offset: 123, skipped 1 characters.",
-          startOffset: 123,
-          startLine: 8,
-          startColumn: 24,
+          startLine: 7,
+          startColumn: 23,
         },
       ];
       const summary = getDocumentIssueSummaryFromIssues(issues);
@@ -238,9 +295,9 @@ describe('Document issues', () => {
           source: DocumentIssueSource.VALIDATION,
           severity: DocumentIssueSeverity.ERROR,
           message: 'The entry rule cannot be a data type rule.',
-          startLine: 4,
-          startColumn: 13,
-          endLine: 4,
+          startLine: 3,
+          startColumn: 12,
+          endLine: 3,
           endColumn: 20,
         },
       ];
@@ -262,9 +319,9 @@ describe('Document issues', () => {
           source: DocumentIssueSource.VALIDATION,
           severity: DocumentIssueSeverity.ERROR,
           message: 'The entry rule cannot be a data type rule.',
-          startLine: 4,
-          startColumn: 13,
-          endLine: 4,
+          startLine: 3,
+          startColumn: 12,
+          endLine: 3,
           endColumn: 20,
         },
         {
@@ -272,18 +329,18 @@ describe('Document issues', () => {
           severity: DocumentIssueSeverity.ERROR,
           message:
             'This parser rule does not create an object. Add a primitive return type or an action to the start of the rule to force object instantiation.',
-          startLine: 4,
-          startColumn: 13,
-          endLine: 4,
+          startLine: 3,
+          startColumn: 12,
+          endLine: 3,
           endColumn: 20,
         },
         {
           source: DocumentIssueSource.VALIDATION,
           severity: DocumentIssueSeverity.ERROR,
           message: 'Data type rules cannot infer a type.',
-          startLine: 4,
-          startColumn: 7,
-          endLine: 4,
+          startLine: 3,
+          startColumn: 6,
+          endLine: 3,
           endColumn: 25,
         },
       ];
@@ -307,9 +364,8 @@ describe('Document issues', () => {
           source: DocumentIssueSource.LEXER,
           severity: DocumentIssueSeverity.ERROR,
           message: "unexpected character: ->'<- at offset: 123, skipped 1 characters.",
-          startOffset: 123,
-          startLine: 8,
-          startColumn: 24,
+          startLine: 7,
+          startColumn: 23,
         },
         {
           source: DocumentIssueSource.PARSER,
@@ -337,9 +393,8 @@ describe('Document issues', () => {
           source: DocumentIssueSource.LEXER,
           severity: DocumentIssueSeverity.ERROR,
           message: "unexpected character: ->'<- at offset: 123, skipped 1 characters.",
-          startOffset: 123,
-          startLine: 8,
-          startColumn: 24,
+          startLine: 7,
+          startColumn: 23,
         },
         {
           source: DocumentIssueSource.PARSER,
@@ -350,9 +405,9 @@ describe('Document issues', () => {
           source: DocumentIssueSource.VALIDATION,
           severity: DocumentIssueSeverity.ERROR,
           message: 'Data type rules cannot infer a type.',
-          startLine: 4,
-          startColumn: 7,
-          endLine: 4,
+          startLine: 3,
+          startColumn: 6,
+          endLine: 3,
           endColumn: 25,
         },
       ];
@@ -378,18 +433,18 @@ describe('Document issues', () => {
           source: DocumentIssueSource.VALIDATION,
           severity: DocumentIssueSeverity.WARNING,
           message: 'Unused variable.',
-          startLine: 10,
-          startColumn: 5,
-          endLine: 10,
+          startLine: 9,
+          startColumn: 4,
+          endLine: 9,
           endColumn: 12,
         },
         {
           source: DocumentIssueSource.VALIDATION,
           severity: DocumentIssueSeverity.ERROR,
           message: 'Undefined function.',
-          startLine: 15,
-          startColumn: 8,
-          endLine: 15,
+          startLine: 14,
+          startColumn: 7,
+          endLine: 14,
           endColumn: 20,
         },
       ];
@@ -412,15 +467,15 @@ describe('Document issues', () => {
           source: DocumentIssueSource.LEXER,
           severity: DocumentIssueSeverity.ERROR,
           message: 'Invalid character.',
-          startLine: 2,
-          startColumn: 5,
+          startLine: 1,
+          startColumn: 4,
         },
         {
           source: DocumentIssueSource.LEXER,
           severity: DocumentIssueSeverity.ERROR,
           message: 'Unrecognized token.',
-          startLine: 3,
-          startColumn: 10,
+          startLine: 2,
+          startColumn: 9,
         },
       ];
       const summary = getDocumentIssueSummaryFromIssues(issues);
@@ -469,8 +524,8 @@ describe('Document issues', () => {
           source: DocumentIssueSource.LEXER,
           severity: DocumentIssueSeverity.ERROR,
           message: 'Invalid character.',
-          startLine: 2,
-          startColumn: 5,
+          startLine: 1,
+          startColumn: 4,
         },
         {
           source: DocumentIssueSource.PARSER,
@@ -481,22 +536,22 @@ describe('Document issues', () => {
           source: DocumentIssueSource.VALIDATION,
           severity: DocumentIssueSeverity.WARNING,
           message: 'Unused import.',
-          startLine: 5,
-          startColumn: 1,
+          startLine: 4,
+          startColumn: 0,
         },
         {
           source: DocumentIssueSource.VALIDATION,
           severity: DocumentIssueSeverity.HINT,
           message: 'Consider renaming variable for clarity.',
-          startLine: 6,
-          startColumn: 10,
+          startLine: 5,
+          startColumn: 9,
         },
         {
           source: DocumentIssueSource.VALIDATION,
           severity: DocumentIssueSeverity.ERROR,
           message: 'Type mismatch.',
-          startLine: 8,
-          startColumn: 15,
+          startLine: 7,
+          startColumn: 14,
         },
       ];
       const summary = getDocumentIssueSummaryFromIssues(issues);
@@ -544,7 +599,7 @@ describe('Document issues', () => {
         Lexer errors:
         Error at 6:17 - unexpected character: ->'<- at offset: 98, skipped 1 characters.
         Parser errors:
-        Error at 6:18-20 - Expecting token of type ';' but found \`\`.
+        Error at 6:18 - Expecting token of type ';' but found \`\`.
 
         1 lexer error(s), 1 parser error(s)
       `);
@@ -566,10 +621,10 @@ describe('Document issues', () => {
       expect(summary.summary).toEqual('3 error diagnostic(s), 1 non-error diagnostic(s)');
       expect(summary.message).toEqual(t`
         Diagnostics:
-        Error at 2:6-13 - The entry rule cannot be a data type rule.
-        Error at 2:6-13 - This parser rule does not create an object. Add a primitive return type or an action to the start of the rule to force object instantiation.
-        Hint at 4:0-6 - This rule is declared but never referenced.
-        Error at 2:0-18 - Data type rules cannot infer a type.
+        Error at 3:7-13 - The entry rule cannot be a data type rule.
+        Error at 3:7-13 - This parser rule does not create an object. Add a primitive return type or an action to the start of the rule to force object instantiation.
+        Hint at 5:1-6 - This rule is declared but never referenced.
+        Error at 3:1-18 - Data type rules cannot infer a type.
 
         3 error diagnostic(s), 1 non-error diagnostic(s)
       `);

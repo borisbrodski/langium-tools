@@ -44,18 +44,37 @@ export type DocumentIssue = {
   severity: DocumentIssueSeverity;
   /** The message describing the issue. */
   message: string;
-  /** 1-based absolute position of the beginning of the issue. */
-  startOffset?: number;
-  /** 1-based line number of the beginning of the issue. */
-  startLine?: number;
-  /** 1-based column number of the beginning of the issue. */
-  startColumn?: number;
-  /** 1-based absolute position of the end of the issue. */
-  endOffset?: number;
-  /** 1-based line number of the end of the issue. */
-  endLine?: number;
-  /** 1-based column number of the end of the issue. */
-  endColumn?: number;
+  /**
+   * 0-based absolute position of the beginning of the marker
+   */
+  startOffset?: number,
+
+  /**
+   * 0-based line number of the beginning of the marker
+   */
+  startLine?: number,
+  /**
+   * 0-based column of the beginning of the marker
+   */
+  startColumn?: number,
+
+  /**
+   * 0-based absolute position of the character _after_ the end of the marker.
+   * (0-based position of the last character + 1)
+   *
+   * This allows representation of the 0-length markers as "startPos == endPos".
+   * In this case endLine and endColumn should be ignored.
+   */
+  endOffset?: number,
+  /**
+   * 0-based line of the end of the marker
+   */
+  endLine?: number,
+  /**
+   * 0-based Position of the character _after_ the end of the marker.
+   * (1-based position of the last character + 1)
+   */
+  endColumn?: number,
 };
 
 /**
@@ -160,8 +179,8 @@ export function getDocumentIssues(
         message: lexerIssue.message,
         severity: DocumentIssueSeverity.ERROR,
         startOffset: lexerIssue.offset,
-        startLine: lexerIssue.line,
-        startColumn: lexerIssue.column,
+        startLine: plus(lexerIssue.line, -1),
+        startColumn: plus(lexerIssue.column, -1),
       });
     });
   }
@@ -175,11 +194,13 @@ export function getDocumentIssues(
         severity: DocumentIssueSeverity.ERROR,
         message: parserError.message,
         startOffset: firstDefinedNumber(parserError.token.startOffset, previousToken?.startOffset),
-        startLine: firstDefinedNumber(parserError.token.startLine, previousToken?.startLine),
-        startColumn: firstDefinedNumber(parserError.token.startColumn, previousToken?.startColumn),
-        endOffset: firstDefinedNumber(parserError.token.endOffset, previousToken?.endOffset),
-        endLine: firstDefinedNumber(parserError.token.endLine, previousToken?.endLine),
-        endColumn: firstDefinedNumber(parserError.token.endColumn, previousToken?.endColumn),
+        startLine: plus(firstDefinedNumber(parserError.token.startLine, previousToken?.startLine), -1),
+        startColumn: plus(firstDefinedNumber(parserError.token.startColumn, previousToken?.startColumn), -1),
+
+        // Unrelieable end position returned by Chevrotain (24.09.2024)
+        // endOffset: firstDefinedNumber(parserError.token.endOffset, previousToken?.endOffset),
+        // endLine: plus(firstDefinedNumber(parserError.token.endLine, previousToken?.endLine), -1),
+        // endColumn: plus(firstDefinedNumber(parserError.token.endColumn, previousToken?.endColumn), 1),
       });
     });
   }
@@ -360,9 +381,9 @@ export function severityToString(
 function at(issue: DocumentIssue): string {
   let result = '';
   if (issue.startLine !== undefined && !isNaN(issue.startLine)) {
-    result += ` at ${issue.startLine}`;
+    result += ` at ${issue.startLine + 1}`;
     if (issue.startColumn !== undefined && !isNaN(issue.startColumn)) {
-      result += `:${issue.startColumn}`;
+      result += `:${issue.startColumn + 1}`;
       if (
         issue.endLine !== undefined &&
         !isNaN(issue.endLine) &&
@@ -370,7 +391,7 @@ function at(issue: DocumentIssue): string {
         !isNaN(issue.endColumn)
       ) {
         if (issue.startLine !== issue.endLine) {
-          result += `-${issue.endLine}:${issue.endColumn}`;
+          result += `-${issue.endLine + 1}:${issue.endColumn}`;
         } else {
           result += `-${issue.endColumn}`;
         }
@@ -393,6 +414,16 @@ function firstDefinedNumber(a?: number, b?: number): number | undefined {
   }
   if (b != null && !Number.isNaN(b)) {
     return b;
+  }
+  return undefined;
+}
+
+/**
+ * Add two numbers, returning `undefined` if either is `null` or `undefined`.
+ */
+function plus(a?: number, b?: number): number | undefined {
+  if (a != null && b != null) {
+    return a + b;
   }
   return undefined;
 }
