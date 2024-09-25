@@ -18,7 +18,7 @@ type DoParse = ReturnType<typeof parseHelper>
  * @param [endMarker="|}>>"] (optional) begin marker
  * @param [beginMarker="<<{|"] (optional) end marker
  */
-export async function parseMarkedDSL(
+export async function parseWithMarks(
   doParse: DoParse,
   text: string,
   beginMarker: string = "<<{|",

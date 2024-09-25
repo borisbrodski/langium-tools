@@ -11,6 +11,7 @@ import {
 } from "../base/document-issues.js";
 import { ParsedDocument } from './parser-tools.js';
 import { expandToNode, toString } from 'langium/generate';
+import { sentenceCase } from 'change-case';
 
 /**
  * Parameters to customize which types of issues to ignore during document validation.
@@ -243,7 +244,7 @@ function toHaveDocumentIssues(
   if (remainingActualIssues.length > 0) {
     errors.push("Unmatched actual issues:");
     errors.push(...remainingActualIssues.map((issue) => {
-      const source = issue.source ? `(${issue.source.toLowerCase().toFirstUpper()}) ` : '';
+      const source = issue.source ? `(${sentenceCase(issue.source)}) ` : '';
       return `${source}${documentIssueToString(issue)}`;
     }));
   }
@@ -477,8 +478,8 @@ function issueExpectationToString(
   issue: IssueExpectation
 ): string {
   const severity = issue.severity || DocumentIssueSeverity.ERROR;
-  const source = issue.source ? `(${issue.source.toLowerCase().toFirstUpper()}) ` : '';
-  let message = `${source}${severity.toLowerCase().toFirstUpper()}`;
+  const source = issue.source ? `(${sentenceCase(issue.source)}) ` : '';
+  let message = `${source}${sentenceCase(severity)}`;
   if (issue.markerId !== undefined && parsedDocument) {
     if (issue.markerId < 0 || issue.markerId >= parsedDocument.markerData.markers.length) {
       throw new Error(`Invalid markerId ${issue.markerId}. Available markers range from 0 to ${parsedDocument.markerData.markers.length - 1}.`);
