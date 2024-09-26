@@ -50,7 +50,7 @@ describe('Generator Testing Framework', () => {
 
     const generatedFiles = fs.readdirSync(generatedDir, { recursive: true });
     expect(generatedFiles).toContain('out')
-    expect(generatedFiles).toContain('out/output.txt')
+    expect(generatedFiles).toContain(`out${path.sep}output.txt`)
     const content = fs.readFileSync(path.join(path.join(generatedDir, 'out'), 'output.txt'), 'utf-8');
     expect(content).toBe('My content');
   });
@@ -167,7 +167,7 @@ describe('Generator Testing Framework', () => {
         },
         generateMode: GeneratorMode.Verify,
       })
-    ).rejects.toThrow('Unexpected generated file: out/file2.txt');
+    ).rejects.toThrow(`Unexpected generated file: out${path.sep}file2.txt`);
   });
 
   test('Detect changes in overwrite flag true->false', async () => {
@@ -282,7 +282,7 @@ describe('Generator Testing Framework', () => {
         },
         generateMode: GeneratorMode.Verify,
       }, [{ name: 'custom', overwrite: true }])
-    ).rejects.toThrow("Missing generated file(s) for target 'custom': out/output.txt");
+    ).rejects.toThrow(`Missing generated file(s) for target 'custom': out${path.sep}output.txt`);
   });
 
   test('Custom target - Detect unexpected files', async () => {
@@ -312,7 +312,7 @@ describe('Generator Testing Framework', () => {
         },
         generateMode: GeneratorMode.Verify,
       }, [{ name: 'custom', overwrite: true }])
-    ).rejects.toThrow("Unexpected generated file for target 'custom': out/unexpected-output.txt");
+    ).rejects.toThrow(`Unexpected generated file for target 'custom': out${path.sep}unexpected-output.txt`);
   });
 
   test('Custom target - Detect changes in overwrite flag true->false', async () => {
