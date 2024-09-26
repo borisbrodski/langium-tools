@@ -23,15 +23,17 @@ export type GeneratedContent = Map<
 /**
  * Represents a target output directory for generated files.
  */
-export interface Target {
+export interface GeneratorTarget {
   /** The name of the target. */
   name: string;
+  /** Default value for the `overwrite` flag for the target. */
+  overwrite: boolean;
 }
 
 /**
  * The default target used when no specific target is provided.
  */
-export const DEFAULT_TARGET: Target = { name: 'DEFAULT' };
+export const DEFAULT_TARGET: GeneratorTarget = { name: 'DEFAULT', overwrite: true };
 
 /**
  * Options for creating a file.
@@ -46,11 +48,11 @@ export interface CreateFileOptions {
   overwrite?: boolean;
 
   /**
-   * The target output directory to use.
+   * The output directory target name to use.
    * Defaults to {@link DEFAULT_TARGET}.
    * Different targets can be written to different output directories and can have different default `overwrite` flags.
    */
-  target?: Target;
+  target?: string;
 }
 
 /**
@@ -151,7 +153,7 @@ export class GeneratedContentManager {
   private readonly generatedContentMap: Map<string, GeneratedContent> = new Map([
     [DEFAULT_TARGET.name, new Map()],
   ]);
-  private readonly defaultOverwriteMap: Map<string, boolean> = new Map();
+  private readonly targetMap: Map<string, GeneratorTarget> = new Map();
   private readonly workspaceURIs?: URI[];
 
   /**
@@ -162,24 +164,23 @@ export class GeneratedContentManager {
    */
   constructor(workspaceDirs?: Array<string | URI>) {
     this.workspaceURIs = workspaceDirs?.map((dir) => (typeof dir === 'string' ? URI.parse(dir) : dir));
-    this.defaultOverwriteMap.set(DEFAULT_TARGET.name, true);
+    this.targetMap.set(DEFAULT_TARGET.name, DEFAULT_TARGET);
   }
 
   /**
    * Adds a new target to the generator output.
+   * The target name must be unique.
    *
-   * @param target - The target to add.
-   * @param defaultOverwrite - The default overwrite flag for the target.
-   *                           Determines whether files in this target should be overwritten by default.
+   * @param target - The target to add with name and other settings.
    *
    * @throws {Error} If the target has already been added.
    */
-  addTarget(target: Target, defaultOverwrite: boolean): void {
+  addTarget(target: GeneratorTarget): void {
     if (this.generatedContentMap.has(target.name)) {
       throw new Error(`Target "${target.name}" has already been added`);
     }
     this.generatedContentMap.set(target.name, new Map());
-    this.defaultOverwriteMap.set(target.name, defaultOverwrite);
+    this.targetMap.set(target.name, target);
   }
 
   /**
@@ -205,9 +206,9 @@ export class GeneratedContentManager {
     const documentPath = workspaceRelativePath || documentURI?.toString() || 'document URI undefined';
     return {
       createFile: (filePath: string, content: string, options?: CreateFileOptions) => {
-        const target = options?.target || DEFAULT_TARGET;
-        const overwrite = options?.overwrite ?? this.defaultOverwriteMap.get(target.name) ?? true;
-        this.createFile(target, filePath, content, overwrite, documentPath);
+        const target = this.#getTarget(options?.target);
+        const overwrite = options?.overwrite ?? target.overwrite;
+        this.createFile(target.name, filePath, content, overwrite, documentPath);
       },
       getModel: () => model,
       getDocument: () => model.$document as LangiumDocument<MODEL> | undefined,
@@ -219,7 +220,7 @@ export class GeneratedContentManager {
   /**
    * Creates a new file with the given content and metadata.
    *
-   * @param target - The target for which the file is generated.
+   * @param targetName - The target name for which the file is generated. Defaults to the default target.
    * @param filePath - The relative path of the file to create.
    * @param content - The content of the file.
    * @param overwrite - Whether to overwrite the file if it already exists.
@@ -228,13 +229,14 @@ export class GeneratedContentManager {
    * @throws {Error} If a file with the same path and different content or overwrite flag has already been generated.
    */
   createFile(
-    target: Target,
+    targetName: string | undefined,
     filePath: string,
     content: string,
     overwrite: boolean,
     documentPath: string
   ): void {
-    const generatedContent = this.getGeneratedContent(target);
+    const target = this.#getTarget(targetName);
+    const generatedContent = this.getGeneratedContent(target.name);
     const existingContent = generatedContent?.get(filePath);
     if (existingContent) {
       if (existingContent.content !== content) {
@@ -258,21 +260,43 @@ export class GeneratedContentManager {
   }
 
   /**
+   * Return all known targets.
+   * @returns An array of all known targets.
+   */
+  getTargets(): GeneratorTarget[] {
+    return Array.from(this.targetMap.values());
+  }
+
+  /**
    * Returns the generated content for the provided target or the default target.
    *
-   * @param target - The target for which to get the generated content.
-   *                 If not provided, the default target is used.
+   * @param targetName - The target name for which to get the generated content.
+   *                     If not provided, the default target is used.
    *
    * @returns A `GeneratedContent` map containing the generated files.
    *
    * @throws {Error} If the specified target is not registered.
    */
-  getGeneratedContent(target?: Target): GeneratedContent {
-    const targetName = (target || DEFAULT_TARGET).name;
-    if (!this.generatedContentMap.has(targetName)) {
-      throw new Error(`Target "${targetName}" is not registered`);
+  getGeneratedContent(targetName?: string): GeneratedContent {
+    return this.generatedContentMap.get(this.#getTarget(targetName).name)!;
+  }
+
+  /**
+   * Returns the Target object for the provided target name or the default target.
+   *
+   * @param targetName - The target name for which to get the generated content.
+   *                     If not provided, the default target is used.
+   *
+   * @returns The `GeneratorTarget` object for the specified target.
+   *
+   * @throws {Error} If the specified target is not registered.
+   */
+  #getTarget(targetName?: string): GeneratorTarget {
+    const resolvedTargetName = (targetName || DEFAULT_TARGET.name);
+    if (!this.generatedContentMap.has(resolvedTargetName)) {
+      throw new Error(`Target "${resolvedTargetName}" is not registered`);
     }
-    return this.generatedContentMap.get(targetName)!;
+    return this.targetMap.get(resolvedTargetName)!;
   }
 
   /**
@@ -283,12 +307,12 @@ export class GeneratedContentManager {
    * preserving the timestamp and not triggering file system file change events.
    *
    * @param outputDir - The output directory where the files will be written.
-   * @param target - The target whose content should be written.
+   * @param target - The target name whose content should be written.
    *                 If not provided, the default target is used.
    *
    * @throws {Error} If an error occurs during file or directory operations.
    */
-  async writeToDisk(outputDir: string, target?: Target): Promise<void> {
+  async writeToDisk(outputDir: string, target?: string): Promise<void> {
     const generatedContent = this.getGeneratedContent(target);
 
     // Ensure the output directory exists
