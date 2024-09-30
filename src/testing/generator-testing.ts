@@ -64,7 +64,15 @@ export interface GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL extends A
 
 const globalGenerateMode = process.env.GENERATOR_TEST === "generate" ? GeneratorMode.Generate : GeneratorMode.Verify;
 
-export function langiumGeneratorSuite<SERVICES, SHARED_SERVICES, MODEL extends AstNode>(testSuiteDir: string, options: GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL>): void {
+/**
+ * Run generator snapshot tests for all workspaces (subdirectories of the `testSuiteDir` directory).
+ * For each workspace there will be a tests added to vitest suite.
+ *
+ * @param testSuiteDir directory with the workspace directories (as direct subdirectories to `testSuiteDir`)
+ * @param options options
+ * @param targets optional list of additional target directories (Xtext outlets) to be supported by the generator (generator provided in `options`).
+ */
+export function langiumGeneratorSuite<SERVICES, SHARED_SERVICES, MODEL extends AstNode>(testSuiteDir: string, options: GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL>, targets?: GeneratorTarget[]): void {
   const { generateMode = globalGenerateMode } = options;
   fs.readdirSync(testSuiteDir, { withFileTypes: true })
     .filter((dirent) => dirent.isDirectory())
@@ -72,7 +80,7 @@ export function langiumGeneratorSuite<SERVICES, SHARED_SERVICES, MODEL extends A
       const testDirName = dirent.name;
 
       test(`DSL-Workspace "${testDirName}"${generateMode ? ' (generating)' : ''}`, async () => {
-        await langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL>(path.join(testSuiteDir, testDirName), options);
+        await langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL>(path.join(testSuiteDir, testDirName), options, targets);
       });
     });
 }
