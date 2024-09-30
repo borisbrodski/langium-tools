@@ -7,6 +7,7 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
+
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -36,8 +37,6 @@
   </p>
 </div>
 
-
-
 <!-- TABLE OF CONTENTS -->
 <details>
   <summary>Table of Contents</summary>
@@ -64,9 +63,8 @@
   </ol>
 </details>
 
-
-
 <!-- ABOUT THE PROJECT -->
+
 ## About The Project
 
 <!--
@@ -76,33 +74,33 @@
 This project is a collection of tools, that should power up DSL development with Langium:
 
 Language features:
-* <string>Helper methods</strong> - collection of helper methods, like `.toFirstUpper()`
-* <strong>Generators</strong> - nice framework to generate files from AST (both in memory and on the disk)
-* <strong>Issues</strong> - unified way to access, verify and print out errors and warning in DSLs
+
+- <string>Helper methods</strong> - collection of helper methods, like `.toFirstUpper()`
+- <strong>Generators</strong> - nice framework to generate files from AST (both in memory and on the disk)
+- <strong>Issues</strong> - unified way to access, verify and print out errors and warning in DSLs
 
 Testing features:
-* Advance generator testing framework (optimized for large amount of generated code)
-* `vitest` matchers and tools to test DSL validation
+
+- Advance generator testing framework (optimized for large amount of generated code)
+- `vitest` matchers and tools to test DSL validation
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 ### Built With
 
 This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
 
-* [![Typescript][Typescript]][Typescript-url]
+- [![Typescript][Typescript]][Typescript-url]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- GETTING STARTED -->
+
 ## Getting Started
 
-* Add package to your project
-* Atart using one or more features it provides
-* Check out example project to see `langium-tools` in action
+- Add package to your project
+- Atart using one or more features it provides
+- Check out example project to see `langium-tools` in action
 
 ### Installation
 
@@ -112,28 +110,143 @@ Add the package to your `package.json`
    ```sh
    npm install langium-tools
    ```
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+   <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Example project
 
 You can check out The Umltimative Example: the default langium example project <strong>statemachine</strong> enhanced with all features of `langium-tools`:
 
-* TODO - ADD LINK HERE
+- TODO - ADD LINK HERE
 
 ## Documentation
 
 See [typedoc documentation](https://borisbrodski.github.io/langium-tools)
 
+### Document Issues
+
+When working with Langium documents, it's essential to handle and report issues such as syntax errors, validation errors, and other diagnostics in a unified and user-friendly way. The langium-tools package provides utilities to simplify access to document issues from different sources (lexer, parser, validation) and to generate comprehensive summaries of these issues.
+
+#### Features
+
+- **Unified Issue Access**: Collect all issues from a LangiumDocument, including lexer errors, parser errors, and validation diagnostics.
+- **Customizable Filtering**: Optionally filter issues based on their source or severity.
+- **Issue Summarization**: Generate summaries of issues with counts and formatted messages.
+- **Formatted Issue Strings**: Convert issues into human-readable strings for logging or displaying.
+
+#### Getting Issues from a Document
+
+To retrieve issues from a LangiumDocument, use the getDocumentIssues function:
+
+```typescript
+import { getDocumentIssues } from "langium-tools";
+
+const issues = getDocumentIssues(document);
+```
+
+By default, getDocumentIssues collects all issues from the lexer, parser, and validation phases.
+You can customize which issues to include using the optional parameters:
+
+```typescript
+const issues = getDocumentIssues(document, {
+  skipNonErrorDiagnostics: true, // Skip warnings, information, hints
+  skipLexerErrors: false, // Include lexer errors
+  skipParserErrors: false, // Include parser errors
+  skipValidation: false, // Include validation issues
+});
+```
+
+#### Generating an Issue Summary
+
+To get a summary of the issues in a document, use the getDocumentIssueSummary function:
+
+```typescript
+import { getDocumentIssueSummary } from "langium-tools";
+
+const summary = getDocumentIssueSummary(document);
+
+console.log(summary.summary); // e.g., "1 lexer error(s), 2 validation error(s)"
+console.log(summary.message);
+/*
+Lexer Errors:
+Error at 3:15 - Unexpected character
+
+Validation Diagnostics:
+Error at 5:10 - Undefined reference to 'myVar'
+Warning at 8:5 - Deprecated usage of 'oldFunc'
+
+1 lexer error(s), 2 validation issue(s)
+*/
+```
+
+The DocumentIssueSummary object contains:
+
+- `countTotal`: Total number of issues
+- `countErrors`: Number of issues with severity ERROR
+- `countNonErrors`: Number of issues with severity other than ERROR
+- `summary`: A brief summary string
+- `message`: A detailed message listing all issues
+
+#### Converting Issues to Strings
+
+You can convert individual issues to formatted strings using documentIssueToString:
+
+```typescript
+import { documentIssueToString } from "langium-tools";
+
+issues.forEach((issue) => {
+  const issueStr = documentIssueToString(issue);
+  console.log(issueStr);
+});
+
+// Output:
+// Error at 3:15 - Unexpected character
+// Warning at 5:10 - Deprecated usage of 'oldFunc'
+```
+
+#### Issue Types and Severities
+
+The module defines the following enums for issue sources and severities:
+
+**DocumentIssueSource**
+
+- `LEXER`: Issues originating from the lexer (tokenization errors).
+- `PARSER`: Issues originating from the parser (syntax errors).
+- `VALIDATION`: Issues originating from validation (semantic errors).
+
+**DocumentIssueSeverity**
+
+- `ERROR`: Critical issues that prevent further processing.
+- `WARNING`: Issues that may lead to problems but do not prevent processing.
+- `INFORMATION`: Informational messages.
+- `HINT`: Suggestions to improve the document.
+- `UNKNOWN`: Severity is unknown.
+
+#### API Reference
+
+For detailed API documentation, see the Typedoc documentation.
+
+[getDocumentIssueSummary](https://borisbrodski.github.io/langium-tools/functions/base.getDocumentIssueSummary.html)
+[getDocumentIssues](https://borisbrodski.github.io/langium-tools/functions/base.getDocumentIssues.html)
+[documentIssueToString](https://borisbrodski.github.io/langium-tools/functions/base.documentIssueToString.html)
+[DocumentIssue](https://borisbrodski.github.io/langium-tools/interfaces/base.DocumentIssue.html)
+[DocumentIssueSummary](https://borisbrodski.github.io/langium-tools/interfaces/base.DocumentIssueSummary.html)
+[DocumentIssueSource](https://borisbrodski.github.io/langium-tools/enums/base.DocumentIssueSource.html)
+[DocumentIssueSeverity](https://borisbrodski.github.io/langium-tools/enums/base.DocumentIssueSeverity.html)
+
+#### Notes
+
+- The position information in issues is zero-based for both lines and columns.
+- The utilities handle the potential absence of position data gracefully.
+- Ensure that you have imported the necessary functions from langium-tools in your project.
+
 ### Generators
 
 The main class is [GeneratorOutputCollector](https://borisbrodski.github.io/langium-tools/classes/generator.GeneratorOutputCollector.html)
 
-
-
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- ROADMAP -->
+
 ## Roadmap
 
 - [ ] Split packages into `langium-tools` and `langium-test-tools` NPM packages to prevent test helper classes to be released with production code
@@ -143,9 +256,8 @@ See the [open issues](https://github.com/borisbrodski/langium-tools/issues) for 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- CONTRIBUTING -->
+
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -167,18 +279,16 @@ Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- LICENSE -->
+
 ## License
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- CONTACT -->
+
 ## Contact
 
 Boris Brodski - [@BorisBrodski](https://x.com/BorisBrodski) - brodsky_boris@yahoo.com
@@ -187,19 +297,17 @@ Project Link: [https://github.com/borisbrodski/langium-tools](https://github.com
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- ACKNOWLEDGMENTS -->
+
 ## Acknowledgments
 
-* [Langium](https://langium.org/)
+- [Langium](https://langium.org/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+
 [contributors-shield]: https://img.shields.io/github/contributors/borisbrodski/langium-tools.svg?style=for-the-badge
 [contributors-url]: https://github.com/borisbrodski/langium-tools/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/borisbrodski/langium-tools.svg?style=for-the-badge
