@@ -75,7 +75,7 @@ This project is a collection of tools, that should power up DSL development with
 
 Language features:
 
-- <string>Helper methods</strong> - collection of helper methods, like `.toFirstUpper()`
+- <strong>Helper methods</strong> - collection of helper methods, like `.toFirstUpper()`
 - <strong>Generators</strong> - nice framework to generate files from AST (both in memory and on the disk)
 - <strong>Issues</strong> - unified way to access, verify and print out errors and warning in DSLs
 
@@ -408,6 +408,210 @@ The GeneratedContentManager provides informative error messages when conflicts o
 - **Modular Code Generation**: Manage code generation for multiple models or modules in a unified way.
 - **Testing Generators**: Use in-memory content collection to test your generators without writing to disk.
 - **Custom Build Pipelines**: Integrate with build systems by controlling when and how generated content is written.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Generator Testing (Snapshot Testing)
+
+Testing code generators is crucial to ensure that changes in your generator logic do not introduce unintended side effects. The `langium-tools` package provides utilities for generator snapshot testing, allowing you to verify that your generators produce the expected output over time.
+
+#### Overview
+
+The main idea is to:
+
+- **Commit generated content** to your version control system (e.g., Git).
+- **Run tests in verify mode** to ensure generators have not changed unintentionally.
+- **Approve changes** by regenerating snapshots and reviewing diffs when intentional changes are made.
+
+#### Features
+
+- **Automated Generator Tests**: Run tests across multiple DSL workspaces to verify generator output.
+- **Snapshot Verification**: Compare in-memory generated content against committed snapshots.
+- **Flexible Modes**: Switch between generate mode (to update snapshots) and verify mode (to validate output).
+
+#### Getting Started with Generator Testing
+
+To use generator testing utilities, you need to:
+
+1. Define generator test options.
+2. Set up test suites using langiumGeneratorSuite.
+3. Configure your test scripts to handle generate and verify modes.
+
+Example Usage
+
+```typescript
+// test/generator.test.ts
+import { langiumGeneratorSuite } from "langium-tools/testing";
+import { createMyDslServices } from "../src/language/my-dsl-module";
+import { generate } from "../src/cli/generator";
+
+describe("Langium code generator tests", () => {
+  langiumGeneratorSuite("./test-workspaces", {
+    createServices: () => createMyDslServices,
+    generateForModel: generate,
+  });
+});
+```
+
+#### Defining Generator Test Options
+
+The `GeneratorTestOptions` interface allows you to specify how the generator tests should run:
+
+- `createServices`: Function to create your language services.
+- `initWorkspace`: (Optional) Initialize the workspace.
+- `buildDocuments`: (Optional) Build documents from the workspace.
+- `validateDocuments`: (Optional) Validate the documents before generation.
+- `generateForWorkspace`: (Optional) Custom logic to generate content for the entire workspace.
+- `generateForModel`: Custom logic to generate content for a single model.
+
+#### Configuring Test Scripts
+
+In your package.json, you can define scripts to run tests in different modes:
+
+```json
+{
+  "scripts": {
+    "test": "GENERATOR_TEST=verify vitest run",
+    "test:generate": "GENERATOR_TEST=generate vitest run"
+  }
+}
+```
+
+- **Verify Mode**: Runs tests to verify that the generator output matches the committed snapshots.
+- **Generate Mode**: Regenerates the snapshots and updates the committed files.
+
+#### Writing Generator Tests
+
+The `langiumGeneratorSuite` function automatically discovers subdirectories in your test suite directory and runs tests for each DSL workspace.
+
+##### Example Directory Structure
+
+```
+test-workspaces/
+├── workspace1/
+│   ├── dsls/
+│   │   └── example1.mydsl
+│   └── generated/
+│       └── generated-code.ts
+├── workspace2/
+│   ├── dsls/
+│   │   └── example2.mydsl
+│   └── generated/
+│       └── generated-code.ts
+```
+
+#### Running Tests
+
+- **Verify Mode**:
+
+```bash
+npm test
+```
+
+Ensures that the generator output matches the committed `generated` directories.
+
+- **Generate Mode**:
+
+```bash
+npm run test:generate
+```
+
+Updates the `generated` directories with new output from the generators.
+
+#### Approving Changes
+
+When you intentionally change your generator logic, you can:
+
+1. Run `npm run test:generate` to regenerate the output.
+2. Review the changes using `git diff`.
+3. Commit the updated generated content to approve the changes.
+
+#### Under the Hood
+
+The generator testing utilities work by:
+
+- Collecting generated content in memory using `GeneratedContentManager`.
+- Writing the generated content to disk in generate mode.
+- Comparing the in-memory content against the committed files in verify mode.
+
+#### API Reference
+
+For detailed API documentation, see the [Typedoc documentation](https://borisbrodski.github.io/langium-tools).
+
+- [langiumGeneratorSuite](https://borisbrodski.github.io/langium-tools/functions/testing.langiumGeneratorSuite.html)
+- [GeneratorTestOptions](https://borisbrodski.github.io/langium-tools/interfaces/testing.GeneratorTestOptions.html)
+- [GeneratedContentManager](https://borisbrodski.github.io/langium-tools/classes/generator.GeneratedContentManager.html)
+
+#### Notes
+
+- **Environment Variable**: The `GENERATOR_TEST` environment variable controls the test mode (`verify` or `generate`).
+- **Testing Framework**: The examples use `vitest`, but the utilities can be used with any testing framework, if you are not using automatic workspace discovery, but rather define one test for one workspace using [langiumGeneratorTest](https://borisbrodski.github.io/langium-tools/functions/testing.langiumGeneratorTest.html).
+
+#### Example Workflow
+
+1. Initial Setup:
+
+- Write your generator logic.
+- Run `npm run test:generate` to generate initial snapshots.
+- Commit the `generated` directories to your version control system.
+
+2. Continuous Testing:
+
+- Run `npm test` during development to ensure your generators produce consistent output.
+
+3. Updating Generators:
+
+- Make changes to your generator logic.
+- Run `npm test` to see if tests fail (they should if output changes).
+- Run `npm run test:generate` to update the snapshots.
+- Review changes with `git diff`.
+- Commit the changes to approve them.
+
+#### Additional Configuration
+
+You can customize the behavior by providing custom implementations for optional functions in `GeneratorTestOptions`:
+
+- `initWorkspace`: Customize how the workspace is initialized.
+- `buildDocuments`: Control how documents are built from the workspace.
+- `validateDocuments`: Implement custom validation logic before generation.
+- `generateForWorkspace`: Generate content at the workspace level instead of per model.
+
+#### Example: Custom Validation
+
+```typescript
+function customValidateDocuments(services, documents) {
+  documents.forEach((doc) => {
+    const issues = getDocumentIssues(doc);
+    expect(issues.length).toBe(0);
+  });
+}
+
+langiumGeneratorSuite("./test-workspaces", {
+  createServices: () => createMyDslServices(),
+  validateDocuments: customValidateDocuments,
+  generateForModel: async (services, model, generatorManager) => {
+    // Generator logic
+  },
+});
+```
+
+#### Error Handling
+
+The testing utilities provide detailed error messages when:
+
+- Generated files do not match the committed snapshots.
+- Unexpected files are found in the generated directories.
+- Metadata mismatches occur, e.g. `overwrite` flag.
+
+Use Cases
+
+- **Regression Testing**: Ensure that changes to your generators do not introduce regressions.
+- **Collaboration**: Facilitate code reviews by providing clear diffs of generator output.
+- **Automation**: Integrate into CI/CD pipelines for automated testing.
+
+#### Conclusion
+
+Generator snapshot testing is a powerful technique to maintain the integrity of your code generators. By integrating these testing utilities into your workflow, you can confidently evolve your generators while ensuring consistent output.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
