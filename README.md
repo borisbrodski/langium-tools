@@ -38,8 +38,6 @@
 </div>
 
 <!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
   <ol>
     <li>
       <a href="#about-the-project">About The Project</a>
@@ -54,14 +52,22 @@
         <li><a href="#example-project">Example project</a></li>
       </ul>
     </li>
-    <li><a href="#documentation">Documentation</a></li>
+    <li>
+      <a href="#documentation">Documentation</a>
+      <ul>
+        <li><a href="#document-issues">Document Issues</a></li>
+        <li><a href="#generated-content-manager">Generated Content Manager</a></li>
+        <li><a href="#generator-testing-snapshot-testing">Generator Testing (Snapshot Testing)</a></li>
+        <li><a href="#vitest-matchers">Vitest Matchers</a></li>
+      </ul>
+    </li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
-</details>
+
 
 <!-- ABOUT THE PROJECT -->
 
@@ -228,8 +234,8 @@ For detailed API documentation, see the Typedoc documentation.
 - [getDocumentIssueSummary](https://borisbrodski.github.io/langium-tools/functions/base.getDocumentIssueSummary.html)
 - [getDocumentIssues](https://borisbrodski.github.io/langium-tools/functions/base.getDocumentIssues.html)
 - [documentIssueToString](https://borisbrodski.github.io/langium-tools/functions/base.documentIssueToString.html)
-- [DocumentIssue](https://borisbrodski.github.io/langium-tools/interfaces/base.DocumentIssue.html)
-- [DocumentIssueSummary](https://borisbrodski.github.io/langium-tools/interfaces/base.DocumentIssueSummary.html)
+- [DocumentIssue](https://borisbrodski.github.io/langium-tools/types/base.DocumentIssue.html)
+- [DocumentIssueSummary](https://borisbrodski.github.io/langium-tools/types/base.DocumentIssueSummary.html)
 - [DocumentIssueSource](https://borisbrodski.github.io/langium-tools/enums/base.DocumentIssueSource.html)
 - [DocumentIssueSeverity](https://borisbrodski.github.io/langium-tools/enums/base.DocumentIssueSeverity.html)
 
@@ -363,7 +369,7 @@ await manager.writeToDisk(outputDir: string, target?: string);
 For detailed API documentation, see the Typedoc documentation.
 
 - [GeneratedContentManager](https://borisbrodski.github.io/langium-tools/classes/generator.GeneratedContentManager.html)
-- [GeneratorManager](https://borisbrodski.github.io/langium-tools/classes/generator.GeneratorManager.html)
+- [GeneratorManager](https://borisbrodski.github.io/langium-tools/interfaces/generator.GeneratorManager.html)
 - [GeneratorTarget](https://borisbrodski.github.io/langium-tools/interfaces/generator.GeneratorTarget.html)
 - [CreateFileOptions](https://borisbrodski.github.io/langium-tools/interfaces/generator.CreateFileOptions.html)
 
