@@ -59,6 +59,10 @@
         <li><a href="#generated-content-manager">Generated Content Manager</a></li>
         <li><a href="#generator-testing-snapshot-testing">Generator Testing (Snapshot Testing)</a></li>
         <li><a href="#vitest-matchers">Vitest Matchers</a></li>
+        <li><a href="#miscellaneous">Miscellaneous</a></li>
+        <ul>
+          <li><a href="#adjusted">`adjusted`</a></li>
+        </ul>
       </ul>
     </li>
     <li><a href="#roadmap">Roadmap</a></li>
@@ -67,7 +71,6 @@
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
-
 
 <!-- ABOUT THE PROJECT -->
 
@@ -656,26 +659,22 @@ You can use the `parseWithMarks` function to parse your DSL code and extract mar
 
 ```typescript
 import { parseWithMarks } from "langium-tools/testing";
+import { adjusted } from "langium-tools/base";
 
-const parse = parseHelper<MyLangAstType>();
-
-// Define custom markers
-const beginMarker = "[[[";
-const endMarker = "]]]";
-
-// DSL code with markers
-const dslCode = `
-  grammar MyLanguage
-  entry Rule: name=ID;
-  [[[UnusedRule]]]: name=ID;
-  terminal ID: /\\^?[_a-zA-Z][\\w_]*/;`;
+const services = createMyDslServices(EmptyFileSystem);
+const doParse = parseHelper<Model>(services.MyStateMachine);
+const parse = (input: string) => doParse(input, { validate: true });
 
 // Parse the code with markers
 const parsedDocument = await parseWithMarks(
   parse,
-  dslCode,
-  beginMarker,
-  endMarker,
+  adjusted`
+    statemachine MyStatemachine
+
+    state [[[UnusedRule]]];
+  `,
+  "[[[",
+  "]]]",
 );
 ```
 
@@ -751,7 +750,7 @@ interface IssueExpectation {
 
 ```typescript
 test("document has expected issues", async () => {
-  const dslCode = `
+  const dslCode = adjusted`
     grammar MyLanguage
     entry Rule: name=ID;
     [[[UnusedRule]]]: name=ID;
@@ -801,14 +800,7 @@ test("document contains specific issue", async () => {
 To specify custom markers in your DSL code, pass them as arguments to `parseWithMarks`.
 
 ```typescript
-const beginMarker = "[[[";
-const endMarker = "]]]";
-const parsedDocument = await parseWithMarks(
-  parse,
-  dslCode,
-  beginMarker,
-  endMarker,
-);
+const parsedDocument = await parseWithMarks(parse, dslCode, "<<", ">>");
 ```
 
 #### Examples
@@ -825,7 +817,7 @@ test('document has no errors', async () => {
 
 ```typescript
 test('document has expected validation issue at marker', async () => {
-  const dslCode = `
+  const dslCode = adjusted`
     grammar MyLanguage
     entry Rule: name=ID;
     <<<UnusedRule>>>: name=ID;
@@ -835,10 +827,10 @@ test('document has expected validation issue at marker', async () => {
 
   expect(parsedDocument).toHaveDocumentIssues([
     {
-      source: DocumentIssueSource.VALIDATION,
-      severity: DocumentIssueSeverity.WARNING,
+      source: DocumentIssueSource.VALIDATION, // Optional
+      severity: DocumentIssueSeverity.WARNING, // Optional
       message: 'This rule is declared but never referenced.',
-      markerId: 0,
+      markerId: 0, // Optional
     },
   ]);
 });
@@ -848,7 +840,8 @@ test('document has expected validation issue at marker', async () => {
 
 ```typescript
 test("document contains issue matching regex", async () => {
-  const dslCode = `     grammar MyLanguage
+  const dslCode = adjusted`
+    grammar MyLanguage
     entry Rule: <<<name>>> ID;
     terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
   `;
@@ -897,41 +890,82 @@ test("document has no errors, ignoring lexer errors", async () => {
   - DocumentIssueSeverity
   - DocumentIssueSource:
 
-Notes
-Markers: Always specify custom markers in your tests to avoid dependencies on default markers that may change.
-Extending Vitest: The matchers are added to Vitest's expect function by importing langium-tools.
-Error Messages: The matchers provide detailed error messages to help you diagnose failing tests.
-Using the t Function for Templates
-In the examples, you might notice the use of a t function to format template strings. This is a utility to clean up multiline strings in tests. If you have such a function, you can use it to make your tests more readable.
+#### Notes
 
-typescript
-Copy code
-function t(staticParts: TemplateStringsArray, ...substitutions: unknown[]): string {
-return String.raw(staticParts, ...substitutions).replace(/\r/g, '');
-}
-Example with t Function
-typescript
-Copy code
-test('document contains specific issue', async () => {
-const beginMarker = '[[[';
-  const endMarker = ']]]';
-const dslCode = t`     grammar MyLanguage
-    entry Rule: ${beginMarker}name${endMarker} ID;
-    terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
-  `;
-const parsedDocument = await parseWithMarks(parse, dslCode, beginMarker, endMarker);
+- **Markers**: Always specify custom markers in your tests to avoid dependencies on default markers that may change.
+- **Extending Vitest**: The matchers are added to Vitest's expect function by importing langium-tools.
+- **Error Messages**: The matchers provide detailed error messages to help you diagnose failing tests.
 
-expect(parsedDocument).toContainIssue({
-message: /Could not resolve reference to AbstractRule named '.\*'/,
-markerId: 0,
-});
-});
-Conclusion
-The Vitest matchers provided by langium-tools enhance your testing capabilities by allowing you to write expressive and precise assertions for your Langium documents. By utilizing markers and custom matchers, you can create robust tests that ensure your language services work as intended.
+#### Using the `adjusted` Function for Templates
+
+In the examples, you might notice the use of a <a href="#adjusted">`adjusted`</a> function to format template strings. This is a utility to clean up multiline strings in tests.
+
+#### Conclusion
+
+The Vitest matchers provided by `langium-tools` enhance your testing capabilities by allowing you to write expressive and precise assertions for your Langium documents. By utilizing markers and custom matchers, you can create robust tests that ensure your language services work as intended.
 
 For more detailed information, refer to the API documentation.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Miscellaneous
+
+#### `adjusted`
+
+The adjusted function is a utility for formatting multi-line template strings, ensuring that indentation and line breaks are preserved correctly. This is particularly useful for generating code snippets or structured text where indentation is essential.
+
+##### Features
+
+- **Automatic Indentation**: Dynamically inserted placeholders (${...}) are adjusted to match the indentation level of the placeholder itself, making it easy to maintain proper structure in the output.
+- **Consistent Formatting**: Ensures that line breaks use Unix-style newlines (\n), making the output compatible with Linux systems.
+- **Ideal for Code Generation**: Useful in scenarios where nested structures or varying levels of indentation need to be generated dynamically.
+
+##### Usage
+
+The adjusted function is used as a tagged template literal:
+
+```typescript
+import { adjusted } from "langium-tools/base";
+const text = adjusted`
+  ${cmds}
+  if (sayAgain) {
+    ${cmds}
+  }
+`;
+
+console.log(text);
+```
+
+Output:
+
+```
+ console.log('Hello,');
+ console.log('World!');
+ if (sayAgain) {
+   console.log('Hello,');
+   console.log('World!');
+ }
+```
+
+Notice, how indentation of the dynamic placeholders is adjusted to match the surrounding code.
+
+##### Parameters
+
+- **staticParts**: The static (literal) parts of the template string.
+- **substitutions**: The dynamic parts of the template string, which will be injected into the corresponding placeholders in staticParts.
+
+##### Return Value
+
+The function returns a formatted string with the following properties:
+
+- Indentation of dynamic placeholders is adjusted to match the indentation of the placeholder in the template.
+- Uses Unix-style line breaks (\n) without carriage return characters (\r).
+
+##### Use Cases
+
+- **Code Generation**: Generate formatted code snippets with varying indentation levels.
+- **Documentation**: Create structured multi-line strings for technical documentation.
+- **Text Output**: Build complex text structures where consistent formatting is needed.
 
 <!-- ROADMAP -->
 

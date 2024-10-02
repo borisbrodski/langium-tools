@@ -3,10 +3,10 @@ import { createLangiumGrammarServices } from 'langium/grammar';
 import { parseHelper } from 'langium/test';
 import 'vitest';
 import { beforeAll, describe, expect, test } from 'vitest';
+import { DocumentIssueSeverity, DocumentIssueSource } from '../../src/base/document-issues';
+import { adjusted } from '../../src/base/string';
 import '../../src/testing/matchers';
 import { ParsedDocument, parseWithMarks } from '../../src/testing/parser-tools';
-import { t } from '../common';
-import { DocumentIssueSeverity, DocumentIssueSource } from '../../src/base/document-issues';
 
 describe('Langium matchers', () => {
   let services: ReturnType<typeof createLangiumGrammarServices>;
@@ -127,7 +127,7 @@ describe('Langium matchers', () => {
     test('using ParsedDocument with toHaveNoErrors works', async () => {
       const document = await parseWithMarks(
         parse,
-        t`
+        adjusted`
         grammar LangiumGrammar
 
         entry Grammar: name=ID;
@@ -157,7 +157,7 @@ describe('Langium matchers', () => {
     test('expect validation issue matched by severity and text', async () => {
       const document = await parseWithMarks(
         parse,
-        t`
+        adjusted`
         grammar LangiumGrammar
 
         entry Grammar: name=ID;
@@ -181,7 +181,7 @@ describe('Langium matchers', () => {
     test('expect validation issue matched by severity and wrong text', async () => {
       const document = await parseWithMarks(
         parse,
-        t`
+        adjusted`
         grammar LangiumGrammar
 
         entry Grammar: name=ID;
@@ -280,7 +280,7 @@ describe('Langium matchers', () => {
     test('using ParsedDocument with toHaveNoIssues works', async () => {
       const document = await parseWithMarks(
         parse,
-        t`
+        adjusted`
         grammar LangiumGrammar
 
         entry Grammar: name=ID;
@@ -294,7 +294,7 @@ describe('Langium matchers', () => {
 
   describe('toHaveDocumentIssues', () => {
     test('expect validation issue matched by source, severity, message, and markerId', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         <<{|Unused|}>>: name=ID;
@@ -309,7 +309,7 @@ describe('Langium matchers', () => {
       }]);
     });
     test('expect validation issue UNmatched by severity', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         <<{|Unused|}>>: name=ID;
@@ -323,7 +323,7 @@ describe('Langium matchers', () => {
           message: 'This rule is declared but never referenced.',
           markerId: 0,
         }]);
-      }).toThrow(t`
+      }).toThrow(adjusted`
         Unmatched actual issues:
         (Validation) Hint at 3:1-6 - This rule is declared but never referenced.
         Unmatched expected issues:
@@ -331,7 +331,7 @@ describe('Langium matchers', () => {
       `)
     });
     test('expect validation issue UNmatched by marker', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         <<{|Unuse|}>>d: name=ID;
@@ -345,7 +345,7 @@ describe('Langium matchers', () => {
           message: 'This rule is declared but never referenced.',
           markerId: 0,
         }]);
-      }).toThrow(t`
+      }).toThrow(adjusted`
         Unmatched actual issues:
         (Validation) Hint at 3:1-6 - This rule is declared but never referenced.
         Unmatched expected issues:
@@ -353,7 +353,7 @@ describe('Langium matchers', () => {
       `)
     });
     test('expect validation issue UNmatched by message', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         <<{|Unused|}>>: name=ID;
@@ -367,7 +367,7 @@ describe('Langium matchers', () => {
           message: 'This rule is DECLARED but never referenced.',
           markerId: 0,
         }]);
-      }).toThrow(t`
+      }).toThrow(adjusted`
         Unmatched actual issues:
         (Validation) Hint at 3:1-6 - This rule is declared but never referenced.
         Unmatched expected issues:
@@ -375,7 +375,7 @@ describe('Langium matchers', () => {
       `)
     });
     test('expect validation issue UNmatched by source', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         <<{|Unused|}>>: name=ID;
@@ -389,7 +389,7 @@ describe('Langium matchers', () => {
           message: 'This rule is declared but never referenced.',
           markerId: 0,
         }]);
-      }).toThrow(t`
+      }).toThrow(adjusted`
         Unmatched actual issues:
         (Validation) Hint at 3:1-6 - This rule is declared but never referenced.
         Unmatched expected issues:
@@ -398,7 +398,7 @@ describe('Langium matchers', () => {
     });
 
     test('expect validation issue matched by message regex', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         Unused: name=ID;
@@ -413,7 +413,7 @@ describe('Langium matchers', () => {
     });
 
     test('expect validation issue matched by source', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         Unused: name=ID;
@@ -429,7 +429,7 @@ describe('Langium matchers', () => {
     });
 
     test('expect multiple validation issues matched by message and markerId', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         <<{|Unused1|}>>: name=ID;
@@ -451,7 +451,7 @@ describe('Langium matchers', () => {
     });
 
     test('unmatched actual issues cause failure', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         <<{|Unused|}>>: name=ID;
@@ -460,14 +460,14 @@ describe('Langium matchers', () => {
 
       expect(() => {
         expect(document).toHaveDocumentIssues([]);
-      }).toThrow(t`
+      }).toThrow(adjusted`
         Unmatched actual issues:
         (Validation) Hint at 3:1-6 - This rule is declared but never referenced.
       `);
     });
 
     test('unmatched expected issues cause failure', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -479,14 +479,14 @@ describe('Langium matchers', () => {
           severity: DocumentIssueSeverity.HINT,
           message: 'This rule is declared but never referenced.',
         }]);
-      }).toThrow(t`
+      }).toThrow(adjusted`
         Expected 1 issues, but none were present in the document.
         (Validation) Hint - This rule is declared but never referenced.
       `);
     });
 
     test('invalid markerId causes error', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         <<{|Unused|}>>: name=ID;
@@ -504,7 +504,7 @@ describe('Langium matchers', () => {
     });
 
     test('expect validation issue matched by message regex', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         Unused: name=ID;
@@ -518,7 +518,7 @@ describe('Langium matchers', () => {
     });
 
     test('expect validation issue matched by message only', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name ID;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -530,7 +530,7 @@ describe('Langium matchers', () => {
     });
 
     test('expect validation issue matched by severity and message', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         Unused: name=ID;
@@ -544,7 +544,7 @@ describe('Langium matchers', () => {
     });
 
     test('expect validation issue matched by source and message', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name ID;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -557,7 +557,7 @@ describe('Langium matchers', () => {
     });
 
     test('expect validation issue matched by message and markerId', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: <<{|name|}>> ID;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -570,7 +570,7 @@ describe('Langium matchers', () => {
     });
 
     test('expect parser error matched by message', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         terminal
       `);
@@ -583,7 +583,7 @@ describe('Langium matchers', () => {
     });
 
     test('expect lexer error matched by message', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         terminal Error: 'err
       `);
@@ -596,7 +596,7 @@ describe('Langium matchers', () => {
     });
 
     test('no issues matched when ignoreNonErrorDiagnostics is true', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         Unused: name=ID;
@@ -608,14 +608,14 @@ describe('Langium matchers', () => {
           severity: DocumentIssueSeverity.HINT,
           message: 'This rule is declared but never referenced.',
         }], { ignoreNonErrorDiagnostics: true });
-      }).toThrow(t`
+      }).toThrow(adjusted`
         Expected 1 issues, but none were present in the document.
         Hint - This rule is declared but never referenced.
       `);
     });
 
     test('unmatched actual issues when not all expected', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         <<{|Unused1|}>>: name=ID;
@@ -629,14 +629,14 @@ describe('Langium matchers', () => {
           message: 'This rule is declared but never referenced.',
           markerId: 0,
         }]);
-      }).toThrow(t`
+      }).toThrow(adjusted`
         Unmatched actual issues:
         (Validation) Hint at 4:1-7 - This rule is declared but never referenced.
       `);
     });
 
     test('expect issue with missing severity defaults to ERROR', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name ID;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -648,7 +648,7 @@ describe('Langium matchers', () => {
     });
 
     test('no issues present when expectedIssues is empty', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -658,7 +658,7 @@ describe('Langium matchers', () => {
     });
 
     test('unmatched expected issues when document has no issues', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -668,14 +668,14 @@ describe('Langium matchers', () => {
         expect(document).toHaveDocumentIssues([{
           message: 'Non-existent issue',
         }]);
-      }).toThrow(t`
+      }).toThrow(adjusted`
         Expected 1 issues, but none were present in the document.
         Error - Non-existent issue
       `);
     });
 
     test('expect multiple issues with some unmatched', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: terminal;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -695,7 +695,7 @@ describe('Langium matchers', () => {
           severity: DocumentIssueSeverity.ERROR,
           message: /Unmatched issue/,
         }]);
-      }).toThrow(t`
+      }).toThrow(adjusted`
         Unmatched expected issues:
         (Validation) Error - /Unmatched issue/
       `);
@@ -704,7 +704,7 @@ describe('Langium matchers', () => {
 
   describe('toContainIssue', () => {
     test('document contains specific validation issue', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name ID;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -716,7 +716,7 @@ describe('Langium matchers', () => {
     });
 
     test('document contains specific issue matched by regex', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name ID;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -728,7 +728,7 @@ describe('Langium matchers', () => {
     });
 
     test('document contains issue with specific severity and source', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name ID;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -742,7 +742,7 @@ describe('Langium matchers', () => {
     });
 
     test('document with no issues does not contain expected issue', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -756,7 +756,7 @@ describe('Langium matchers', () => {
     });
 
     test('document does not contain specified issue', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name name;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -770,7 +770,7 @@ describe('Langium matchers', () => {
     });
 
     test('document contains issue at specific markerId', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: <<{|name|}>> ID;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -783,7 +783,7 @@ describe('Langium matchers', () => {
     });
 
     test('document does not contain issue at incorrect markerId', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: <<{|name|}>> <<{|ID|}>>;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -802,7 +802,7 @@ describe('Langium matchers', () => {
     });
 
     test('document contains lexer error', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         terminal Error: 'err
       `);
@@ -815,7 +815,7 @@ describe('Langium matchers', () => {
     });
 
     test('document contains parser error', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar name=ID;
       `);
@@ -828,7 +828,7 @@ describe('Langium matchers', () => {
     });
 
     test('document contains issue when ignoring non-error diagnostics', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name ID;
         UnusedRule: name=ID;
@@ -841,7 +841,7 @@ describe('Langium matchers', () => {
     });
 
     test('document does not contain issue when ignoring non-error diagnostics', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         UnusedRule: name=ID;
@@ -856,7 +856,7 @@ describe('Langium matchers', () => {
     });
 
     test('document contains issue matching regex with special characters', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: <<{|name|}>> ID; // Special case
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -869,7 +869,7 @@ describe('Langium matchers', () => {
     });
 
     test('document does not contain issue due to incorrect severity', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name ID;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -888,7 +888,7 @@ describe('Langium matchers', () => {
     });
 
     test('document does not contain issue due to incorrect source', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name ID;
         terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
@@ -903,7 +903,7 @@ describe('Langium matchers', () => {
     });
 
     test('document does not contain issue when all issues are ignored', async () => {
-      const document = await parseWithMarks(parse, t`
+      const document = await parseWithMarks(parse, adjusted`
         grammar LangiumGrammar
         entry Grammar: name=ID;
         UnusedRule: name=ID;

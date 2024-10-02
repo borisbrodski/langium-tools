@@ -4,7 +4,8 @@ import { parseHelper } from "langium/test";
 import { beforeAll, describe, expect, test } from "vitest";
 import { DocumentIssue, DocumentIssueSeverity, DocumentIssueSource, getDocumentIssues, getDocumentIssueSummary, getDocumentIssueSummaryFromIssues } from "../../src/base/document-issues.ts";
 import "../../src/base/arrays.ts";
-import { t, using } from "../common";
+import { using } from "../common";
+import { adjusted } from "../../src/base/string.ts";
 
 describe('Document issues', () => {
   describe('getDocumentIssues', () => {
@@ -18,7 +19,7 @@ describe('Document issues', () => {
     })
 
     test('No errors', async () => {
-      document = await parse(t`
+      document = await parse(adjusted`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
@@ -30,7 +31,7 @@ describe('Document issues', () => {
     });
 
     test('Lexer error', async () => {
-      document = await parse(t`
+      document = await parse(adjusted`
         grammar LangiumGrammar
 
         entry Grammar: id=ID;
@@ -54,7 +55,7 @@ describe('Document issues', () => {
     });
 
     test('Lexer error in one line', async () => {
-      document = await parse(t`
+      document = await parse(adjusted`
         grammar test '
       `)
       const issues = getDocumentIssues(document);
@@ -75,7 +76,7 @@ describe('Document issues', () => {
     });
 
     test('Lexer error skipped', async () => {
-      document = await parse(t`
+      document = await parse(adjusted`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
@@ -93,7 +94,7 @@ describe('Document issues', () => {
     });
 
     test('Parser error', async () => {
-      document = await parse(t`
+      document = await parse(adjusted`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
@@ -115,7 +116,7 @@ describe('Document issues', () => {
     });
 
     test('Parser error in one line', async () => {
-      document = await parse(t`
+      document = await parse(adjusted`
       grammar LangiumGrammar entry Grammar: id=terminal ; terminal ID: 'x';
     `)
       const issues = getDocumentIssues(document).sortBy((i) => i.startOffset);
@@ -139,7 +140,7 @@ describe('Document issues', () => {
     });
 
     test('Parser error skipped', async () => {
-      document = await parse(t`
+      document = await parse(adjusted`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
@@ -152,7 +153,7 @@ describe('Document issues', () => {
     });
 
     test('Diagnosic errors', async () => {
-      document = await parse(t`
+      document = await parse(adjusted`
       grammar LangiumGrammar
 
       entry Grammar : ID;
@@ -582,7 +583,7 @@ describe('Document issues', () => {
       parse = parseHelper<Grammar>(services.grammar);
     })
     test('Lexer and parser errors', async () => {
-      document = await parse(t`
+      document = await parse(adjusted`
         grammar LangiumGrammar
 
         entry Grammar: id=ID;
@@ -595,7 +596,7 @@ describe('Document issues', () => {
       expect(summary.countErrors).toBe(2);
       expect(summary.countNonErrors).toBe(0);
       expect(summary.summary).toEqual('1 lexer error(s), 1 parser error(s)');
-      expect(summary.message).toEqual(t`
+      expect(summary.message).toEqual(adjusted`
         Lexer errors:
         Error at 6:17 - unexpected character: ->'<- at offset: 98, skipped 1 characters.
         Parser errors:
@@ -605,7 +606,7 @@ describe('Document issues', () => {
       `);
     });
     test('Diagnosic errors', async () => {
-      document = await parse(t`
+      document = await parse(adjusted`
       grammar LangiumGrammar
 
       entry Grammar: ID;
@@ -619,7 +620,7 @@ describe('Document issues', () => {
       expect(summary.countErrors).toBe(3);
       expect(summary.countNonErrors).toBe(1);
       expect(summary.summary).toEqual('3 error diagnostic(s), 1 non-error diagnostic(s)');
-      expect(summary.message).toEqual(t`
+      expect(summary.message).toEqual(adjusted`
         Diagnostics:
         Error at 3:7-13 - The entry rule cannot be a data type rule.
         Error at 3:7-13 - This parser rule does not create an object. Add a primitive return type or an action to the start of the rule to force object instantiation.
