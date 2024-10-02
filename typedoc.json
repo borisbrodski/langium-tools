@@ -3,5 +3,12 @@
     "src"
   ],
   "out": "docs",
-  "includeVersion": true
+  "includeVersion": true,
+  "highlightLanguages": [
+    "typescript",
+    "java",
+    "sh",
+    "json",
+    "bash"
+  ]
 }

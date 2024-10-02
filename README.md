@@ -975,6 +975,144 @@ The function returns a formatted string with the following properties:
 
 - [adjusted](https://borisbrodski.github.io/langium-tools/functions/base.adjusted.html)
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Language - Java
+
+#### Generating Java Code with `JavaImportManager` and `generateJavaFile`
+
+The `JavaImportManager` and `generateJavaFile` utilities simplify the process of generating well-structured Java code within your Langium-based projects. They handle common boilerplate code such as package declarations and import statements, allowing you to focus on the core content of your Java classes.
+
+##### Overview
+
+- **JavaImportManager**: Manages Java class imports during code generation, automatically handling import statements and resolving class name collisions.
+- **generateJavaFile**: A utility function that streamlines the creation of Java source files with proper package declarations, imports, and class content.
+
+##### Getting Started
+
+To use these utilities, you need to:
+
+- Import the necessary modules in your code.
+- Define your class content using CompositeGeneratorNode and the provided importManager.
+- Generate the Java file using generateJavaFile.
+
+##### Importing the Utilities
+
+```typescript
+import { generateJavaFile } from "langium-tools/generator";
+import { CompositeGeneratorNode } from "langium/generate";
+import { adjusted } from "langium-tools/base";
+import { GeneratorManager } from "langium-tools/generator";
+```
+
+##### Using `generateJavaFile`
+
+The `generateJavaFile` function generates a Java source file with proper package declaration, imports, and body content. It leverages `JavaImportManager` to manage imports automatically based on the classes used in the body content.
+
+##### Function Signature:
+
+```typescript
+generateJavaFile(
+  fileName: string,
+  packageName: string,
+  generatorManager: GeneratorManager,
+  bodyGenerator: (importManager: (fqn: string) => string) => CompositeGeneratorNode,
+  options?: CreateFileOptions
+): void;
+```
+
+- **fileName**: Name of the Java file to be generated (without the `.java` extension).
+- **packageName**: The package name for the Java file (e.g., `com.example.project`).
+- **generatorManager**: Manages code generation for a specific model.
+- **bodyGenerator**: A function that generates the body of the Java file, receiving an importManager function to handle class imports.
+- **options** _(optional)_: Settings for file creation, such as encoding or overwrite behavior and target directory.
+
+##### Example: Generating a Simple Java Class
+
+```typescript
+generateJavaFile("MyClass", "com.example.project", generatorManager, (imp) =>
+  new CompositeGeneratorNode().append(adjusted`
+    public class MyClass {
+      public ${imp("java.util.Properties")} getProperties() {
+        // ...
+      }
+    }
+  `),
+);
+```
+
+##### Explanation:
+
+- **Imports**:
+  - The `imp` function is used to import `java.util.Properties`. It returns the appropriate class name (`Properties`), handling imports automatically.
+- **Class Content**:
+
+  - A simple class `MyClass` with a method `getProperties` is generated.
+
+- **Generated Output**:
+
+```typescript
+package com.example.project;
+
+import java.util.Properties;
+
+public class MyClass {
+    public Properties getProperties() {
+        // ...
+    }
+}
+```
+
+##### Managing Imports with JavaImportManager
+
+The `JavaImportManager` ensures that:
+
+- Classes from the same package or default packages (like `java.lang`) are not imported unnecessarily.
+- Class name collisions are resolved by using fully qualified names when needed.
+- Imports are sorted alphabetically, and duplicates are avoided.
+
+##### Example: Handling Class Name Collisions
+
+```typescript
+    private ${imp('com.example.package1.MyClass')} myClass1;
+    private ${imp('com.example.package2.MyClass')} myClass2;
+);
+```
+
+Generated imports:
+
+```java
+import com.example.package1.MyClass;
+```
+
+Generated output:
+
+```java
+    private MyClass myClass1;
+    private com.example.package2.MyClass myClass2;
+```
+
+##### API Reference
+
+- Classes:
+  - JavaImportManager
+- Functions:
+  - generateJavaFile
+  - adjusted
+- Interfaces:
+  - GeneratorManager
+  - CreateFileOptions
+
+##### Conclusion
+
+The `JavaImportManager` and `generateJavaFile` utilities provide powerful tools for generating Java code in a structured and efficient manner. They handle the complexities of import management and file generation, allowing you to focus on implementing the logic of your code generation.
+
+By integrating these utilities into your Langium projects, you can automate Java code generation with ease and confidence, ensuring that your generated code is clean, consistent, and maintainable.
+
+For more detailed information, refer to the API documentation linked above.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 <!-- ROADMAP -->
 
 ## Roadmap

@@ -10,13 +10,33 @@ describe("JavaImportManager", () => {
     expect(manager.generateImports()).toBe("")
   });
 
+  test("no imports with current package", () => {
+    const manager = new JavaImportManager("my.pkg")
+    expect(manager.generateImports()).toBe("")
+  });
+
   test("1 import", () => {
     const manager = new JavaImportManager()
     const useClass = manager.useClass("my.pkg.MyClass")
 
     expect(useClass).toBe("MyClass")
     expect(manager.generateImports()).toBe("import my.pkg.MyClass;")
+  })
 
+  test("1 import outside of the current package", () => {
+    const manager = new JavaImportManager("my.pkg.other")
+    const useClass = manager.useClass("my.pkg.MyClass")
+
+    expect(useClass).toBe("MyClass")
+    expect(manager.generateImports()).toBe("import my.pkg.MyClass;")
+  })
+
+  test("1 import within the current package", () => {
+    const manager = new JavaImportManager("my.pkg")
+    const useClass = manager.useClass("my.pkg.MyClass")
+
+    expect(useClass).toBe("MyClass")
+    expect(manager.generateImports()).toBe("")
   })
 
   test("1 use of default package", () => {
@@ -63,6 +83,32 @@ describe("JavaImportManager", () => {
     expect(manager.useClass("my.pkg3.MyClass")).toBe("my.pkg3.MyClass")
 
     expect(manager.generateImports()).toBe("import my.pkg1.MyClass;")
+  })
+
+  test("import classes from current package on name conflict", () => {
+    const manager = new JavaImportManager("my.pkg2")
+
+    expect(manager.useClass("my.pkg1.MyClass")).toBe("MyClass")
+    expect(manager.useClass("my.pkg2.MyClass")).toBe("my.pkg2.MyClass")
+    expect(manager.useClass("my.pkg3.MyClass")).toBe("my.pkg3.MyClass")
+
+    expect(manager.useClass("my.pkg1.MyClass")).toBe("MyClass")
+    expect(manager.useClass("my.pkg2.MyClass")).toBe("my.pkg2.MyClass")
+    expect(manager.useClass("my.pkg3.MyClass")).toBe("my.pkg3.MyClass")
+
+    expect(manager.generateImports()).toBe("import my.pkg1.MyClass;")
+  })
+
+  test("import classes from current package on name conflict, starting from class out of current package", () => {
+    const manager = new JavaImportManager("my.pkg1")
+
+    expect(manager.useClass("my.pkg1.MyClass")).toBe("MyClass")
+    expect(manager.useClass("my.pkg2.MyClass")).toBe("my.pkg2.MyClass")
+    expect(manager.useClass("my.pkg3.MyClass")).toBe("my.pkg3.MyClass")
+
+    expect(manager.useClass("my.pkg1.MyClass")).toBe("MyClass")
+    expect(manager.useClass("my.pkg2.MyClass")).toBe("my.pkg2.MyClass")
+    expect(manager.useClass("my.pkg3.MyClass")).toBe("my.pkg3.MyClass")
   })
 
 });
