@@ -879,16 +879,16 @@ test("document has no errors, ignoring lexer errors", async () => {
 #### API Reference
 
 - Matchers:
-  - toHaveNoErrors
-  - toHaveNoIssues
-  - toHaveDocumentIssues
-  - toContainIssue
+  - [toHaveNoErrors](https://borisbrodski.github.io/langium-tools/functions/testing.toHaveNoErrors.html)
+  - [toHaveNoIssues](https://borisbrodski.github.io/langium-tools/functions/testing.toHaveNoIssues.html)
+  - [toHaveDocumentIssues](https://borisbrodski.github.io/langium-tools/functions/testing.toHaveDocumentIssues.html)
+  - [toContainIssue](https://borisbrodski.github.io/langium-tools/functions/testing.toContainIssue.html)
 - Interfaces:
-  - IssueExpectation
-  - IgnoreParameters
+  - [IssueExpectation](https://borisbrodski.github.io/langium-tools/interfaces/testing.IssueExpectation.html)
+  - [IgnoreParameters](https://borisbrodski.github.io/langium-tools/interfaces/testing.IgnoreParameters.html)
 - Enums:
-  - DocumentIssueSeverity
-  - DocumentIssueSource:
+  - [DocumentIssueSeverity](https://borisbrodski.github.io/langium-tools/types/base.DocumentIssue.html)
+  - [DocumentIssueSource](https://borisbrodski.github.io/langium-tools/enums/base.DocumentIssueSource.html)
 
 #### Notes
 
@@ -899,6 +899,8 @@ test("document has no errors, ignoring lexer errors", async () => {
 #### Using the `adjusted` Function for Templates
 
 In the examples, you might notice the use of a <a href="#adjusted">`adjusted`</a> function to format template strings. This is a utility to clean up multiline strings in tests.
+
+See [`adjusted` typedoc](https://borisbrodski.github.io/langium-tools/functions/base.adjusted.html) for more information.
 
 #### Conclusion
 
@@ -913,6 +915,8 @@ For more detailed information, refer to the API documentation.
 #### `adjusted`
 
 The adjusted function is a utility for formatting multi-line template strings, ensuring that indentation and line breaks are preserved correctly. This is particularly useful for generating code snippets or structured text where indentation is essential.
+
+See [`adjusted` typedoc](https://borisbrodski.github.io/langium-tools/functions/base.adjusted.html) for more information.
 
 ##### Features
 
@@ -966,6 +970,10 @@ The function returns a formatted string with the following properties:
 - **Code Generation**: Generate formatted code snippets with varying indentation levels.
 - **Documentation**: Create structured multi-line strings for technical documentation.
 - **Text Output**: Build complex text structures where consistent formatting is needed.
+
+##### API Reference
+
+- [adjusted](https://borisbrodski.github.io/langium-tools/functions/base.adjusted.html)
 
 <!-- ROADMAP -->
 
