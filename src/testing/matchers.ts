@@ -50,7 +50,7 @@ export interface IgnoreParameters {
  * });
  * ```
  */
-function toHaveNoErrors(
+export function toHaveNoErrors(
   document: LangiumDocument | ParsedDocument,
   parameters?: IgnoreParameters
 ) {
@@ -90,7 +90,7 @@ function toHaveNoErrors(
  * });
  * ```
  */
-function toHaveNoIssues(
+export function toHaveNoIssues(
   document: LangiumDocument | ParsedDocument,
   parameters?: IgnoreParameters
 ) {
@@ -185,7 +185,7 @@ export interface IssueExpectation {
  * });
  * ```
  */
-function toHaveDocumentIssues(
+export function toHaveDocumentIssues(
   parsedDocument: ParsedDocument,
   expectedIssues: Array<IssueExpectation>,
   parameters?: IgnoreParameters
@@ -285,7 +285,7 @@ function toHaveDocumentIssues(
  * });
  * ```
  */
-function toContainIssue(
+export function toContainIssue(
   document: LangiumDocument | ParsedDocument,
   expectedIssue: IssueExpectation,
   parameters?: IgnoreParameters

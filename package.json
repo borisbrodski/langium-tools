@@ -11,7 +11,7 @@
     "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
     "test": "vitest run",
     "test:watch": "vitest",
-    "docs": "typedoc"
+    "docs": "typedoc --plugin typedoc-plugin-extras --favicon icons/32px.png"
   },
   "exports": {
     "./base": "./dist/base/index.js",
@@ -37,6 +37,7 @@
     "eslint": "^9.8.0",
     "globals": "^15.8.0",
     "typedoc": "^0.26.7",
+    "typedoc-plugin-extras": "^3.1.0",
     "typedoc-plugin-markdown": "^4.2.7",
     "typescript": "^5.5.4",
     "typescript-eslint": "^7.18.0",
