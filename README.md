@@ -138,7 +138,7 @@ When working with Langium documents, it's essential to handle and report issues 
 To retrieve issues from a LangiumDocument, use the getDocumentIssues function:
 
 ```typescript
-import { getDocumentIssues } from "langium-tools";
+import { getDocumentIssues } from "langium-tools/base";
 
 const issues = getDocumentIssues(document);
 ```
@@ -160,7 +160,7 @@ const issues = getDocumentIssues(document, {
 To get a summary of the issues in a document, use the getDocumentIssueSummary function:
 
 ```typescript
-import { getDocumentIssueSummary } from "langium-tools";
+import { getDocumentIssueSummary } from "langium-tools/base";
 
 const summary = getDocumentIssueSummary(document);
 
@@ -191,7 +191,7 @@ The DocumentIssueSummary object contains:
 You can convert individual issues to formatted strings using documentIssueToString:
 
 ```typescript
-import { documentIssueToString } from "langium-tools";
+import { documentIssueToString } from "langium-tools/base";
 
 issues.forEach((issue) => {
   const issueStr = documentIssueToString(issue);
@@ -263,7 +263,7 @@ To use the `GeneratedContentManager`, you need to:
 ##### Example Usage
 
 ```typescript
-import { GeneratedContentManager } from "langium-tools";
+import { GeneratedContentManager } from "langium-tools/generator";
 
 // Create a new manager
 const manager = new GeneratedContentManager(optionalListOfWorkspaceURIs);
@@ -376,7 +376,10 @@ For detailed API documentation, see the Typedoc documentation.
 #### Example: Full Workflow
 
 ```typescript
-import { GeneratedContentManager, GeneratorManager } from "langium-tools";
+import {
+  GeneratedContentManager,
+  GeneratorManager,
+} from "langium-tools/generator";
 
 // Initialize the manager
 const manager = new GeneratedContentManager(["./workspace"]);
@@ -612,6 +615,315 @@ Use Cases
 #### Conclusion
 
 Generator snapshot testing is a powerful technique to maintain the integrity of your code generators. By integrating these testing utilities into your workflow, you can confidently evolve your generators while ensuring consistent output.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Vitest Matchers
+
+The `langium-tools` package provides custom Vitest matchers to facilitate testing Langium documents and DSLs. These matchers help you assert that your parsers, validators, and other language services behave as expected. They allow you to check for specific issues, errors, and diagnostics in a clean and expressive way.
+
+#### Features
+
+- Custom Matchers: Extend Vitest's `expect` function with Langium-specific assertions.
+- Issue Assertions: Assert the presence or absence of specific issues in a document.
+- Marker-Based Testing: Use markers in your DSL code to pinpoint locations for expected issues.
+- Flexible Ignoring: Customize which types of issues (lexer, parser, validation) to include or ignore in your assertions.
+
+#### Getting Started with Vitest Matchers
+
+To use the Vitest matchers, you need to:
+
+1. Import the matchers in your test files.
+2. Parse your DSL code, optionally using markers.
+3. Use the custom matchers in your assertions.
+
+##### Importing the Matchers
+
+```typescript
+import "langium-tools/testing"; // Ensure matchers are registered
+import { parseHelper } from "langium/test";
+```
+
+##### Parsing DSL Code with Markers
+
+You can use the `parseWithMarks` function to parse your DSL code and extract markers. Markers are special annotations in your code that help you specify exact locations for expected issues.
+
+```typescript
+import { parseWithMarks } from "langium-tools/testing";
+
+const parse = parseHelper<MyLangAstType>();
+
+// Define custom markers
+const beginMarker = "[[[";
+const endMarker = "]]]";
+
+// DSL code with markers
+const dslCode = `
+  grammar MyLanguage
+  entry Rule: name=ID;
+  [[[UnusedRule]]]: name=ID;
+  terminal ID: /\\^?[_a-zA-Z][\\w_]*/;`;
+
+// Parse the code with markers
+const parsedDocument = await parseWithMarks(
+  parse,
+  dslCode,
+  beginMarker,
+  endMarker,
+);
+```
+
+#### Custom Matchers
+
+`toHaveNoErrors`
+
+Asserts that a Langium document has no errors after parsing. By default, non-error diagnostics (warnings, hints) are ignored.
+
+```typescript
+expect(document).toHaveNoErrors();
+```
+
+##### Parameters
+
+- `parameters` (optional): Customize which types of issues to ignore.
+
+##### Example
+
+```typescript
+test("document has no errors", async () => {
+  const document = await parse("validCode");
+  expect(document).toHaveNoErrors();
+});
+```
+
+`toHaveNoIssues`
+
+Asserts that a Langium document has no issues (errors, warnings, hints) after parsing.
+
+```typescript
+expect(document).toHaveNoIssues();
+```
+
+##### Parameters
+
+- `parameters` (optional): Customize which types of issues to ignore.
+
+##### Example
+
+```typescript
+test("document has no issues", async () => {
+  const document = await parse("validCode");
+  expect(document).toHaveNoIssues();
+});
+```
+
+`toHaveDocumentIssues`
+
+Asserts that a parsed document with markers has specific issues at specified markers.
+
+```typescript
+expect(parsedDocument).toHaveDocumentIssues(expectedIssues, parameters?);
+```
+
+##### Parameters
+
+- `expectedIssues`: An array of issue expectations.
+- `parameters` (optional): Customize which types of issues to ignore.
+
+##### IssueExpectation Interface
+
+```typescript
+interface IssueExpectation {
+  severity?: DocumentIssueSeverity; // Defaults to ERROR
+  source?: DocumentIssueSource; // LEXER, PARSER, VALIDATION
+  message: string | RegExp; // Expected message
+  markerId?: number; // 0-based index of the marker
+}
+```
+
+##### Example
+
+```typescript
+test("document has expected issues", async () => {
+  const dslCode = `
+    grammar MyLanguage
+    entry Rule: name=ID;
+    [[[UnusedRule]]]: name=ID;
+    terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+  `;
+  const parsedDocument = await parseWithMarks(parse, dslCode, "[[[", "]]]");
+
+  expect(parsedDocument).toHaveDocumentIssues([
+    {
+      source: DocumentIssueSource.VALIDATION,
+      severity: DocumentIssueSeverity.WARNING,
+      message: "This rule is declared but never referenced.",
+      markerId: 0,
+    },
+  ]);
+});
+```
+
+`toContainIssue`
+
+Asserts that a Langium document contains a specific issue.
+
+```typescript
+expect(document).toContainIssue(expectedIssue, parameters?);
+```
+
+##### Parameters
+
+- `expectedIssue`: The issue expectation.
+- `parameters` (optional): Customize which types of issues to ignore.
+
+##### Example
+
+```typescript
+test("document contains specific issue", async () => {
+  const document = await parse("invalidCode");
+  expect(document).toContainIssue({
+    message: /Unexpected character/,
+    severity: DocumentIssueSeverity.ERROR,
+    source: DocumentIssueSource.LEXER,
+  });
+});
+```
+
+##### Using Custom Markers
+
+To specify custom markers in your DSL code, pass them as arguments to `parseWithMarks`.
+
+```typescript
+const beginMarker = "[[[";
+const endMarker = "]]]";
+const parsedDocument = await parseWithMarks(
+  parse,
+  dslCode,
+  beginMarker,
+  endMarker,
+);
+```
+
+#### Examples
+
+##### Asserting No Errors
+
+````typescript
+test('document has no errors', async () => {
+  const document = await parse('validCode');
+  expect(document).toHaveNoErrors();
+});
+
+##### Asserting Specific Issues with Markers
+
+```typescript
+test('document has expected validation issue at marker', async () => {
+  const dslCode = `
+    grammar MyLanguage
+    entry Rule: name=ID;
+    <<<UnusedRule>>>: name=ID;
+    terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+  `;
+  const parsedDocument = await parseWithMarks(parse, dslCode, '<<<', '>>>');
+
+  expect(parsedDocument).toHaveDocumentIssues([
+    {
+      source: DocumentIssueSource.VALIDATION,
+      severity: DocumentIssueSeverity.WARNING,
+      message: 'This rule is declared but never referenced.',
+      markerId: 0,
+    },
+  ]);
+});
+````
+
+##### Asserting Issue Matching Regex
+
+```typescript
+test("document contains issue matching regex", async () => {
+  const dslCode = `     grammar MyLanguage
+    entry Rule: <<<name>>> ID;
+    terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+  `;
+  const parsedDocument = await parseWithMarks(parse, dslCode, "<<<", ">>>");
+
+  expect(parsedDocument).toContainIssue({
+    message: /Could not resolve reference to AbstractRule named '.\*'/,
+    markerId: 0,
+  });
+});
+```
+
+##### Customizing Ignored Issues
+
+All matchers accept an optional parameters object to customize which issues to include or ignore in your assertions.
+
+```typescript
+interface IgnoreParameters {
+  ignoreParserErrors?: boolean; // Default: false
+  ignoreLexerErrors?: boolean; // Default: false
+  ignoreValidationErrors?: boolean; // Default: false
+  ignoreNonErrorDiagnostics?: boolean; // Default: depends on matcher
+}
+```
+
+##### Example: Ignoring Lexer Errors
+
+```typescript
+test("document has no errors, ignoring lexer errors", async () => {
+  const document = await parse("codeWithLexerErrors");
+  expect(document).toHaveNoErrors({ ignoreLexerErrors: true });
+});
+```
+
+#### API Reference
+
+- Matchers:
+  - toHaveNoErrors
+  - toHaveNoIssues
+  - toHaveDocumentIssues
+  - toContainIssue
+- Interfaces:
+  - IssueExpectation
+  - IgnoreParameters
+- Enums:
+  - DocumentIssueSeverity
+  - DocumentIssueSource:
+
+Notes
+Markers: Always specify custom markers in your tests to avoid dependencies on default markers that may change.
+Extending Vitest: The matchers are added to Vitest's expect function by importing langium-tools.
+Error Messages: The matchers provide detailed error messages to help you diagnose failing tests.
+Using the t Function for Templates
+In the examples, you might notice the use of a t function to format template strings. This is a utility to clean up multiline strings in tests. If you have such a function, you can use it to make your tests more readable.
+
+typescript
+Copy code
+function t(staticParts: TemplateStringsArray, ...substitutions: unknown[]): string {
+return String.raw(staticParts, ...substitutions).replace(/\r/g, '');
+}
+Example with t Function
+typescript
+Copy code
+test('document contains specific issue', async () => {
+const beginMarker = '[[[';
+  const endMarker = ']]]';
+const dslCode = t`     grammar MyLanguage
+    entry Rule: ${beginMarker}name${endMarker} ID;
+    terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+  `;
+const parsedDocument = await parseWithMarks(parse, dslCode, beginMarker, endMarker);
+
+expect(parsedDocument).toContainIssue({
+message: /Could not resolve reference to AbstractRule named '.\*'/,
+markerId: 0,
+});
+});
+Conclusion
+The Vitest matchers provided by langium-tools enhance your testing capabilities by allowing you to write expressive and precise assertions for your Langium documents. By utilizing markers and custom matchers, you can create robust tests that ensure your language services work as intended.
+
+For more detailed information, refer to the API documentation.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
