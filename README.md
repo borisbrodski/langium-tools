@@ -63,6 +63,7 @@
         <ul>
           <li><a href="#adjusted">`adjusted`</a></li>
         </ul>
+        <li><a href="#language-java">Language - Java</a></li>
       </ul>
     </li>
     <li><a href="#roadmap">Roadmap</a></li>
@@ -1136,8 +1137,8 @@ Don't forget to give the project a star! Thanks again!
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+
+4. Open a Pull Request
 
 ### Top contributors:
 
