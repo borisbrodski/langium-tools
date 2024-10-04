@@ -2,6 +2,7 @@ import "./string.js";
 import { LangiumDocument } from "langium";
 import { DiagnosticSeverity } from "vscode-languageserver";
 import type { IToken } from 'chevrotain';
+import { EOL } from "node:os";
 
 /**
  * Represents the source of a document issue.
@@ -315,7 +316,7 @@ export function getDocumentIssueSummaryFromIssues(
     messageList.push('');
     messageList.push(summaryString);
   }
-  const messageString = messageList.join('\n');
+  const messageString = messageList.join(EOL);
   return {
     countTotal: countErrors + countNonErrors,
     countErrors: countErrors,

@@ -5,7 +5,7 @@ import { beforeAll, describe, expect, test } from "vitest";
 import { DocumentIssue, DocumentIssueSeverity, DocumentIssueSource, getDocumentIssues, getDocumentIssueSummary, getDocumentIssueSummaryFromIssues } from "../../src/base/document-issues.ts";
 import "../../src/base/arrays.ts";
 import { using } from "../common";
-import { adjusted } from "../../src/base/string.ts";
+import { adjusted, adjustedUnix } from "../../src/base/string.ts";
 
 describe('Document issues', () => {
   describe('getDocumentIssues', () => {
@@ -19,7 +19,7 @@ describe('Document issues', () => {
     })
 
     test('No errors', async () => {
-      document = await parse(adjusted`
+      document = await parse(adjustedUnix`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
@@ -31,7 +31,7 @@ describe('Document issues', () => {
     });
 
     test('Lexer error', async () => {
-      document = await parse(adjusted`
+      document = await parse(adjustedUnix`
         grammar LangiumGrammar
 
         entry Grammar: id=ID;
@@ -55,7 +55,7 @@ describe('Document issues', () => {
     });
 
     test('Lexer error in one line', async () => {
-      document = await parse(adjusted`
+      document = await parse(adjustedUnix`
         grammar test '
       `)
       const issues = getDocumentIssues(document);
@@ -76,7 +76,7 @@ describe('Document issues', () => {
     });
 
     test('Lexer error skipped', async () => {
-      document = await parse(adjusted`
+      document = await parse(adjustedUnix`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
@@ -94,7 +94,7 @@ describe('Document issues', () => {
     });
 
     test('Parser error', async () => {
-      document = await parse(adjusted`
+      document = await parse(adjustedUnix`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
@@ -116,7 +116,7 @@ describe('Document issues', () => {
     });
 
     test('Parser error in one line', async () => {
-      document = await parse(adjusted`
+      document = await parse(adjustedUnix`
       grammar LangiumGrammar entry Grammar: id=terminal ; terminal ID: 'x';
     `)
       const issues = getDocumentIssues(document).sortBy((i) => i.startOffset);
@@ -140,7 +140,7 @@ describe('Document issues', () => {
     });
 
     test('Parser error skipped', async () => {
-      document = await parse(adjusted`
+      document = await parse(adjustedUnix`
       grammar LangiumGrammar
 
       entry Grammar: id=ID;
@@ -153,7 +153,7 @@ describe('Document issues', () => {
     });
 
     test('Diagnosic errors', async () => {
-      document = await parse(adjusted`
+      document = await parse(adjustedUnix`
       grammar LangiumGrammar
 
       entry Grammar : ID;
@@ -265,11 +265,12 @@ describe('Document issues', () => {
       expect(summary.countErrors).toBe(1);
       expect(summary.countNonErrors).toBe(0);
       expect(summary.summary).toEqual('1 lexer error(s)');
-      expect(summary.message).toEqual(
-        'Lexer errors:\n' +
-        "Error at 8:24 - unexpected character: ->'<- at offset: 123, skipped 1 characters.\n\n" +
-        '1 lexer error(s)'
-      );
+      expect(summary.message).toEqual(adjusted`
+        Lexer errors:
+        Error at 8:24 - unexpected character: ->'<- at offset: 123, skipped 1 characters.
+
+        1 lexer error(s)
+      `);
     });
 
     test('Single parser error', () => {
@@ -285,9 +286,12 @@ describe('Document issues', () => {
       expect(summary.countErrors).toBe(1);
       expect(summary.countNonErrors).toBe(0);
       expect(summary.summary).toEqual('1 parser error(s)');
-      expect(summary.message).toEqual(
-        'Parser errors:\n' + "Error - Expecting token of type ';' but found ``.\n\n" + '1 parser error(s)'
-      );
+      expect(summary.message).toEqual(adjusted`
+        Parser errors:
+        Error - Expecting token of type ';' but found \`\`.
+
+        1 parser error(s)
+      `);
     });
 
     test('Single validation error', () => {
@@ -307,11 +311,12 @@ describe('Document issues', () => {
       expect(summary.countErrors).toBe(1);
       expect(summary.countNonErrors).toBe(0);
       expect(summary.summary).toEqual('1 error diagnostic(s)');
-      expect(summary.message).toEqual(
-        'Diagnostics:\n' +
-        'Error at 4:13-20 - The entry rule cannot be a data type rule.\n\n' +
-        '1 error diagnostic(s)'
-      );
+      expect(summary.message).toEqual(adjusted`
+        Diagnostics:
+        Error at 4:13-20 - The entry rule cannot be a data type rule.
+
+        1 error diagnostic(s)
+      `);
     });
 
     test('Multiple validation errors', () => {
@@ -350,13 +355,14 @@ describe('Document issues', () => {
       expect(summary.countErrors).toBe(3);
       expect(summary.countNonErrors).toBe(0);
       expect(summary.summary).toEqual('3 error diagnostic(s)');
-      expect(summary.message).toEqual(
-        'Diagnostics:\n' +
-        'Error at 4:13-20 - The entry rule cannot be a data type rule.\n' +
-        'Error at 4:13-20 - This parser rule does not create an object. Add a primitive return type or an action to the start of the rule to force object instantiation.\n' +
-        'Error at 4:7-25 - Data type rules cannot infer a type.\n\n' +
-        '3 error diagnostic(s)'
-      );
+      expect(summary.message).toEqual(adjusted`
+        Diagnostics:
+        Error at 4:13-20 - The entry rule cannot be a data type rule.
+        Error at 4:13-20 - This parser rule does not create an object. Add a primitive return type or an action to the start of the rule to force object instantiation.
+        Error at 4:7-25 - Data type rules cannot infer a type.
+
+        3 error diagnostic(s)
+      `);
     });
 
     test('Mixed issues (lexer and parser errors)', () => {
@@ -379,13 +385,14 @@ describe('Document issues', () => {
       expect(summary.countErrors).toBe(2);
       expect(summary.countNonErrors).toBe(0);
       expect(summary.summary).toEqual('1 lexer error(s), 1 parser error(s)');
-      expect(summary.message).toEqual(
-        'Lexer errors:\n' +
-        "Error at 8:24 - unexpected character: ->'<- at offset: 123, skipped 1 characters.\n" +
-        'Parser errors:\n' +
-        "Error - Expecting token of type ';' but found ``.\n\n" +
-        '1 lexer error(s), 1 parser error(s)'
-      );
+      expect(summary.message).toEqual(adjusted`
+        Lexer errors:
+        Error at 8:24 - unexpected character: ->'<- at offset: 123, skipped 1 characters.
+        Parser errors:
+        Error - Expecting token of type ';' but found \`\`.
+
+        1 lexer error(s), 1 parser error(s)
+      `);
     });
 
     test('Mixed issues (all types)', () => {
@@ -417,15 +424,16 @@ describe('Document issues', () => {
       expect(summary.countErrors).toBe(3);
       expect(summary.countNonErrors).toBe(0);
       expect(summary.summary).toEqual('1 lexer error(s), 1 parser error(s), 1 error diagnostic(s)');
-      expect(summary.message).toEqual(
-        'Lexer errors:\n' +
-        "Error at 8:24 - unexpected character: ->'<- at offset: 123, skipped 1 characters.\n" +
-        'Parser errors:\n' +
-        "Error - Expecting token of type ';' but found ``.\n" +
-        'Diagnostics:\n' +
-        'Error at 4:7-25 - Data type rules cannot infer a type.\n\n' +
-        '1 lexer error(s), 1 parser error(s), 1 error diagnostic(s)'
-      );
+      expect(summary.message).toEqual(adjusted`
+        Lexer errors:
+        Error at 8:24 - unexpected character: ->'<- at offset: 123, skipped 1 characters.
+        Parser errors:
+        Error - Expecting token of type ';' but found \`\`.
+        Diagnostics:
+        Error at 4:7-25 - Data type rules cannot infer a type.
+
+        1 lexer error(s), 1 parser error(s), 1 error diagnostic(s)
+      `);
     });
 
     test('Issues with different severities', () => {
@@ -454,12 +462,13 @@ describe('Document issues', () => {
       expect(summary.countErrors).toBe(1);
       expect(summary.countNonErrors).toBe(1);
       expect(summary.summary).toEqual('1 error diagnostic(s), 1 non-error diagnostic(s)');
-      expect(summary.message).toEqual(
-        'Diagnostics:\n' +
-        'Warning at 10:5-12 - Unused variable.\n' +
-        'Error at 15:8-20 - Undefined function.\n\n' +
-        '1 error diagnostic(s), 1 non-error diagnostic(s)'
-      );
+      expect(summary.message).toEqual(adjusted`
+        Diagnostics:
+        Warning at 10:5-12 - Unused variable.
+        Error at 15:8-20 - Undefined function.
+
+        1 error diagnostic(s), 1 non-error diagnostic(s)
+      `);
     });
 
     test('Multiple issues of the same type', () => {
@@ -484,12 +493,13 @@ describe('Document issues', () => {
       expect(summary.countErrors).toBe(2);
       expect(summary.countNonErrors).toBe(0);
       expect(summary.summary).toEqual('2 lexer error(s)');
-      expect(summary.message).toEqual(
-        'Lexer errors:\n' +
-        'Error at 2:5 - Invalid character.\n' +
-        'Error at 3:10 - Unrecognized token.\n\n' +
-        '2 lexer error(s)'
-      );
+      expect(summary.message).toEqual(adjusted`
+        Lexer errors:
+        Error at 2:5 - Invalid character.
+        Error at 3:10 - Unrecognized token.
+
+        2 lexer error(s)
+      `);
     });
 
     test('Issues without position information', () => {
@@ -510,13 +520,14 @@ describe('Document issues', () => {
       expect(summary.countErrors).toBe(1);
       expect(summary.countNonErrors).toBe(1);
       expect(summary.summary).toEqual('1 parser error(s), 1 non-error diagnostic(s)');
-      expect(summary.message).toEqual(
-        'Parser errors:\n' +
-        'Error - Unexpected end of input.\n' +
-        'Diagnostics:\n' +
-        'Warning - Possible null reference.\n\n' +
-        '1 parser error(s), 1 non-error diagnostic(s)'
-      );
+      expect(summary.message).toEqual(adjusted`
+        Parser errors:
+        Error - Unexpected end of input.
+        Diagnostics:
+        Warning - Possible null reference.
+
+        1 parser error(s), 1 non-error diagnostic(s)
+      `);
     });
 
     test('All types of issues with mixed severities', () => {
@@ -560,17 +571,18 @@ describe('Document issues', () => {
       expect(summary.countErrors).toBe(3);
       expect(summary.countNonErrors).toBe(2);
       expect(summary.summary).toEqual('1 lexer error(s), 1 parser error(s), 1 error diagnostic(s), 2 non-error diagnostic(s)');
-      expect(summary.message).toEqual(
-        'Lexer errors:\n' +
-        'Error at 2:5 - Invalid character.\n' +
-        'Parser errors:\n' +
-        'Error - Unexpected token.\n' +
-        'Diagnostics:\n' +
-        'Warning at 5:1 - Unused import.\n' +
-        'Hint at 6:10 - Consider renaming variable for clarity.\n' +
-        'Error at 8:15 - Type mismatch.\n\n' +
-        '1 lexer error(s), 1 parser error(s), 1 error diagnostic(s), 2 non-error diagnostic(s)'
-      );
+      expect(summary.message).toEqual(adjusted`
+        Lexer errors:
+        Error at 2:5 - Invalid character.
+        Parser errors:
+        Error - Unexpected token.
+        Diagnostics:
+        Warning at 5:1 - Unused import.
+        Hint at 6:10 - Consider renaming variable for clarity.
+        Error at 8:15 - Type mismatch.
+
+        1 lexer error(s), 1 parser error(s), 1 error diagnostic(s), 2 non-error diagnostic(s)
+      `);
     });
   });
   describe('getDocumentIssuesSummary', () => {
@@ -583,7 +595,7 @@ describe('Document issues', () => {
       parse = parseHelper<Grammar>(services.grammar);
     })
     test('Lexer and parser errors', async () => {
-      document = await parse(adjusted`
+      document = await parse(adjustedUnix`
         grammar LangiumGrammar
 
         entry Grammar: id=ID;
@@ -606,7 +618,7 @@ describe('Document issues', () => {
       `);
     });
     test('Diagnosic errors', async () => {
-      document = await parse(adjusted`
+      document = await parse(adjustedUnix`
       grammar LangiumGrammar
 
       entry Grammar: ID;

@@ -64,7 +64,7 @@ describe("JavaImportManager", () => {
     expect(manager.useClass("my.pkg3.MyClass33")).toBe("MyClass33")
     expect(manager.useClass("my.MyClass4"))
 
-    expect(manager.generateImports().replace(/\r/g, '')).toBe(adjusted`
+    expect(manager.generateImports()).toBe(adjusted`
       import my.MyClass4;
       import my.pkg1.MyClass12;
       import my.pkg2.MyClass21;

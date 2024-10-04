@@ -36,7 +36,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
-    "eslint": "^9.8.0",
     "globals": "^15.8.0",
     "typedoc": "^0.26.7",
     "typedoc-plugin-extras": "^3.1.0",

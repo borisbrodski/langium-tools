@@ -12,6 +12,7 @@ import {
 import { ParsedDocument } from './parser-tools.js';
 import { expandToNode, toString } from 'langium/generate';
 import { sentenceCase } from 'change-case';
+import { EOL } from 'node:os';
 
 /**
  * Parameters to customize which types of issues to ignore during document validation.
@@ -218,9 +219,9 @@ export function toHaveDocumentIssues(
     return {
       pass: false,
       message: () =>
-        `Expected ${expectedIssues.length} issues, but none were present in the document.\n${expectedIssues
+        `Expected ${expectedIssues.length} issues, but none were present in the document.${EOL}${expectedIssues
           .map((issue) => issueExpectationToString(parsedDocument, issue))
-          .join("\n")}`,
+          .join(EOL)}`,
     };
   }
 
@@ -259,7 +260,7 @@ export function toHaveDocumentIssues(
 
   return {
     pass: errors.length === 0,
-    message: () => errors.join("\n"),
+    message: () => errors.join(EOL),
   };
 }
 
