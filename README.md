@@ -109,7 +109,7 @@ This section should list any major frameworks/libraries used to bootstrap your p
 ## Getting Started
 
 - Add package to your project
-- Atart using one or more features it provides
+- Start using one or more features it provides
 - Check out example project to see `langium-tools` in action
 
 ### Installation
@@ -259,6 +259,8 @@ The `GeneratedContentManager` class provides a unified API for code generation i
 
 - **Unified Generator API**: Simplify code generation with a consistent interface.
 - **In-Memory Generation**: Collect generated files in memory for flexible processing.
+- **Initial Generation**: Don't overwrite existing files.
+- **Preserve File Timestamp**: File will be overwritten only if the content has actually changed.
 - **Multiple Targets**: Support multiple output directories (targets) with custom overwrite settings.
 - **Snapshot Testing Support**: Facilitate testing by comparing in-memory generated content with committed snapshots.
 
@@ -352,7 +354,7 @@ manager.addTarget({
 Specify the target when creating files:
 
 ```typescript
-manager.createFile("src/custom.ts", "// Custom target content", {
+manager.createFile("custom.ts", "// Custom target content", {
   target: "CUSTOM_TARGET",
 });
 ```
@@ -592,7 +594,7 @@ You can customize the behavior by providing custom implementations for optional 
 #### Example: Custom Validation
 
 ```typescript
-function customValidateDocuments(services, documents) {
+function customValidateDocuments(services: DslServices<MyDslService, MyDslSharedService>, documents: LangiumDocument<MyModel>[]) {
   documents.forEach((doc) => {
     const issues = getDocumentIssues(doc);
     expect(issues.length).toBe(0);
@@ -674,8 +676,7 @@ const parsedDocument = await parseWithMarks(
 
     state [[[UnusedRule]]];
   `,
-  "[[[",
-  "]]]",
+  "[[[", "]]]",
 );
 ```
 
@@ -796,23 +797,16 @@ test("document contains specific issue", async () => {
 });
 ```
 
-##### Using Custom Markers
-
-To specify custom markers in your DSL code, pass them as arguments to `parseWithMarks`.
-
-```typescript
-const parsedDocument = await parseWithMarks(parse, dslCode, "<<", ">>");
-```
-
 #### Examples
 
 ##### Asserting No Errors
 
-````typescript
+```typescript
 test('document has no errors', async () => {
   const document = await parse('validCode');
   expect(document).toHaveNoErrors();
 });
+```
 
 ##### Asserting Specific Issues with Markers
 
@@ -893,8 +887,7 @@ test("document has no errors, ignoring lexer errors", async () => {
 
 #### Notes
 
-- **Markers**: Always specify custom markers in your tests to avoid dependencies on default markers that may change.
-- **Extending Vitest**: The matchers are added to Vitest's expect function by importing langium-tools.
+- **Extending Vitest**: The matchers are added to Vitest's expect function by importing `langium-tools/testing`.
 - **Error Messages**: The matchers provide detailed error messages to help you diagnose failing tests.
 
 #### Using the `adjusted` Function for Templates
@@ -922,8 +915,7 @@ See [`adjusted` typedoc](https://borisbrodski.github.io/langium-tools/functions/
 ##### Features
 
 - **Automatic Indentation**: Dynamically inserted placeholders (${...}) are adjusted to match the indentation level of the placeholder itself, making it easy to maintain proper structure in the output.
-- **Consistent Formatting**: Ensures that line breaks use Unix-style newlines (\n), making the output compatible with Linux systems.
-- **Ideal for Code Generation**: Useful in scenarios where nested structures or varying levels of indentation need to be generated dynamically.
+- **New lines**: Platform-style newlines, see `adjustedUnix` for Unix-style newlines (`\n`)
 
 ##### Usage
 
@@ -964,13 +956,6 @@ Notice, how indentation of the dynamic placeholders is adjusted to match the sur
 The function returns a formatted string with the following properties:
 
 - Indentation of dynamic placeholders is adjusted to match the indentation of the placeholder in the template.
-- Uses Unix-style line breaks (\n) without carriage return characters (\r).
-
-##### Use Cases
-
-- **Code Generation**: Generate formatted code snippets with varying indentation levels.
-- **Documentation**: Create structured multi-line strings for technical documentation.
-- **Text Output**: Build complex text structures where consistent formatting is needed.
 
 ##### API Reference
 
@@ -1000,9 +985,8 @@ To use these utilities, you need to:
 ##### Importing the Utilities
 
 ```typescript
-import { generateJavaFile } from "langium-tools/generator";
-import { CompositeGeneratorNode } from "langium/generate";
-import { adjusted } from "langium-tools/base";
+import { expandToNode } from "langium/generate";
+import { generateJavaFile } from "langium-tools/lang/java";
 import { GeneratorManager } from "langium-tools/generator";
 ```
 
@@ -1031,8 +1015,7 @@ generateJavaFile(
 ##### Example: Generating a Simple Java Class
 
 ```typescript
-generateJavaFile("MyClass", "com.example.project", generatorManager, (imp) =>
-  new CompositeGeneratorNode().append(adjusted`
+generateJavaFile("MyClass", "com.example.project", generatorManager, (imp) => expandToNode`
     public class MyClass {
       public ${imp("java.util.Properties")} getProperties() {
         // ...
@@ -1045,10 +1028,7 @@ generateJavaFile("MyClass", "com.example.project", generatorManager, (imp) =>
 ##### Explanation:
 
 - **Imports**:
-  - The `imp` function is used to import `java.util.Properties`. It returns the appropriate class name (`Properties`), handling imports automatically.
-- **Class Content**:
-
-  - A simple class `MyClass` with a method `getProperties` is generated.
+  - The passed `imp` function is used to import `java.util.Properties`. It returns the appropriate class name (`Properties` in this case), handling imports automatically.
 
 - **Generated Output**:
 
@@ -1119,7 +1099,6 @@ For more detailed information, refer to the API documentation linked above.
 ## Roadmap
 
 - [ ] Split packages into `langium-tools` and `langium-test-tools` NPM packages to prevent test helper classes to be released with production code
-- [ ] Add more documentation
 
 See the [open issues](https://github.com/borisbrodski/langium-tools/issues) for a full list of proposed features (and known issues).
 
