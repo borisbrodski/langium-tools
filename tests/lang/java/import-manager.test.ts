@@ -64,6 +64,28 @@ describe("JavaImportManager", () => {
     expect(manager.useClass("my.pkg3.MyClass33")).toBe("MyClass33")
     expect(manager.useClass("my.MyClass4"))
 
+    expect(manager.generateImports()).toBe(manager.generateImports().trim())
+    expect(manager.generateImports()).toBe(adjusted`
+      import my.MyClass4;
+      import my.pkg1.MyClass12;
+      import my.pkg2.MyClass21;
+      import my.pkg2.MyClass22;
+      import my.pkg3.MyClass33;
+    `)
+  })
+
+  test("imports are sorted (with current package)", () => {
+    const manager = new JavaImportManager("my.pkg")
+
+    expect(manager.useClass("my.pkg.MyClass1")).toBe("MyClass1")
+    expect(manager.useClass("my.pkg.MyClass2")).toBe("MyClass2")
+    expect(manager.useClass("my.pkg1.MyClass12")).toBe("MyClass12")
+    expect(manager.useClass("my.pkg2.MyClass21")).toBe("MyClass21")
+    expect(manager.useClass("my.pkg2.MyClass22")).toBe("MyClass22")
+    expect(manager.useClass("my.pkg3.MyClass33")).toBe("MyClass33")
+    expect(manager.useClass("my.MyClass4"))
+
+    expect(manager.generateImports()).toBe(manager.generateImports().trim())
     expect(manager.generateImports()).toBe(adjusted`
       import my.MyClass4;
       import my.pkg1.MyClass12;

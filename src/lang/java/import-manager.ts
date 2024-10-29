@@ -92,7 +92,7 @@ export class JavaImportManager {
    * @returns {string} A formatted string containing all the import statements, separated by line breaks.
    */
   generateImports(): string {
-    return Array.from(this.classes.values()).map((fqn) => fqn.length > 0 ? `import ${fqn};` : '').sort().join(EOL);
+    return Array.from(this.classes.values()).filter(fqn => fqn.length > 0).map(fqn => `import ${fqn};`).sort().join(EOL);
   }
 }
 
