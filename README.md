@@ -594,7 +594,10 @@ You can customize the behavior by providing custom implementations for optional 
 #### Example: Custom Validation
 
 ```typescript
-function customValidateDocuments(services: DslServices<MyDslService, MyDslSharedService>, documents: LangiumDocument<MyModel>[]) {
+function customValidateDocuments(
+  services: DslServices<MyDslService, MyDslSharedService>,
+  documents: LangiumDocument<MyModel>[],
+) {
   documents.forEach((doc) => {
     const issues = getDocumentIssues(doc);
     expect(issues.length).toBe(0);
@@ -676,7 +679,8 @@ const parsedDocument = await parseWithMarks(
 
     state [[[UnusedRule]]];
   `,
-  "[[[", "]]]",
+  "[[[",
+  "]]]",
 );
 ```
 
@@ -802,8 +806,8 @@ test("document contains specific issue", async () => {
 ##### Asserting No Errors
 
 ```typescript
-test('document has no errors', async () => {
-  const document = await parse('validCode');
+test("document has no errors", async () => {
+  const document = await parse("validCode");
   expect(document).toHaveNoErrors();
 });
 ```
@@ -811,25 +815,25 @@ test('document has no errors', async () => {
 ##### Asserting Specific Issues with Markers
 
 ```typescript
-test('document has expected validation issue at marker', async () => {
+test("document has expected validation issue at marker", async () => {
   const dslCode = adjusted`
     grammar MyLanguage
     entry Rule: name=ID;
     <<<UnusedRule>>>: name=ID;
     terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
   `;
-  const parsedDocument = await parseWithMarks(parse, dslCode, '<<<', '>>>');
+  const parsedDocument = await parseWithMarks(parse, dslCode, "<<<", ">>>");
 
   expect(parsedDocument).toHaveDocumentIssues([
     {
       source: DocumentIssueSource.VALIDATION, // Optional
       severity: DocumentIssueSeverity.WARNING, // Optional
-      message: 'This rule is declared but never referenced.',
+      message: "This rule is declared but never referenced.",
       markerId: 0, // Optional
     },
   ]);
 });
-````
+```
 
 ##### Asserting Issue Matching Regex
 
@@ -1028,6 +1032,7 @@ generateJavaFile("MyClass", "com.example.project", generatorManager, (imp) => ex
 ##### Explanation:
 
 - **Imports**:
+
   - The passed `imp` function is used to import `java.util.Properties`. It returns the appropriate class name (`Properties` in this case), handling imports automatically.
 
 - **Generated Output**:
@@ -1118,6 +1123,8 @@ Don't forget to give the project a star! Thanks again!
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 
 4. Open a Pull Request
+
+5. Release with release-it
 
 ### Top contributors:
 
