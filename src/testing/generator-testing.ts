@@ -6,6 +6,7 @@ import fs from 'fs';
 import { expect, test } from 'vitest';
 import { getDocumentIssueSummary } from '../base/document-issues.js';
 import { GeneratedContent, GeneratorManager, GeneratedContentManager, GeneratorTarget, DEFAULT_TARGET } from '../generator/generated-content-manager.js';
+import "../base/arrays.js";
 
 
 type DslServices<SERVICES, SHARED_SERVICES> = { shared: LangiumSharedServices & SHARED_SERVICES } & SERVICES;
@@ -246,6 +247,7 @@ function writeMetaData(generatedContent: GeneratedContentManager, metadataJsonFi
   generatedContent.getGeneratedContent(target).forEach((contentData, fileName) => {
     metadata.generatedFiles.push({ filename: fileName, overwrite: contentData.overwrite });
   });
+  metadata.generatedFiles.sortBy(m => m.filename);
   fs.writeFileSync(metadataJsonFile, JSON.stringify(metadata, null, 2));
 }
 
