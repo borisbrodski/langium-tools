@@ -77,10 +77,6 @@
 
 ## About The Project
 
-<!--
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
--->
-
 This project is a collection of tools, that should power up DSL development with Langium:
 
 Language features:

@@ -31,7 +31,7 @@
     "@types/node": "^22.0.0",
     "change-case": "^5.4.4",
     "escape-string-regexp": "^5.0.0",
-    "langium": "^3.2.0"
+    "langium": "^3.4.0"
   },
   "peerDependencies": {
     "vitest": "~2.0.5"
@@ -39,9 +39,9 @@
   "devDependencies": {
     "@eslint/js": "^9.8.0",
     "globals": "^15.8.0",
-    "typedoc": "^0.26.7",
-    "typedoc-plugin-extras": "^3.1.0",
-    "typedoc-plugin-markdown": "^4.2.7",
+    "typedoc": "^0.27.0",
+    "typedoc-plugin-extras": "^4.0.0",
+    "typedoc-plugin-markdown": "^3.0.0",
     "typescript": "^5.5.4",
     "typescript-eslint": "^7.18.0",
     "vitest": "~2.0.5"
