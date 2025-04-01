@@ -30,7 +30,10 @@
     <br />
     <a href="#documentation"><strong>Explore the docs »</strong></a>
     <br />
+    <a href="https://borisbrodski.github.io/langium-tools"><strong>Explore the typedocs »</strong></a>
     <br />
+    <br />
+
     <a href="https://github.com/borisbrodski/langium-tools/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
     ·
     <a href="https://github.com/borisbrodski/langium-tools/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
@@ -1169,6 +1172,5 @@ Project Link: [https://github.com/borisbrodski/langium-tools](https://github.com
 [issues-url]: https://github.com/borisbrodski/langium-tools/issues
 [license-shield]: https://img.shields.io/github/license/borisbrodski/langium-tools.svg?style=for-the-badge
 [license-url]: https://github.com/borisbrodski/langium-tools/blob/master/LICENSE.txt
-[product-screenshot]: images/screenshot.png
 [Typescript]: https://shields.io/badge/TypeScript-3178C6?logo=TypeScript&logoColor=FFF&style=flat-square
 [Typescript-url]: https://www.typescriptlang.org/
