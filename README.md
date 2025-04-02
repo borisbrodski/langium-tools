@@ -345,8 +345,13 @@ Adding a Target
 manager.addTarget({
   name: "CUSTOM_TARGET",
   overwrite: false,
+  clean: true
 });
 ```
+
+- `overwrite`: Default value for `overwrite` option for `createFile`.
+- `clean`: Remove all files not involved in generation. Files with the same content will not be removed and recreated to pervent file timestamps changes and filesystem events.
+
 
 ##### Using Targets
 

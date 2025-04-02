@@ -26,14 +26,18 @@ export type GeneratedContent = Map<
 export interface GeneratorTarget {
   /** The name of the target. */
   name: string;
+
   /** Default value for the `overwrite` flag for the target. */
   overwrite: boolean;
+
+  /** Clean directory before generating. All files besides generated ones will be removed. */
+    clean: boolean;
 }
 
 /**
  * The default target used when no specific target is provided.
  */
-export const DEFAULT_TARGET: GeneratorTarget = { name: 'DEFAULT', overwrite: true };
+export const DEFAULT_TARGET: GeneratorTarget = { name: 'DEFAULT', overwrite: true, clean: false };
 
 /**
  * Options for creating a file.
@@ -300,11 +304,38 @@ export class GeneratedContentManager {
   }
 
   /**
+   * Recursively lists all files in the given directory.
+   * 
+   * @param dir - The directory to scan for files.
+   * @returns A promise resolving to an array of absolute file paths.
+   * @private
+   */
+  private async listAllFiles(dir: string): Promise<string[]> {
+    const entries = await fsPromises.readdir(dir, { withFileTypes: true });
+    const files = await Promise.all(
+      entries.map(async (entry) => {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          return this.listAllFiles(fullPath);
+        } else if (entry.isFile()) {
+          return [fullPath];
+        } else {
+          return []; // Skip symbolic links, etc.
+        }
+      })
+    );
+    return files.flat();
+  }
+
+/**
    * Writes the generated content for a target to the file system asynchronously.
    *
    * Existing files are only overwritten if the overwrite flag is set (default behavior).
    * If the file already exists and the content is the same, the file is not overwritten,
    * preserving the timestamp and not triggering file system file change events.
+   *
+   * If the `clean` flag for the target is `true`, files in the output directory that are not
+   * part of the generated content will be deleted after writing.
    *
    * @param outputDir - The output directory where the files will be written.
    * @param target - The target name whose content should be written.
@@ -314,6 +345,7 @@ export class GeneratedContentManager {
    */
   async writeToDisk(outputDir: string, target?: string): Promise<void> {
     const generatedContent = this.getGeneratedContent(target);
+    const targetConfig = this.#getTarget(target);
 
     // Ensure the output directory exists
     try {
@@ -321,6 +353,22 @@ export class GeneratedContentManager {
     } catch (error) {
       console.error(`Error creating directory "${outputDir}": ${(error as Error).message}`);
       throw error;
+    }
+
+    // Collect existing files if cleaning is enabled
+    let existingFiles: Set<string> | undefined;
+    if (targetConfig.clean) {
+      try {
+        const files = await this.listAllFiles(outputDir);
+        existingFiles = new Set(files);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          existingFiles = new Set(); // Directory doesn't exist yet
+        } else {
+          console.error(`Error listing files in "${outputDir}": ${(error as Error).message}`);
+          throw error;
+        }
+      }
     }
 
     for (const [file, content] of generatedContent) {
@@ -333,6 +381,20 @@ export class GeneratedContentManager {
       } catch (error) {
         console.error(`Error creating directory "${fileDir}": ${(error as Error).message}`);
         throw error;
+      }
+
+      // If cleaning, check if this generated file exists and remove it from the set
+      if (existingFiles) {
+        try {
+          const realPath = await fsPromises.realpath(absoluteFilePath);
+          existingFiles.delete(realPath); // Remove actual OS-reported path
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+            console.error(`Error resolving path "${absoluteFilePath}": ${(error as Error).message}`);
+            throw error;
+          }
+          // File doesn't exist yet, will be created below
+        }
       }
 
       let fileExists = false;
@@ -362,6 +424,18 @@ export class GeneratedContentManager {
       } catch (error) {
         console.error(`Error writing file "${absoluteFilePath}": ${(error as Error).message}`);
         throw error;
+      }
+    }
+
+    // Clean up files that weren't generated
+    if (targetConfig.clean && existingFiles && existingFiles.size > 0) {
+      for (const fileToDelete of existingFiles) {
+        try {
+          await fsPromises.unlink(fileToDelete);
+        } catch (error) {
+          console.error(`Error deleting file "${fileToDelete}": ${(error as Error).message}`);
+          // Log and continue to avoid stopping on single file failure
+        }
       }
     }
   }
