@@ -242,7 +242,7 @@ describe('Generator Testing Framework', () => {
         generator.createFile(`out/output.txt`, 'Content 2 in default target', { target: 'custom' });
       },
       generateMode: GeneratorMode.Generate,
-    }, [{ name: 'custom', overwrite: true, clean: false }]);
+    }, [{ name: 'custom', overwrite: true }]);
 
     // Now, run the generator in 'Verify' mode, changing the target to 'custom'
     await expect(
@@ -253,7 +253,7 @@ describe('Generator Testing Framework', () => {
           generator.createFile(`out/output.txt`, 'Changed content 2 in default target', { target: 'custom' });
         },
         generateMode: GeneratorMode.Verify,
-      }, [{ name: 'custom', overwrite: true, clean: false }])
+      }, [{ name: 'custom', overwrite: true }])
     ).rejects.toThrow("File for target 'custom': out/output.txt: expected 'Changed content 2 in default target' to be 'Content 2 in default target'");
   });
 
@@ -271,7 +271,7 @@ describe('Generator Testing Framework', () => {
         generator.createFile(`out/output.txt`, 'Content 2 in default target', { target: 'custom' });
       },
       generateMode: GeneratorMode.Generate,
-    }, [{ name: 'custom', overwrite: true, clean: false }]);
+    }, [{ name: 'custom', overwrite: true }]);
 
     // Now, run the generator in 'Verify' mode, changing the target to 'custom'
     await expect(
@@ -281,7 +281,7 @@ describe('Generator Testing Framework', () => {
           generator.createFile(`out/output.txt`, 'Content 1 in default target');
         },
         generateMode: GeneratorMode.Verify,
-      }, [{ name: 'custom', overwrite: true, clean: false }])
+      }, [{ name: 'custom', overwrite: true }])
     ).rejects.toThrow(`Missing generated file(s) for target 'custom': out${path.sep}output.txt`);
   });
 
@@ -299,7 +299,7 @@ describe('Generator Testing Framework', () => {
         generator.createFile(`out/output.txt`, 'Content 2 in default target', { target: 'custom' });
       },
       generateMode: GeneratorMode.Generate,
-    }, [{ name: 'custom', overwrite: true, clean: false }]);
+    }, [{ name: 'custom', overwrite: true }]);
 
     // Now, run the generator in 'Verify' mode, changing the target to 'custom'
     await expect(
@@ -311,7 +311,7 @@ describe('Generator Testing Framework', () => {
           generator.createFile(`out/unexpected-output.txt`, 'Some content', { target: 'custom' });
         },
         generateMode: GeneratorMode.Verify,
-      }, [{ name: 'custom', overwrite: true, clean: false }])
+      }, [{ name: 'custom', overwrite: true }])
     ).rejects.toThrow(`Unexpected generated file for target 'custom': out${path.sep}unexpected-output.txt`);
   });
 
@@ -329,7 +329,7 @@ describe('Generator Testing Framework', () => {
         generator.createFile(`out/output.txt`, 'Initial content', { target: 'custom', overwrite: true });
       },
       generateMode: GeneratorMode.Generate,
-    }, [{ name: 'custom', overwrite: true, clean: false }]);
+    }, [{ name: 'custom', overwrite: true }]);
 
     await expect(
       langiumGeneratorTest(testDir, {
@@ -340,7 +340,7 @@ describe('Generator Testing Framework', () => {
           generator.createFile(`out/output.txt`, 'Initial content', { target: 'custom', overwrite: false });
         },
         generateMode: GeneratorMode.Verify,
-      }, [{ name: 'custom', overwrite: true, clean: false }])
+      }, [{ name: 'custom', overwrite: true }])
     ).rejects.toThrow("File for target 'custom': out/output.txt. Overwrite flag was changed: expected false to be true");
   });
 
@@ -358,7 +358,7 @@ describe('Generator Testing Framework', () => {
         generator.createFile(`out/output.txt`, 'Initial content', { target: 'custom', overwrite: false });
       },
       generateMode: GeneratorMode.Generate,
-    }, [{ name: 'custom', overwrite: true, clean: false }]);
+    }, [{ name: 'custom', overwrite: true }]);
 
     await expect(
       langiumGeneratorTest(testDir, {
@@ -369,7 +369,7 @@ describe('Generator Testing Framework', () => {
           generator.createFile(`out/output.txt`, 'Initial content', { target: 'custom', overwrite: true });
         },
         generateMode: GeneratorMode.Verify,
-      }, [{ name: 'custom', overwrite: true, clean: false }])
+      }, [{ name: 'custom', overwrite: true }])
     ).rejects.toThrow("File for target 'custom': out/output.txt. Overwrite flag was changed: expected true to be false");
   });
 
@@ -410,19 +410,19 @@ describe('Generator Testing Framework', () => {
       ...options,
       generateForModel: generatorOld,
       generateMode: GeneratorMode.Generate,
-    }, [{ name: 'custom', overwrite: true, clean: false }]);
+    }, [{ name: 'custom', overwrite: true }]);
 
     await langiumGeneratorTest(testDir, {
       ...options,
       generateForModel: generatorNew,
       generateMode: GeneratorMode.Generate,
-    }, [{ name: 'custom', overwrite: true, clean: false }]);
+    }, [{ name: 'custom', overwrite: true }]);
 
     await langiumGeneratorTest(testDir, {
       ...options,
       generateForModel: generatorNew,
       generateMode: GeneratorMode.Verify,
-    }, [{ name: 'custom', overwrite: true, clean: false }])
+    }, [{ name: 'custom', overwrite: true }])
   });
 
 });

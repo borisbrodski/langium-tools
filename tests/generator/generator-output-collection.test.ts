@@ -402,6 +402,26 @@ describe('GeneratorOutputCollector', () => {
         expect(fs.readFileSync(filePath2, 'utf8')).toBe('// New content2')
       })
 
+      test('Non-participating files stay untouched by default', async () => {
+        const TARGET = "target"
+        const filePath1 = path.join(tmpDir, 'file1.js')
+        fs.writeFileSync(filePath1, '// Existing content 1')
+        const filePath2 = path.join(tmpDir, 'file2.js')
+        fs.writeFileSync(filePath2, '// Existing content 2')
+
+        const manager = new GeneratedContentManager()
+        manager.addTarget({ name: TARGET, overwrite: true})
+
+        const generatorManager = manager.generatorManagerFor(model)
+        generatorManager.createFile('file1.js', '// New content 1', { target: TARGET })
+
+        await manager.writeToDisk(tmpDir, TARGET)
+        
+        expect(fs.readFileSync(filePath1, 'utf8')).toBe('// New content 1')
+        expect(fs.readFileSync(filePath2, 'utf8')).toBe('// Existing content 2')
+        expect(fs.readdirSync(tmpDir).length).toBe(2)
+      })
+
       test('Non-participating file get deleted', async () => {
         const TARGET = "target"
         const filePath1 = path.join(tmpDir, 'file1.js')
@@ -409,12 +429,12 @@ describe('GeneratorOutputCollector', () => {
         fs.writeFileSync(path.join(tmpDir, 'file2.js'), '// Existing content 2')
 
         const manager = new GeneratedContentManager()
-        manager.addTarget({ name: TARGET, overwrite: true, clean: true})
+        manager.addTarget({ name: TARGET, overwrite: true})
 
         const generatorManager = manager.generatorManagerFor(model)
         generatorManager.createFile('file1.js', '// New content 1', { target: TARGET })
 
-        await manager.writeToDisk(tmpDir, TARGET)
+        await manager.cleanAndWriteToDisk(tmpDir, TARGET)
         
         expect(fs.readFileSync(filePath1, 'utf8')).toBe('// New content 1')
         expect(fs.readdirSync(tmpDir).length).toBe(1)
@@ -429,12 +449,12 @@ describe('GeneratorOutputCollector', () => {
         fs.writeFileSync(path.join(tmpDir, 'file4.js'), '// Existing content 2')
 
         const manager = new GeneratedContentManager()
-        manager.addTarget({ name: TARGET, overwrite: true, clean: true})
+        manager.addTarget({ name: TARGET, overwrite: true})
 
         const generatorManager = manager.generatorManagerFor(model)
         generatorManager.createFile('file1.js', '// New content 1', { target: TARGET })
 
-        await manager.writeToDisk(tmpDir, TARGET)
+        await manager.cleanAndWriteToDisk(tmpDir, TARGET)
         
         expect(fs.readFileSync(filePath1, 'utf8')).toBe('// New content 1')
         expect(fs.readdirSync(tmpDir).length).toBe(1)
@@ -454,12 +474,12 @@ describe('GeneratorOutputCollector', () => {
         fs.writeFileSync(path.join(tmpDirSubDir2, 'file5.js'), '// Existing content 2')
 
         const manager = new GeneratedContentManager()
-        manager.addTarget({ name: TARGET, overwrite: true, clean: true})
+        manager.addTarget({ name: TARGET, overwrite: true})
 
         const generatorManager = manager.generatorManagerFor(model)
         generatorManager.createFile('file1.js', '// New content 1', { target: TARGET })
 
-        await manager.writeToDisk(tmpDir, TARGET)
+        await manager.writeToDisk(tmpDir, TARGET, true)
         
         expect(fs.readFileSync(filePath1, 'utf8')).toBe('// New content 1')
         expect(listAllFiles(tmpDir).length).toBe(1)
@@ -512,7 +532,7 @@ describe('GeneratorOutputCollector', () => {
         const TARGET_SRC = 'SRC';
 
         const manager = new GeneratedContentManager();
-        manager.addTarget({ name: TARGET_SRC, overwrite: false, clean: false });
+        manager.addTarget({ name: TARGET_SRC, overwrite: false });
 
         const generatorManager = manager.generatorManagerFor(model);
         generatorManager.createFile('file1.js', '// Model content1', { target: TARGET_SRC });
@@ -546,8 +566,8 @@ describe('GeneratorOutputCollector', () => {
 
         // Set up the manager and add targets with specific overwrite defaults
         const manager = new GeneratedContentManager();
-        manager.addTarget({ name: TARGET_SRC, overwrite: false, clean: false }); // Overwrite is false by default for SRC
-        manager.addTarget({ name: TARGET_LIB, overwrite: true, clean: false });  // Overwrite is true by default for LIB
+        manager.addTarget({ name: TARGET_SRC, overwrite: false }); // Overwrite is false by default for SRC
+        manager.addTarget({ name: TARGET_LIB, overwrite: true });  // Overwrite is true by default for LIB
 
         const generatorManager = manager.generatorManagerFor(model);
 
@@ -585,7 +605,7 @@ describe('GeneratorOutputCollector', () => {
 
         // Set up the manager and add TARGET_SRC with overwrite defaulting to true
         const manager = new GeneratedContentManager();
-        manager.addTarget({ name: TARGET_SRC, overwrite: true, clean: false }); // Overwrite is true by default for TARGET_SRC
+        manager.addTarget({ name: TARGET_SRC, overwrite: true }); // Overwrite is true by default for TARGET_SRC
 
         const generatorManager = manager.generatorManagerFor(model);
 
@@ -608,7 +628,7 @@ describe('GeneratorOutputCollector', () => {
         fs.writeFileSync(existingFileDefault, '// Existing content in default target');
 
         const manager = new GeneratedContentManager();
-        manager.addTarget({ name: TARGET_SRC, overwrite: false, clean: false });
+        manager.addTarget({ name: TARGET_SRC, overwrite: false });
 
         const generatorManager = manager.generatorManagerFor(model);
 
@@ -632,9 +652,9 @@ describe('GeneratorOutputCollector', () => {
       });
       test('Adding the same target twice throws an error', async () => {
         const manager = new GeneratedContentManager();
-        manager.addTarget({ name: "DUPLICATE", overwrite: true, clean: false });
+        manager.addTarget({ name: "DUPLICATE", overwrite: true });
         expect(() => {
-          manager.addTarget({ name: "DUPLICATE", overwrite: false, clean: false });
+          manager.addTarget({ name: "DUPLICATE", overwrite: false });
         }).toThrowError('Target "DUPLICATE" has already been added');
       });
       test('Creating a file with a non-existing target throws an error', async () => {

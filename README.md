@@ -345,12 +345,10 @@ Adding a Target
 manager.addTarget({
   name: "CUSTOM_TARGET",
   overwrite: false,
-  clean: true
 });
 ```
 
 - `overwrite`: Default value for `overwrite` option for `createFile`.
-- `clean`: Remove all files not involved in generation. Files with the same content will not be removed and recreated to pervent file timestamps changes and filesystem events.
 
 
 ##### Using Targets
@@ -365,14 +363,17 @@ manager.createFile("custom.ts", "// Custom target content", {
 
 ##### Writing to Disk
 
-After generating content, use writeToDisk to write all collected files to the filesystem:
+After generating content, use `writeToDisk` or `cleanAndWriteToDisk` to write all collected files to the filesystem:
 
 ```typescript
-await manager.writeToDisk(outputDir: string, target?: string);
+await manager.cleanAndWriteToDisk(outputDir: string, target?: string);
+await manager.writeToDisk(outputDir: string, target?: string, clean?: boolean);
 ```
 
 - `outputDir`: The directory where files will be written.
 - `target`: Optional target name. If not provided, the default target is used.
+- `clean`: Remove all files not involved in generation. Files with the same content will not be removed and recreated to pervent file timestamps changes and filesystem events.
+
 
 #### API Reference
 

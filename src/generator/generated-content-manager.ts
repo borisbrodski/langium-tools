@@ -26,18 +26,14 @@ export type GeneratedContent = Map<
 export interface GeneratorTarget {
   /** The name of the target. */
   name: string;
-
   /** Default value for the `overwrite` flag for the target. */
   overwrite: boolean;
-
-  /** Clean directory before generating. All files besides generated ones will be removed. */
-    clean: boolean;
 }
 
 /**
  * The default target used when no specific target is provided.
  */
-export const DEFAULT_TARGET: GeneratorTarget = { name: 'DEFAULT', overwrite: true, clean: false };
+export const DEFAULT_TARGET: GeneratorTarget = { name: 'DEFAULT', overwrite: true };
 
 /**
  * Options for creating a file.
@@ -334,18 +330,37 @@ export class GeneratedContentManager {
    * If the file already exists and the content is the same, the file is not overwritten,
    * preserving the timestamp and not triggering file system file change events.
    *
-   * If the `clean` flag for the target is `true`, files in the output directory that are not
+   * Files in the output directory that are not
    * part of the generated content will be deleted after writing.
+   *
+   * Equivalent to `writeToDisk(outputDir, target, true)`
    *
    * @param outputDir - The output directory where the files will be written.
    * @param target - The target name whose content should be written.
    *                 If not provided, the default target is used.
+   * @throws {Error} If an error occurs during file or directory operations.
+   */
+  async cleanAndWriteToDisk(outputDir: string, target?: string): Promise<void> {
+    return this.writeToDisk(outputDir, target, true);
+  }
+
+/**
+   * Writes the generated content for a target to the file system asynchronously.
+   *
+   * Existing files are only overwritten if the overwrite flag is set (default behavior).
+   * If the file already exists and the content is the same, the file is not overwritten,
+   * preserving the timestamp and not triggering file system file change events.
+   *
+   * @param outputDir - The output directory where the files will be written.
+   * @param target - The target name whose content should be written.
+   *                 If not provided, the default target is used.
+   * @param clean If `true`, files in the output directory that are not
+   *              part of the generated content will be deleted after writing.
    *
    * @throws {Error} If an error occurs during file or directory operations.
    */
-  async writeToDisk(outputDir: string, target?: string): Promise<void> {
+  async writeToDisk(outputDir: string, target?: string, clean?: boolean): Promise<void> {
     const generatedContent = this.getGeneratedContent(target);
-    const targetConfig = this.#getTarget(target);
 
     // Ensure the output directory exists
     try {
@@ -357,7 +372,7 @@ export class GeneratedContentManager {
 
     // Collect existing files if cleaning is enabled
     let existingFiles: Set<string> | undefined;
-    if (targetConfig.clean) {
+    if (clean) {
       try {
         const files = await this.listAllFiles(outputDir);
         existingFiles = new Set(files);
@@ -428,7 +443,7 @@ export class GeneratedContentManager {
     }
 
     // Clean up files that weren't generated
-    if (targetConfig.clean && existingFiles && existingFiles.size > 0) {
+    if (clean && existingFiles && existingFiles.size > 0) {
       for (const fileToDelete of existingFiles) {
         try {
           await fsPromises.unlink(fileToDelete);
