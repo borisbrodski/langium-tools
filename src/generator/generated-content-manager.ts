@@ -314,7 +314,7 @@ export class GeneratedContentManager {
         if (entry.isDirectory()) {
           return this.listAllFiles(fullPath);
         } else if (entry.isFile()) {
-          return [fullPath];
+          return [await fsPromises.realpath(fullPath)];
         } else {
           return []; // Skip symbolic links, etc.
         }
