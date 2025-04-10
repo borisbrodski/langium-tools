@@ -1129,7 +1129,7 @@ Don't forget to give the project a star! Thanks again!
 
 4. Open a Pull Request
 
-5. Release with release-it
+5. Release with `npm run release`
 
 ### Top contributors:
 
