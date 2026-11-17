@@ -1,6 +1,6 @@
 import "./string.js";
 import { LangiumDocument } from "langium";
-import { DiagnosticSeverity } from "vscode-languageserver";
+import { DiagnosticSeverity, MarkupContent } from "vscode-languageserver";
 import type { IToken } from 'chevrotain';
 import { EOL } from "node:os";
 
@@ -131,6 +131,14 @@ export interface GetDocumentIssuesParams {
  * @param severity - The `DiagnosticSeverity` to map.
  * @returns The corresponding `DocumentIssueSeverity`.
  */
+/**
+ * LSP 3.18 allows a diagnostic message to be {@link MarkupContent}.
+ * Langium still emits plain strings. Keep the public issue message a string.
+ */
+function diagnosticMessage(message: string | MarkupContent): string {
+  return typeof message === 'string' ? message : message.value;
+}
+
 function mapSeverity(severity?: DiagnosticSeverity): DocumentIssueSeverity {
   if (!severity) {
     return DocumentIssueSeverity.UNKNOWN;
@@ -188,7 +196,8 @@ export function getDocumentIssues(
 
   if (!skipParserErrors) {
     document.parseResult.parserErrors.forEach((parserError) => {
-      // Try to get the previous token from the internal Chevrotain structure to get a better position
+      // Chevrotain exposes the token before the failure. Inserted EOF tokens use -1
+      // for offset, line, and column, which is not a real position.
       const previousToken = (parserError as unknown as { previousToken: IToken })?.previousToken as IToken;
       issues.push({
         source: DocumentIssueSource.PARSER,
@@ -212,7 +221,7 @@ export function getDocumentIssues(
         issues.push({
           source: DocumentIssueSource.VALIDATION,
           severity: mapSeverity(diagnostic.severity),
-          message: diagnostic.message,
+          message: diagnosticMessage(diagnostic.message),
           startLine: diagnostic.range.start.line,
           startColumn: diagnostic.range.start.character,
           endLine: diagnostic.range.end.line,
@@ -403,17 +412,19 @@ function at(issue: DocumentIssue): string {
 }
 
 /**
- * Returns the first meaningful (non-null, non-NaN) value from two options.
+ * Returns the first usable source position from two options.
+ * `null`, `undefined`, `NaN`, and negative values are skipped. Chevrotain uses `-1`
+ * on inserted tokens (typically EOF) when it has no position.
  *
  * @param a - The first number to consider.
  * @param b - The second number to consider.
- * @returns The first meaningful number, or `undefined` if both are `null` or `NaN`.
+ * @returns The first usable number, or `undefined` if both are unusable.
  */
 function firstDefinedNumber(a?: number, b?: number): number | undefined {
-  if (a != null && !Number.isNaN(a)) {
+  if (a != null && !Number.isNaN(a) && a >= 0) {
     return a;
   }
-  if (b != null && !Number.isNaN(b)) {
+  if (b != null && !Number.isNaN(b) && b >= 0) {
     return b;
   }
   return undefined;

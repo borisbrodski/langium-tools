@@ -28,11 +28,15 @@
   ],
   "author": "Boris Brodski",
   "license": "MIT",
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26",
+    "npm": ">=10.2.3"
+  },
   "dependencies": {
     "@types/node": "^22.0.0",
     "change-case": "^5.4.4",
     "escape-string-regexp": "^5.0.0",
-    "langium": "^3.4.0"
+    "langium": "^4.4.2"
   },
   "peerDependencies": {
     "vitest": "~2.0.5"
@@ -43,7 +47,7 @@
     "typedoc": "^0.27.0",
     "typedoc-plugin-extras": "^4.0.0",
     "typedoc-plugin-markdown": "^3.0.0",
-    "typescript": "^5.5.4",
+    "typescript": "~5.8.3",
     "typescript-eslint": "^7.18.0",
     "vitest": "~2.0.5"
   },

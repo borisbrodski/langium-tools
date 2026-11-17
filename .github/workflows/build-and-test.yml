@@ -19,10 +19,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.5.1'
-
-      - name: Downgrading NPM to avoid 'Exit handler never called' bug
-        run: npm install -g npm@6
+          node-version: '22'
 
       - name: Install dependencies
         run: npm install

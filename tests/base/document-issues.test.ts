@@ -59,7 +59,7 @@ describe('Document issues', () => {
         grammar test '
       `)
       const issues = getDocumentIssues(document);
-      expect(issues).toHaveLength(2);
+      expect(issues).toHaveLength(1);
       using(issues[0], issue => {
         expect(issue.source).toEqual(DocumentIssueSource.LEXER);
         expect(issue.severity).toEqual(DocumentIssueSeverity.ERROR);
@@ -67,11 +67,6 @@ describe('Document issues', () => {
         expect(issue.startOffset).toEqual(13);
         expect(issue.startLine).toEqual(0);
         expect(issue.startColumn).toEqual(13);
-      })
-      using(issues[1], issue => {
-        expect(issue.source).toEqual(DocumentIssueSource.PARSER);
-        expect(issue.severity).toEqual(DocumentIssueSeverity.ERROR);
-        expect(issue.message).toContain("Expecting: expecting at least one iteration which starts");
       })
     });
 
@@ -635,9 +630,9 @@ describe('Document issues', () => {
       expect(summary.message).toEqual(adjusted`
         Diagnostics:
         Error at 3:7-13 - The entry rule cannot be a data type rule.
-        Error at 3:7-13 - This parser rule does not create an object. Add a primitive return type or an action to the start of the rule to force object instantiation.
         Hint at 5:1-6 - This rule is declared but never referenced.
         Error at 3:1-18 - Data type rules cannot infer a type.
+        Error at 3:7-13 - This parser rule does not create an object. Add a primitive return type or an action to the start of the rule to force object instantiation.
 
         3 error diagnostic(s), 1 non-error diagnostic(s)
       `);
