@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" data-astro-cid-hkbrpulz>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Java generation — langium-tools</title>
+    <meta name="description" content="Generate Java source files with a package declaration and an import list that survives classes sharing a simple name.">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <meta property="og:title" content="Java generation — langium-tools">
+    <meta property="og:description" content="Generate Java source files with a package declaration and an import list that survives classes sharing a simple name.">
+    <meta property="og:image" content="/img/logo.png">
+    <meta name="theme-color" content="#0c1110">
+    <link rel="canonical" href="https://langium-tools.openbrod.org/java/">
+    <script>
+      (() => {
+        const url = new URLSearchParams(location.search).get('theme');
+        const saved = localStorage.getItem('theme');
+        const preferred = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.dataset.theme = url ?? saved ?? preferred;
+      })();
+    </script>
+  <link rel="stylesheet" href="/_astro/CodeBlock.B3B9K8Lo.css"></head>
+  <body data-astro-cid-hkbrpulz>
+    <header class="site-header" data-astro-cid-hkbrpulz>
+      <div class="container nav" data-astro-cid-hkbrpulz>
+        <a class="logo" href="/" data-astro-cid-hkbrpulz>
+          <img src="/img/logo.png" alt="" width="28" height="28" data-astro-cid-hkbrpulz>
+          <span class="logo-name" data-astro-cid-hkbrpulz>langium-<span class="brand-text" data-astro-cid-hkbrpulz>tools</span></span>
+        </a>
+        <button class="nav-burger" type="button" aria-label="Open menu" data-nav-toggle data-astro-cid-hkbrpulz>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-astro-cid-hkbrpulz><path d="M4 7h16M4 12h16M4 17h16" data-astro-cid-hkbrpulz></path></svg>
+        </button>
+        <nav class="links" data-nav data-astro-cid-hkbrpulz>
+          <a href="/#quickstart" data-astro-cid-hkbrpulz>Getting started</a>
+          <div class="navmenu" data-astro-cid-hkbrpulz>
+            <a href="/issues/" class="navmenu-top" aria-haspopup="true" data-astro-cid-hkbrpulz>Guides <span class="caret" aria-hidden="true" data-astro-cid-hkbrpulz>▾</span></a>
+            <div class="navmenu-panel" role="menu" data-astro-cid-hkbrpulz>
+              <a role="menuitem" href="/issues/" data-astro-cid-hkbrpulz>Document issues</a><a role="menuitem" href="/generator/" data-astro-cid-hkbrpulz>Code generation</a><a role="menuitem" href="/testing/" data-astro-cid-hkbrpulz>Generator tests</a><a role="menuitem" href="/matchers/" data-astro-cid-hkbrpulz>Vitest matchers</a><a role="menuitem" href="/java/" aria-current="page" data-astro-cid-hkbrpulz>Java</a><a role="menuitem" href="/helpers/" data-astro-cid-hkbrpulz>Text helpers</a>
+            </div>
+          </div>
+          <a href="/#why" data-astro-cid-hkbrpulz>Why</a>
+          <a href="/api" data-astro-cid-hkbrpulz>API</a>
+        </nav>
+        <div class="actions" data-astro-cid-hkbrpulz>
+          <button class="theme-toggle" type="button" aria-label="Toggle color theme" data-theme-toggle data-astro-cid-hkbrpulz>
+            <svg class="moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-astro-cid-hkbrpulz><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" data-astro-cid-hkbrpulz></path></svg>
+            <svg class="sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-astro-cid-hkbrpulz><circle cx="12" cy="12" r="4" data-astro-cid-hkbrpulz></circle><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" data-astro-cid-hkbrpulz></path></svg>
+          </button>
+          <a class="gh" href="https://github.com/borisbrodski/langium-tools" aria-label="GitHub" data-astro-cid-hkbrpulz>
+            <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" data-astro-cid-hkbrpulz><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" data-astro-cid-hkbrpulz></path></svg>
+          </a>
+          <a class="btn btn-primary btn-sm" href="/#quickstart" data-astro-cid-hkbrpulz>Get started</a>
+        </div>
+      </div>
+    </header>
+
+    
+  <article class="doc">
+    <header class="doc-hero container">
+      <div class="kicker">langium-tools/lang/java</div>
+      <h1>Java files</h1>
+      <p class="lead">
+        The awkward part of generating Java is the import block: it has to be written
+        before the class, but you only know which types the body used afterwards, and
+        two classes can share a simple name. <span class="inline-code">generateJavaFile</span>
+        does that bookkeeping and hands the file to a <a href="/generator/">GeneratorManager</a>.
+      </p>
+    </header>
+
+    <div class="container">
+      <h2>One function for a whole file</h2>
+      <p>
+        The body is a Langium <span class="inline-code">CompositeGeneratorNode</span>.
+        Call the function you are given with a fully qualified name every time the
+        body mentions a class. It returns the text that should appear at that spot:
+        the simple name, or the full name when the simple name is already taken.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>door.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">expandToNode</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium/generate'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">generateJavaFile</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium-tools/lang/java'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">generateJavaFile</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">  'Door'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">  'com.example.sm'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E06C75">  gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  (</span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">imp</span><span style="color:#24292E;--shiki-dark:#ABB2BF">) </span><span style="color:#D73A49;--shiki-dark:#C678DD">=></span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> expandToNode</span><span style="color:#032F62;--shiki-dark:#98C379">`</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">    public class Door {</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">      private final </span><span style="color:#032F62;--shiki-dark:#C678DD">${</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">imp</span><span style="color:#032F62;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'java.util.List'</span><span style="color:#032F62;--shiki-dark:#ABB2BF">)</span><span style="color:#032F62;--shiki-dark:#C678DD">}</span><span style="color:#032F62;--shiki-dark:#98C379">&#x3C;String> names;</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">      private final </span><span style="color:#032F62;--shiki-dark:#C678DD">${</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">imp</span><span style="color:#032F62;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'java.awt.List'</span><span style="color:#032F62;--shiki-dark:#ABB2BF">)</span><span style="color:#032F62;--shiki-dark:#C678DD">}</span><span style="color:#032F62;--shiki-dark:#98C379"> peer;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">      public Door(</span><span style="color:#032F62;--shiki-dark:#C678DD">${</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">imp</span><span style="color:#032F62;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'java.util.List'</span><span style="color:#032F62;--shiki-dark:#ABB2BF">)</span><span style="color:#032F62;--shiki-dark:#C678DD">}</span><span style="color:#032F62;--shiki-dark:#98C379">&#x3C;String> names) {</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">        this.names = names;</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">      }</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">    }</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">  `</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">);</span></span></code></pre>
+</div>
+      <p>The file written for package <span class="inline-code">com.example.sm</span> is:</p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>com/example/sm/Door.java</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">package</span><span style="color:#24292E;--shiki-dark:#C678DD"> com.example.sm</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#E5C07B"> java.util.List</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">public</span><span style="color:#D73A49;--shiki-dark:#C678DD"> class</span><span style="color:#6F42C1;--shiki-dark:#E5C07B"> Door</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> {</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">  private</span><span style="color:#D73A49;--shiki-dark:#C678DD"> final</span><span style="color:#24292E;--shiki-dark:#E5C07B"> List</span><span style="color:#24292E;--shiki-dark:#ABB2BF">&#x3C;</span><span style="color:#D73A49;--shiki-dark:#E5C07B">String</span><span style="color:#24292E;--shiki-dark:#ABB2BF">></span><span style="color:#24292E;--shiki-dark:#E06C75"> names</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">  private</span><span style="color:#D73A49;--shiki-dark:#C678DD"> final</span><span style="color:#24292E;--shiki-dark:#E5C07B"> java</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E5C07B">awt</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E5C07B">List</span><span style="color:#24292E;--shiki-dark:#E06C75"> peer</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">  public</span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> Door</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E5C07B">List</span><span style="color:#24292E;--shiki-dark:#ABB2BF">&#x3C;</span><span style="color:#D73A49;--shiki-dark:#E5C07B">String</span><span style="color:#24292E;--shiki-dark:#ABB2BF">> </span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">names</span><span style="color:#24292E;--shiki-dark:#ABB2BF">)</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> {</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#E5C07B">    this</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E5C07B">names</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> =</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> names;</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">}</span></span></code></pre>
+</div>
+      <p>
+        <span class="inline-code">java.util.List</span> was registered first, so it owns
+        the name <span class="inline-code">List</span>. <span class="inline-code">java.awt.List</span>
+        stays qualified and is not imported. The path is
+        <span class="inline-code">com/example/sm/Door.java</span>, relative to the generator target.
+        An optional last argument is the usual <span class="inline-code">CreateFileOptions</span>
+        (<span class="inline-code">overwrite</span>, <span class="inline-code">target</span>).
+      </p>
+
+      <h2>Imports on their own</h2>
+      <p>
+        <span class="inline-code">JavaImportManager</span> is what
+        <span class="inline-code">generateJavaFile</span> uses. Construct it with the
+        package of the file being generated. Classes in that package are not imported.
+        <span class="inline-code">generateImports</span> returns the import statements,
+        sorted, separated by the platform newline. Call <span class="inline-code">useClass</span>
+        while building the body, and <span class="inline-code">generateImports</span> after
+        the body is done. The import block is empty when nothing outside the current
+        package was used.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>imports.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">JavaImportManager</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium-tools/lang/java'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> imports</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> =</span><span style="color:#D73A49;--shiki-dark:#C678DD"> new</span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> JavaImportManager</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'com.example.sm'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E5C07B">imports</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">useClass</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'java.util.List'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">);     </span><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// "List", and an import</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E5C07B">imports</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">useClass</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'java.awt.List'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">);       </span><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// "java.awt.List", no second import</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E5C07B">imports</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">useClass</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'com.example.sm.Door'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">); </span><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// "Door", same package, no import</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E5C07B">imports</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">generateImports</span><span style="color:#24292E;--shiki-dark:#ABB2BF">();</span></span>
+<span class="line"><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// import java.util.List;</span></span></code></pre>
+</div>
+
+      <h2>Package to directory</h2>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>path.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">packageToPath</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium-tools/lang/java'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">packageToPath</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'com.example.sm'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">); </span><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// "com/example/sm"</span></span></code></pre>
+</div>
+
+      <div class="note">
+        <p>
+          <span class="inline-code">java.lang</span> is not special-cased yet. Passing
+          <span class="inline-code">java.lang.String</span> produces an import. Prefer to
+          write <span class="inline-code">String</span> in the body and not register it.
+        </p>
+      </div>
+      <p>
+        API: <a href="/api/functions/lang.java.generateJavaFile.html">generateJavaFile</a>,
+        <a href="/api/classes/lang.java.JavaImportManager.html">JavaImportManager</a>,
+        <a href="/api/functions/lang.java.packageToPath.html">packageToPath</a>.
+      </p>
+      <div class="next-guides">
+        <a href="/generator/">← Code generation</a>
+        <a href="/helpers/">Text helpers →</a>
+      </div>
+    </div>
+  </article>
+
+
+    <footer class="site-footer" data-astro-cid-hkbrpulz>
+      <div class="container foot" data-astro-cid-hkbrpulz>
+        <div class="foot-brand" data-astro-cid-hkbrpulz>
+          <img src="/img/logo.png" alt="" width="28" height="28" data-astro-cid-hkbrpulz>
+          <div data-astro-cid-hkbrpulz>
+            <div class="logo-name" data-astro-cid-hkbrpulz>langium-<span class="brand-text" data-astro-cid-hkbrpulz>tools</span></div>
+            <p data-astro-cid-hkbrpulz>Helpers for Langium DSLs · MIT</p>
+          </div>
+        </div>
+        <div class="foot-cols" data-astro-cid-hkbrpulz>
+          <div data-astro-cid-hkbrpulz>
+            <h4 data-astro-cid-hkbrpulz>Project</h4>
+            <a href="https://github.com/borisbrodski/langium-tools" data-astro-cid-hkbrpulz>GitHub</a>
+            <a href="https://www.npmjs.com/package/langium-tools" data-astro-cid-hkbrpulz>npm</a>
+            <a href="/api" data-astro-cid-hkbrpulz>Typedoc API</a>
+            <a href="https://github.com/borisbrodski/langium-tools/issues" data-astro-cid-hkbrpulz>Issues</a>
+          </div>
+          <div data-astro-cid-hkbrpulz>
+            <h4 data-astro-cid-hkbrpulz>Guides</h4>
+            <a href="/issues/" data-astro-cid-hkbrpulz>Document issues</a><a href="/generator/" data-astro-cid-hkbrpulz>Code generation</a><a href="/testing/" data-astro-cid-hkbrpulz>Generator tests</a><a href="/matchers/" data-astro-cid-hkbrpulz>Vitest matchers</a><a href="/java/" data-astro-cid-hkbrpulz>Java</a><a href="/helpers/" data-astro-cid-hkbrpulz>Text helpers</a>
+          </div>
+          <div data-astro-cid-hkbrpulz>
+            <h4 data-astro-cid-hkbrpulz>On this site</h4>
+            <a href="/#why" data-astro-cid-hkbrpulz>Why use it</a>
+            <a href="/#quickstart" data-astro-cid-hkbrpulz>Getting started</a>
+            <a href="/#modules" data-astro-cid-hkbrpulz>Modules</a>
+            <a href="/#fit" data-astro-cid-hkbrpulz>Where it fits</a>
+          </div>
+        </div>
+      </div>
+      <div class="container foot-note" data-astro-cid-hkbrpulz>
+        © 2026 Boris Brodski · langium-tools 0.3.3 · hosted at langium-tools.openbrod.org
+      </div>
+    </footer>
+
+    
+    <script type="module">document.querySelector(`[data-theme-toggle]`)?.addEventListener(`click`,()=>{let e=document.documentElement,t=e.dataset.theme===`light`?`dark`:`light`;e.dataset.theme=t,localStorage.setItem(`theme`,t)}),document.querySelector(`[data-nav-toggle]`)?.addEventListener(`click`,()=>{document.querySelector(`[data-nav]`)?.classList.toggle(`open`)}),document.querySelectorAll(`[data-copy]`).forEach(e=>{e.addEventListener(`click`,()=>{let t=e.closest(`.codebox`)?.querySelector(`pre`);if(!t)return;navigator.clipboard.writeText(t.innerText??``);let n=e.textContent;e.textContent=`Copied`,setTimeout(()=>{e.textContent=n},1400)})});</script>
+  </body>
+</html>

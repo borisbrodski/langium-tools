@@ -1,0 +1,123 @@
+---
+import Base from '../layouts/Base.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { SITE } from '../lib/site';
+
+const file = `import { expandToNode } from 'langium/generate';
+import { generateJavaFile } from 'langium-tools/lang/java';
+
+generateJavaFile(
+  'Door',
+  'com.example.sm',
+  gen,
+  (imp) => expandToNode\`
+    public class Door {
+      private final \${imp('java.util.List')}<String> names;
+      private final \${imp('java.awt.List')} peer;
+
+      public Door(\${imp('java.util.List')}<String> names) {
+        this.names = names;
+      }
+    }
+  \`,
+);`;
+
+const emitted = `package com.example.sm;
+
+import java.util.List;
+
+public class Door {
+  private final List<String> names;
+  private final java.awt.List peer;
+
+  public Door(List<String> names) {
+    this.names = names;
+  }
+}`;
+
+const direct = `import { JavaImportManager } from 'langium-tools/lang/java';
+
+const imports = new JavaImportManager('com.example.sm');
+
+imports.useClass('java.util.List');     // "List", and an import
+imports.useClass('java.awt.List');       // "java.awt.List", no second import
+imports.useClass('com.example.sm.Door'); // "Door", same package, no import
+
+imports.generateImports();
+// import java.util.List;`;
+
+const path = `import { packageToPath } from 'langium-tools/lang/java';
+
+packageToPath('com.example.sm'); // "com/example/sm"`;
+---
+<Base
+  title="Java generation — langium-tools"
+  description="Generate Java source files with a package declaration and an import list that survives classes sharing a simple name."
+>
+  <article class="doc">
+    <header class="doc-hero container">
+      <div class="kicker">langium-tools/lang/java</div>
+      <h1>Java files</h1>
+      <p class="lead">
+        The awkward part of generating Java is the import block: it has to be written
+        before the class, but you only know which types the body used afterwards, and
+        two classes can share a simple name. <span class="inline-code">generateJavaFile</span>
+        does that bookkeeping and hands the file to a <a href="/generator/">GeneratorManager</a>.
+      </p>
+    </header>
+
+    <div class="container">
+      <h2>One function for a whole file</h2>
+      <p>
+        The body is a Langium <span class="inline-code">CompositeGeneratorNode</span>.
+        Call the function you are given with a fully qualified name every time the
+        body mentions a class. It returns the text that should appear at that spot:
+        the simple name, or the full name when the simple name is already taken.
+      </p>
+      <CodeBlock code={file} filename="door.ts" />
+      <p>The file written for package <span class="inline-code">com.example.sm</span> is:</p>
+      <CodeBlock code={emitted} lang="java" filename="com/example/sm/Door.java" />
+      <p>
+        <span class="inline-code">java.util.List</span> was registered first, so it owns
+        the name <span class="inline-code">List</span>. <span class="inline-code">java.awt.List</span>
+        stays qualified and is not imported. The path is
+        <span class="inline-code">com/example/sm/Door.java</span>, relative to the generator target.
+        An optional last argument is the usual <span class="inline-code">CreateFileOptions</span>
+        (<span class="inline-code">overwrite</span>, <span class="inline-code">target</span>).
+      </p>
+
+      <h2>Imports on their own</h2>
+      <p>
+        <span class="inline-code">JavaImportManager</span> is what
+        <span class="inline-code">generateJavaFile</span> uses. Construct it with the
+        package of the file being generated. Classes in that package are not imported.
+        <span class="inline-code">generateImports</span> returns the import statements,
+        sorted, separated by the platform newline. Call <span class="inline-code">useClass</span>
+        while building the body, and <span class="inline-code">generateImports</span> after
+        the body is done. The import block is empty when nothing outside the current
+        package was used.
+      </p>
+      <CodeBlock code={direct} filename="imports.ts" />
+
+      <h2>Package to directory</h2>
+      <CodeBlock code={path} filename="path.ts" />
+
+      <div class="note">
+        <p>
+          <span class="inline-code">java.lang</span> is not special-cased yet. Passing
+          <span class="inline-code">java.lang.String</span> produces an import. Prefer to
+          write <span class="inline-code">String</span> in the body and not register it.
+        </p>
+      </div>
+      <p>
+        API: <a href={`${SITE.typedoc}/functions/lang.java.generateJavaFile.html`}>generateJavaFile</a>,
+        <a href={`${SITE.typedoc}/classes/lang.java.JavaImportManager.html`}>JavaImportManager</a>,
+        <a href={`${SITE.typedoc}/functions/lang.java.packageToPath.html`}>packageToPath</a>.
+      </p>
+      <div class="next-guides">
+        <a href="/generator/">← Code generation</a>
+        <a href="/helpers/">Text helpers →</a>
+      </div>
+    </div>
+  </article>
+</Base>

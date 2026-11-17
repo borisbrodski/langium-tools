@@ -28,9 +28,11 @@
     A collection of tools for implementing and testing DSLs with <a href="https://langium.org/"><strong>Langium</strong>!</a>
     <br />
     <br />
-    <a href="#documentation"><strong>Explore the docs »</strong></a>
+    <a href="https://langium-tools.openbrod.org"><strong>Website »</strong></a>
     <br />
-    <a href="https://borisbrodski.github.io/langium-tools"><strong>Explore the typedocs »</strong></a>
+    <a href="https://langium-tools.openbrod.org/api"><strong>API reference »</strong></a>
+    <br />
+    <a href="#documentation"><strong>Documentation in this README »</strong></a>
     <br />
     <br />
 
@@ -129,7 +131,9 @@ You can check out The Umltimative Example: the default langium example project <
 
 ## Documentation
 
-See [typedoc documentation](https://borisbrodski.github.io/langium-tools)
+Guides for every part of the library, with examples, are on the website: [langium-tools.openbrod.org](https://langium-tools.openbrod.org).
+
+The generated API reference is [typedoc](https://langium-tools.openbrod.org/api).
 
 ### Document Issues
 
@@ -234,13 +238,13 @@ The module defines the following enums for issue sources and severities:
 
 For detailed API documentation, see the Typedoc documentation.
 
-- [getDocumentIssueSummary](https://borisbrodski.github.io/langium-tools/functions/base.getDocumentIssueSummary.html)
-- [getDocumentIssues](https://borisbrodski.github.io/langium-tools/functions/base.getDocumentIssues.html)
-- [documentIssueToString](https://borisbrodski.github.io/langium-tools/functions/base.documentIssueToString.html)
-- [DocumentIssue](https://borisbrodski.github.io/langium-tools/types/base.DocumentIssue.html)
-- [DocumentIssueSummary](https://borisbrodski.github.io/langium-tools/types/base.DocumentIssueSummary.html)
-- [DocumentIssueSource](https://borisbrodski.github.io/langium-tools/enums/base.DocumentIssueSource.html)
-- [DocumentIssueSeverity](https://borisbrodski.github.io/langium-tools/enums/base.DocumentIssueSeverity.html)
+- [getDocumentIssueSummary](https://langium-tools.openbrod.org/api/functions/base.getDocumentIssueSummary.html)
+- [getDocumentIssues](https://langium-tools.openbrod.org/api/functions/base.getDocumentIssues.html)
+- [documentIssueToString](https://langium-tools.openbrod.org/api/functions/base.documentIssueToString.html)
+- [DocumentIssue](https://langium-tools.openbrod.org/api/types/base.DocumentIssue.html)
+- [DocumentIssueSummary](https://langium-tools.openbrod.org/api/types/base.DocumentIssueSummary.html)
+- [DocumentIssueSource](https://langium-tools.openbrod.org/api/enums/base.DocumentIssueSource.html)
+- [DocumentIssueSeverity](https://langium-tools.openbrod.org/api/enums/base.DocumentIssueSeverity.html)
 
 #### Notes
 
@@ -379,10 +383,10 @@ await manager.writeToDisk(outputDir: string, target?: string, clean?: boolean);
 
 For detailed API documentation, see the Typedoc documentation.
 
-- [GeneratedContentManager](https://borisbrodski.github.io/langium-tools/classes/generator.GeneratedContentManager.html)
-- [GeneratorManager](https://borisbrodski.github.io/langium-tools/interfaces/generator.GeneratorManager.html)
-- [GeneratorTarget](https://borisbrodski.github.io/langium-tools/interfaces/generator.GeneratorTarget.html)
-- [CreateFileOptions](https://borisbrodski.github.io/langium-tools/interfaces/generator.CreateFileOptions.html)
+- [GeneratedContentManager](https://langium-tools.openbrod.org/api/classes/generator.GeneratedContentManager.html)
+- [GeneratorManager](https://langium-tools.openbrod.org/api/interfaces/generator.GeneratorManager.html)
+- [GeneratorTarget](https://langium-tools.openbrod.org/api/interfaces/generator.GeneratorTarget.html)
+- [CreateFileOptions](https://langium-tools.openbrod.org/api/interfaces/generator.CreateFileOptions.html)
 
 #### Notes
 
@@ -556,16 +560,16 @@ The generator testing utilities work by:
 
 #### API Reference
 
-For detailed API documentation, see the [Typedoc documentation](https://borisbrodski.github.io/langium-tools).
+For detailed API documentation, see the [Typedoc documentation](https://langium-tools.openbrod.org/api).
 
-- [langiumGeneratorSuite](https://borisbrodski.github.io/langium-tools/functions/testing.langiumGeneratorSuite.html)
-- [GeneratorTestOptions](https://borisbrodski.github.io/langium-tools/interfaces/testing.GeneratorTestOptions.html)
-- [GeneratedContentManager](https://borisbrodski.github.io/langium-tools/classes/generator.GeneratedContentManager.html)
+- [langiumGeneratorSuite](https://langium-tools.openbrod.org/api/functions/testing.langiumGeneratorSuite.html)
+- [GeneratorTestOptions](https://langium-tools.openbrod.org/api/interfaces/testing.GeneratorTestOptions.html)
+- [GeneratedContentManager](https://langium-tools.openbrod.org/api/classes/generator.GeneratedContentManager.html)
 
 #### Notes
 
 - **Environment Variable**: The `GENERATOR_TEST` environment variable controls the test mode (`verify` or `generate`).
-- **Testing Framework**: The examples use `vitest`, but the utilities can be used with any testing framework, if you are not using automatic workspace discovery, but rather define one test for one workspace using [langiumGeneratorTest](https://borisbrodski.github.io/langium-tools/functions/testing.langiumGeneratorTest.html).
+- **Testing Framework**: The examples use `vitest`, but the utilities can be used with any testing framework, if you are not using automatic workspace discovery, but rather define one test for one workspace using [langiumGeneratorTest](https://langium-tools.openbrod.org/api/functions/testing.langiumGeneratorTest.html).
 
 #### Example Workflow
 
@@ -883,16 +887,16 @@ test("document has no errors, ignoring lexer errors", async () => {
 #### API Reference
 
 - Matchers:
-  - [toHaveNoErrors](https://borisbrodski.github.io/langium-tools/functions/testing.toHaveNoErrors.html)
-  - [toHaveNoIssues](https://borisbrodski.github.io/langium-tools/functions/testing.toHaveNoIssues.html)
-  - [toHaveDocumentIssues](https://borisbrodski.github.io/langium-tools/functions/testing.toHaveDocumentIssues.html)
-  - [toContainIssue](https://borisbrodski.github.io/langium-tools/functions/testing.toContainIssue.html)
+  - [toHaveNoErrors](https://langium-tools.openbrod.org/api/functions/testing.toHaveNoErrors.html)
+  - [toHaveNoIssues](https://langium-tools.openbrod.org/api/functions/testing.toHaveNoIssues.html)
+  - [toHaveDocumentIssues](https://langium-tools.openbrod.org/api/functions/testing.toHaveDocumentIssues.html)
+  - [toContainIssue](https://langium-tools.openbrod.org/api/functions/testing.toContainIssue.html)
 - Interfaces:
-  - [IssueExpectation](https://borisbrodski.github.io/langium-tools/interfaces/testing.IssueExpectation.html)
-  - [IgnoreParameters](https://borisbrodski.github.io/langium-tools/interfaces/testing.IgnoreParameters.html)
+  - [IssueExpectation](https://langium-tools.openbrod.org/api/interfaces/testing.IssueExpectation.html)
+  - [IgnoreParameters](https://langium-tools.openbrod.org/api/interfaces/testing.IgnoreParameters.html)
 - Enums:
-  - [DocumentIssueSeverity](https://borisbrodski.github.io/langium-tools/types/base.DocumentIssue.html)
-  - [DocumentIssueSource](https://borisbrodski.github.io/langium-tools/enums/base.DocumentIssueSource.html)
+  - [DocumentIssueSeverity](https://langium-tools.openbrod.org/api/types/base.DocumentIssue.html)
+  - [DocumentIssueSource](https://langium-tools.openbrod.org/api/enums/base.DocumentIssueSource.html)
 
 #### Notes
 
@@ -903,7 +907,7 @@ test("document has no errors, ignoring lexer errors", async () => {
 
 In the examples, you might notice the use of a <a href="#adjusted">`adjusted`</a> function to format template strings. This is a utility to clean up multiline strings in tests.
 
-See [`adjusted` typedoc](https://borisbrodski.github.io/langium-tools/functions/base.adjusted.html) for more information.
+See [`adjusted` typedoc](https://langium-tools.openbrod.org/api/functions/base.adjusted.html) for more information.
 
 #### Conclusion
 
@@ -919,7 +923,7 @@ For more detailed information, refer to the API documentation.
 
 The adjusted function is a utility for formatting multi-line template strings, ensuring that indentation and line breaks are preserved correctly. This is particularly useful for generating code snippets or structured text where indentation is essential.
 
-See [`adjusted` typedoc](https://borisbrodski.github.io/langium-tools/functions/base.adjusted.html) for more information.
+See [`adjusted` typedoc](https://langium-tools.openbrod.org/api/functions/base.adjusted.html) for more information.
 
 ##### Features
 
@@ -968,7 +972,7 @@ The function returns a formatted string with the following properties:
 
 ##### API Reference
 
-- [adjusted](https://borisbrodski.github.io/langium-tools/functions/base.adjusted.html)
+- [adjusted](https://langium-tools.openbrod.org/api/functions/base.adjusted.html)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

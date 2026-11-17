@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" data-astro-cid-hkbrpulz>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Vitest matchers — langium-tools</title>
+    <meta name="description" content="Vitest matchers for Langium documents: no errors, no issues, an issue at a marker, or a single expected diagnostic.">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <meta property="og:title" content="Vitest matchers — langium-tools">
+    <meta property="og:description" content="Vitest matchers for Langium documents: no errors, no issues, an issue at a marker, or a single expected diagnostic.">
+    <meta property="og:image" content="/img/logo.png">
+    <meta name="theme-color" content="#0c1110">
+    <link rel="canonical" href="https://langium-tools.openbrod.org/matchers/">
+    <script>
+      (() => {
+        const url = new URLSearchParams(location.search).get('theme');
+        const saved = localStorage.getItem('theme');
+        const preferred = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.dataset.theme = url ?? saved ?? preferred;
+      })();
+    </script>
+  <link rel="stylesheet" href="/_astro/CodeBlock.B3B9K8Lo.css"></head>
+  <body data-astro-cid-hkbrpulz>
+    <header class="site-header" data-astro-cid-hkbrpulz>
+      <div class="container nav" data-astro-cid-hkbrpulz>
+        <a class="logo" href="/" data-astro-cid-hkbrpulz>
+          <img src="/img/logo.png" alt="" width="28" height="28" data-astro-cid-hkbrpulz>
+          <span class="logo-name" data-astro-cid-hkbrpulz>langium-<span class="brand-text" data-astro-cid-hkbrpulz>tools</span></span>
+        </a>
+        <button class="nav-burger" type="button" aria-label="Open menu" data-nav-toggle data-astro-cid-hkbrpulz>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-astro-cid-hkbrpulz><path d="M4 7h16M4 12h16M4 17h16" data-astro-cid-hkbrpulz></path></svg>
+        </button>
+        <nav class="links" data-nav data-astro-cid-hkbrpulz>
+          <a href="/#quickstart" data-astro-cid-hkbrpulz>Getting started</a>
+          <div class="navmenu" data-astro-cid-hkbrpulz>
+            <a href="/issues/" class="navmenu-top" aria-haspopup="true" data-astro-cid-hkbrpulz>Guides <span class="caret" aria-hidden="true" data-astro-cid-hkbrpulz>▾</span></a>
+            <div class="navmenu-panel" role="menu" data-astro-cid-hkbrpulz>
+              <a role="menuitem" href="/issues/" data-astro-cid-hkbrpulz>Document issues</a><a role="menuitem" href="/generator/" data-astro-cid-hkbrpulz>Code generation</a><a role="menuitem" href="/testing/" data-astro-cid-hkbrpulz>Generator tests</a><a role="menuitem" href="/matchers/" aria-current="page" data-astro-cid-hkbrpulz>Vitest matchers</a><a role="menuitem" href="/java/" data-astro-cid-hkbrpulz>Java</a><a role="menuitem" href="/helpers/" data-astro-cid-hkbrpulz>Text helpers</a>
+            </div>
+          </div>
+          <a href="/#why" data-astro-cid-hkbrpulz>Why</a>
+          <a href="/api" data-astro-cid-hkbrpulz>API</a>
+        </nav>
+        <div class="actions" data-astro-cid-hkbrpulz>
+          <button class="theme-toggle" type="button" aria-label="Toggle color theme" data-theme-toggle data-astro-cid-hkbrpulz>
+            <svg class="moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-astro-cid-hkbrpulz><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" data-astro-cid-hkbrpulz></path></svg>
+            <svg class="sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-astro-cid-hkbrpulz><circle cx="12" cy="12" r="4" data-astro-cid-hkbrpulz></circle><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" data-astro-cid-hkbrpulz></path></svg>
+          </button>
+          <a class="gh" href="https://github.com/borisbrodski/langium-tools" aria-label="GitHub" data-astro-cid-hkbrpulz>
+            <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" data-astro-cid-hkbrpulz><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" data-astro-cid-hkbrpulz></path></svg>
+          </a>
+          <a class="btn btn-primary btn-sm" href="/#quickstart" data-astro-cid-hkbrpulz>Get started</a>
+        </div>
+      </div>
+    </header>
+
+    
+  <article class="doc">
+    <header class="doc-hero container">
+      <div class="kicker">langium-tools/testing</div>
+      <h1>Vitest matchers</h1>
+      <p class="lead">
+        Importing <span class="inline-code">langium-tools/testing</span> adds four matchers
+        to Vitest. They assert the same <a href="/issues/">document issues</a> you print
+        in a CLI, so a test and a log cannot disagree about what an error is.
+      </p>
+    </header>
+
+    <div class="container">
+      <h2>Setup</h2>
+      <p>
+        The import is a side effect: it calls <span class="inline-code">expect.extend</span>.
+        Parsing stays Langium's <span class="inline-code">parseHelper</span>. The matchers
+        are written for Vitest 2, which is a peer dependency.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>setup.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium-tools/testing'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">; </span><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// registers the matchers</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">EmptyFileSystem</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">parseHelper</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium/test'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">adjusted</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium-tools/base'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">parseWithMarks</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium-tools/testing'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> services</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> =</span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> createMyDslServices</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">EmptyFileSystem</span><span style="color:#24292E;--shiki-dark:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> parse</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> =</span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> parseHelper</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E5C07B">services</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E06C75">MyDsl</span><span style="color:#24292E;--shiki-dark:#ABB2BF">);</span></span></code></pre>
+</div>
+
+      <h2>No errors, no issues</h2>
+      <p>
+        <span class="inline-code">toHaveNoErrors</span> ignores warnings, information, and hints.
+        <span class="inline-code">toHaveNoIssues</span> does not. Both accept a
+        <span class="inline-code">LangiumDocument</span> or the object returned by
+        <span class="inline-code">parseWithMarks</span>. A failure prints the issue summary.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>clean.test.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> document</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> =</span><span style="color:#D73A49;--shiki-dark:#C678DD"> await</span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> parse</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'statemachine Door</span><span style="color:#005CC5;--shiki-dark:#56B6C2">\n</span><span style="color:#032F62;--shiki-dark:#98C379">'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, { </span><span style="color:#24292E;--shiki-dark:#E06C75">validation</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#005CC5;--shiki-dark:#D19A66">true</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> });</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">expect</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">document</span><span style="color:#24292E;--shiki-dark:#ABB2BF">).</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">toHaveNoErrors</span><span style="color:#24292E;--shiki-dark:#ABB2BF">();  </span><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// warnings are ignored</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">expect</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">document</span><span style="color:#24292E;--shiki-dark:#ABB2BF">).</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">toHaveNoIssues</span><span style="color:#24292E;--shiki-dark:#ABB2BF">();  </span><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// warnings, hints, and errors all count</span></span></code></pre>
+</div>
+
+      <h2>Put the location in the sample</h2>
+      <p>
+        <span class="inline-code">parseWithMarks</span> strips a begin/end pair, parses the
+        remaining text with validation on, and remembers where each marker was.
+        The default pair is <span class="inline-code">&lt;&lt;{|</span> and <span class="inline-code">|}&gt;&gt;</span>.
+        Pick a pair that cannot appear in the DSL. Markers are numbered from 0 in the order
+        they occur. <span class="inline-code">adjusted</span> removes the indent of the template
+        so line 1 of the DSL is the first line of content.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>marked.test.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">DocumentIssueSeverity</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#24292E;--shiki-dark:#E06C75">DocumentIssueSource</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium-tools/base'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> parsed</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> =</span><span style="color:#D73A49;--shiki-dark:#C678DD"> await</span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> parseWithMarks</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E06C75">  parse</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">  adjusted</span><span style="color:#032F62;--shiki-dark:#98C379">`</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">    statemachine Door</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">    state [[[Unused]]];</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">  `</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">  '[[['</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">  ']]]'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">expect</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">parsed</span><span style="color:#24292E;--shiki-dark:#ABB2BF">).</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">toHaveDocumentIssues</span><span style="color:#24292E;--shiki-dark:#ABB2BF">([</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E06C75">    source</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#24292E;--shiki-dark:#E5C07B">DocumentIssueSource</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#005CC5;--shiki-dark:#E06C75">VALIDATION</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E06C75">    severity</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#24292E;--shiki-dark:#E5C07B">DocumentIssueSeverity</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#005CC5;--shiki-dark:#E06C75">WARNING</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E06C75">    message</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#032F62;--shiki-dark:#98C379">'This state is declared but never referenced.'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E06C75">    markerId</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#005CC5;--shiki-dark:#D19A66">0</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  },</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">]);</span></span></code></pre>
+</div>
+      <p>An <span class="inline-code">IssueExpectation</span> has:</p>
+      <ul>
+        <li><b>message</b> — a string, or a regular expression. Required.</li>
+        <li><b>severity</b> — defaults to <span class="inline-code">ERROR</span>.</li>
+        <li><b>source</b> — <span class="inline-code">LEXER</span>, <span class="inline-code">PARSER</span>, or <span class="inline-code">VALIDATION</span>. Omitted means "do not care".</li>
+        <li><b>markerId</b> — 0-based index. Omitted means "do not care where".</li>
+      </ul>
+      <p>
+        <span class="inline-code">toHaveDocumentIssues</span> matches each expectation to one
+        actual issue and fails if anything is left over on either side. The message lists
+        the unmatched expected issues and the unmatched actual ones.
+      </p>
+
+      <h2>One issue among others</h2>
+      <p>
+        <span class="inline-code">toContainIssue</span> succeeds when at least one issue matches.
+        Extra issues are fine. Pass a parsed document with markers if the expectation has a
+        <span class="inline-code">markerId</span>.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>contain.test.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">DocumentIssueSeverity</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#24292E;--shiki-dark:#E06C75">DocumentIssueSource</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium-tools/base'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">expect</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">document</span><span style="color:#24292E;--shiki-dark:#ABB2BF">).</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">toContainIssue</span><span style="color:#24292E;--shiki-dark:#ABB2BF">({</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E06C75">  message</span><span style="color:#24292E;--shiki-dark:#ABB2BF">:</span><span style="color:#032F62;--shiki-dark:#E06C75"> /Unexpected character/</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E06C75">  severity</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#24292E;--shiki-dark:#E5C07B">DocumentIssueSeverity</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#005CC5;--shiki-dark:#E06C75">ERROR</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E06C75">  source</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#24292E;--shiki-dark:#E5C07B">DocumentIssueSource</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#005CC5;--shiki-dark:#E06C75">LEXER</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">});</span></span></code></pre>
+</div>
+
+      <h2>Ignore a class of issues</h2>
+      <p>
+        Every matcher takes <span class="inline-code">IgnoreParameters</span>:
+        <span class="inline-code">ignoreParserErrors</span>,
+        <span class="inline-code">ignoreLexerErrors</span>,
+        <span class="inline-code">ignoreValidationErrors</span>,
+        <span class="inline-code">ignoreNonErrorDiagnostics</span>.
+        The last one defaults to true only for <span class="inline-code">toHaveNoErrors</span>.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>ignore.test.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">DocumentIssueSeverity</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium-tools/base'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">expect</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">document</span><span style="color:#24292E;--shiki-dark:#ABB2BF">).</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">toHaveNoErrors</span><span style="color:#24292E;--shiki-dark:#ABB2BF">({ </span><span style="color:#24292E;--shiki-dark:#E06C75">ignoreLexerErrors</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#005CC5;--shiki-dark:#D19A66">true</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> });</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">expect</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">parsed</span><span style="color:#24292E;--shiki-dark:#ABB2BF">).</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">toHaveDocumentIssues</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  [{ </span><span style="color:#24292E;--shiki-dark:#E06C75">message</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#032F62;--shiki-dark:#98C379">'This state is declared but never referenced.'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#24292E;--shiki-dark:#E06C75">severity</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#24292E;--shiki-dark:#E5C07B">DocumentIssueSeverity</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#005CC5;--shiki-dark:#E06C75">WARNING</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> }],</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  { </span><span style="color:#24292E;--shiki-dark:#E06C75">ignoreValidationErrors</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#005CC5;--shiki-dark:#D19A66">true</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> },</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">);</span></span></code></pre>
+</div>
+
+      <div class="note">
+        <p>
+          A marker comparison uses the positions the issue actually has. Lexer and parser
+          issues often have a start and no end. Validation issues have a start and an end.
+          A zero-length marker is a point: start and end offsets are equal.
+        </p>
+      </div>
+      <p>
+        API: <a href="/api/functions/testing.toHaveNoErrors.html">toHaveNoErrors</a>,
+        <a href="/api/functions/testing.toHaveNoIssues.html">toHaveNoIssues</a>,
+        <a href="/api/functions/testing.toHaveDocumentIssues.html">toHaveDocumentIssues</a>,
+        <a href="/api/functions/testing.toContainIssue.html">toContainIssue</a>,
+        <a href="/api/functions/testing.parseWithMarks.html">parseWithMarks</a>.
+      </p>
+      <div class="next-guides">
+        <a href="/issues/">← Document issues</a>
+        <a href="/helpers/">Text helpers →</a>
+      </div>
+    </div>
+  </article>
+
+
+    <footer class="site-footer" data-astro-cid-hkbrpulz>
+      <div class="container foot" data-astro-cid-hkbrpulz>
+        <div class="foot-brand" data-astro-cid-hkbrpulz>
+          <img src="/img/logo.png" alt="" width="28" height="28" data-astro-cid-hkbrpulz>
+          <div data-astro-cid-hkbrpulz>
+            <div class="logo-name" data-astro-cid-hkbrpulz>langium-<span class="brand-text" data-astro-cid-hkbrpulz>tools</span></div>
+            <p data-astro-cid-hkbrpulz>Helpers for Langium DSLs · MIT</p>
+          </div>
+        </div>
+        <div class="foot-cols" data-astro-cid-hkbrpulz>
+          <div data-astro-cid-hkbrpulz>
+            <h4 data-astro-cid-hkbrpulz>Project</h4>
+            <a href="https://github.com/borisbrodski/langium-tools" data-astro-cid-hkbrpulz>GitHub</a>
+            <a href="https://www.npmjs.com/package/langium-tools" data-astro-cid-hkbrpulz>npm</a>
+            <a href="/api" data-astro-cid-hkbrpulz>Typedoc API</a>
+            <a href="https://github.com/borisbrodski/langium-tools/issues" data-astro-cid-hkbrpulz>Issues</a>
+          </div>
+          <div data-astro-cid-hkbrpulz>
+            <h4 data-astro-cid-hkbrpulz>Guides</h4>
+            <a href="/issues/" data-astro-cid-hkbrpulz>Document issues</a><a href="/generator/" data-astro-cid-hkbrpulz>Code generation</a><a href="/testing/" data-astro-cid-hkbrpulz>Generator tests</a><a href="/matchers/" data-astro-cid-hkbrpulz>Vitest matchers</a><a href="/java/" data-astro-cid-hkbrpulz>Java</a><a href="/helpers/" data-astro-cid-hkbrpulz>Text helpers</a>
+          </div>
+          <div data-astro-cid-hkbrpulz>
+            <h4 data-astro-cid-hkbrpulz>On this site</h4>
+            <a href="/#why" data-astro-cid-hkbrpulz>Why use it</a>
+            <a href="/#quickstart" data-astro-cid-hkbrpulz>Getting started</a>
+            <a href="/#modules" data-astro-cid-hkbrpulz>Modules</a>
+            <a href="/#fit" data-astro-cid-hkbrpulz>Where it fits</a>
+          </div>
+        </div>
+      </div>
+      <div class="container foot-note" data-astro-cid-hkbrpulz>
+        © 2026 Boris Brodski · langium-tools 0.3.3 · hosted at langium-tools.openbrod.org
+      </div>
+    </footer>
+
+    
+    <script type="module">document.querySelector(`[data-theme-toggle]`)?.addEventListener(`click`,()=>{let e=document.documentElement,t=e.dataset.theme===`light`?`dark`:`light`;e.dataset.theme=t,localStorage.setItem(`theme`,t)}),document.querySelector(`[data-nav-toggle]`)?.addEventListener(`click`,()=>{document.querySelector(`[data-nav]`)?.classList.toggle(`open`)}),document.querySelectorAll(`[data-copy]`).forEach(e=>{e.addEventListener(`click`,()=>{let t=e.closest(`.codebox`)?.querySelector(`pre`);if(!t)return;navigator.clipboard.writeText(t.innerText??``);let n=e.textContent;e.textContent=`Copied`,setTimeout(()=>{e.textContent=n},1400)})});</script>
+  </body>
+</html>

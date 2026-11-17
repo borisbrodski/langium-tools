@@ -1,0 +1,184 @@
+---
+import Base from '../layouts/Base.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { SITE } from '../lib/site';
+
+const scripts = `{
+  "scripts": {
+    "test": "vitest run",
+    "test:generate": "GENERATOR_TEST=generate vitest run"
+  }
+}`;
+
+const suite = `import { langiumGeneratorSuite } from 'langium-tools/testing';
+import { createMyDslServices } from '../src/language/my-dsl-module';
+
+langiumGeneratorSuite('./test-workspaces', {
+  createServices: (context) => createMyDslServices(context),
+  generateForModel: async (_services, model, gen) => {
+    gen.createFile('out/' + model.name + '.ts', render(model));
+  },
+});`;
+
+const tree = `test-workspaces/
+  lights/
+    dsls/
+      room.mydsl
+    generated/
+      out/Room.ts
+    generated-metadata.json
+  doors/
+    dsls/
+      door.mydsl
+    generated/
+      out/Door.ts
+    generated-metadata.json`;
+
+const one = `import { GeneratorMode, langiumGeneratorTest } from 'langium-tools/testing';
+
+await langiumGeneratorTest('./test-workspaces/lights', {
+  createServices: (context) => createMyDslServices(context),
+  generateForModel: async (_services, model, gen) => {
+    gen.createFile('out/' + model.name + '.ts', render(model));
+  },
+  generateMode: GeneratorMode.Verify,
+});`;
+
+const custom = `import { getDocumentIssueSummary } from 'langium-tools/base';
+
+function validateDocuments(services, documents) {
+  for (const doc of documents) {
+    const summary = getDocumentIssueSummary(doc);
+    expect(summary.countErrors, summary.message).toBe(0);
+  }
+}
+
+langiumGeneratorSuite('./test-workspaces', {
+  createServices: (context) => createMyDslServices(context),
+  validateDocuments,
+  generateForModel: async (_services, model, gen) => {
+    gen.createFile('out/' + model.name + '.java', renderJava(model), { target: 'java' });
+    gen.createFile('src/' + model.name + '.java', stub(model), { target: 'java', overwrite: false });
+  },
+}, [
+  { name: 'java', overwrite: true },
+]);`;
+
+const meta = `{
+  "generatedFiles": [
+    { "filename": "out/Room.ts", "overwrite": true },
+    { "filename": "src/Room.ts", "overwrite": false }
+  ]
+}`;
+---
+<Base
+  title="Generator tests — langium-tools"
+  description="Snapshot-test Langium generators by committing the generated tree and comparing it in CI. Regenerate when the change is intentional."
+>
+  <article class="doc">
+    <header class="doc-hero container">
+      <div class="kicker">langium-tools/testing</div>
+      <h1>Generator tests</h1>
+      <p class="lead">
+        Generated code is part of the contract. Commit it. The test builds a real
+        Langium workspace, runs your generator in memory, and checks every file.
+        When you mean to change the output, regenerate and review the diff.
+      </p>
+    </header>
+
+    <div class="container">
+      <h2>Two modes</h2>
+      <ul>
+        <li><b>Verify</b> — the default. In-memory output must match the committed files, byte for byte, and the overwrite flags must match the metadata.</li>
+        <li><b>Generate</b> — <span class="inline-code">GENERATOR_TEST=generate</span>. The <span class="inline-code">generated/</span> directory is replaced and the metadata file is rewritten.</li>
+      </ul>
+      <CodeBlock code={scripts} lang="json" filename="package.json" />
+      <p>
+        <span class="inline-code">npm test</span> is what CI runs.
+        <span class="inline-code">npm run test:generate</span> is what you run locally
+        after an intentional generator change. Then <span class="inline-code">git diff</span>
+        and commit.
+      </p>
+
+      <h2>One test per workspace</h2>
+      <p>
+        <span class="inline-code">langiumGeneratorSuite</span> adds a Vitest test for each
+        immediate subdirectory. <span class="inline-code">createServices</span> receives
+        <span class="inline-code">NodeFileSystem</span> from <span class="inline-code">langium/node</span>.
+        When you use <span class="inline-code">generateForModel</span>, the service object
+        must have exactly one entry besides <span class="inline-code">shared</span>.
+        That is the usual Langium shape: <span class="inline-code">{`{ MyDsl, shared }`}</span>.
+      </p>
+      <CodeBlock code={suite} filename="generator.test.ts" />
+
+      <h3>Directory layout</h3>
+      <p>
+        Put DSL files in <span class="inline-code">dsls/</span>. The runner looks for that
+        name before it deletes anything, so a wrong path cannot wipe an unrelated folder.
+        Generated files land in <span class="inline-code">generated/</span>. With the default
+        target, metadata is <span class="inline-code">generated-metadata.json</span> next to
+        <span class="inline-code">dsls/</span>.
+      </p>
+      <CodeBlock code={tree} lang="text" filename="test-workspaces" />
+
+      <h2>What the default pipeline does</h2>
+      <ol>
+        <li><b>initWorkspace</b> — <span class="inline-code">WorkspaceManager.initializeWorkspace</span> on the test directory.</li>
+        <li><b>buildDocuments</b> — every document Langium loaded, built with validation on.</li>
+        <li><b>validateDocuments</b> — fails the test if the DSL has lexer or parser errors. Validation diagnostics are not treated as failures here, so a workspace can legally contain warnings.</li>
+        <li><b>generate</b> — <span class="inline-code">generateForModel</span> for each document, or your own <span class="inline-code">generateForWorkspace</span> if generation is not one-file-at-a-time.</li>
+        <li><b>compare or write</b> — verify mode reads the tree. Generate mode replaces it.</li>
+      </ol>
+      <p>Any of those steps can be replaced on the options object.</p>
+
+      <h2>A single workspace, from any test runner</h2>
+      <p>
+        <span class="inline-code">langiumGeneratorTest</span> does not call Vitest's
+        <span class="inline-code">test()</span>. Use it when you want one workspace inside
+        a test you wrote yourself. The assertions still use Vitest's <span class="inline-code">expect</span>.
+        <span class="inline-code">using</span>, from the same entry, runs a function with a
+        value and returns that value.
+      </p>
+      <CodeBlock code={one} filename="one-workspace.test.ts" />
+
+      <h2>Custom targets and stricter validation</h2>
+      <p>
+        Pass targets as the third argument. Once any target is passed, every target
+        is written that way, including the default one:
+        <span class="inline-code">generated/DEFAULT/</span> with
+        <span class="inline-code">DEFAULT-metadata.json</span>, and
+        <span class="inline-code">generated/&lt;name&gt;/</span> with
+        <span class="inline-code">&lt;name&gt;-metadata.json</span>.
+        With no extra targets, files stay in <span class="inline-code">generated/</span>
+        and the metadata file is <span class="inline-code">generated-metadata.json</span>.
+        The check fails when a file is missing, unexpected, different, or when its
+        overwrite flag changed.
+      </p>
+      <CodeBlock code={custom} filename="java-target.test.ts" />
+
+      <h3>Metadata</h3>
+      <p>
+        The JSON is how a change from "generate once" to "always overwrite" shows up in
+        review even when the file bytes stayed the same.
+      </p>
+      <CodeBlock code={meta} lang="json" filename="generated-metadata.json" />
+
+      <div class="note">
+        <p>
+          Verify mode never writes. A failing test leaves the committed tree as it was,
+          and the message names the file, the target, and whether the mismatch is content,
+          a missing file, an extra file, or the overwrite flag.
+        </p>
+      </div>
+      <p>
+        API: <a href={`${SITE.typedoc}/functions/testing.langiumGeneratorSuite.html`}>langiumGeneratorSuite</a>,
+        <a href={`${SITE.typedoc}/functions/testing.langiumGeneratorTest.html`}>langiumGeneratorTest</a>,
+        <a href={`${SITE.typedoc}/interfaces/testing.GeneratorTestOptions.html`}>GeneratorTestOptions</a>.
+      </p>
+      <div class="next-guides">
+        <a href="/generator/">← Code generation</a>
+        <a href="/matchers/">Vitest matchers →</a>
+      </div>
+    </div>
+  </article>
+</Base>

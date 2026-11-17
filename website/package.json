@@ -1,0 +1,15 @@
+{
+  "name": "langium-tools-website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && rm -rf dist/api && cp -a ../typedoc dist/api",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.2.0",
+    "@fontsource-variable/jetbrains-mono": "^5.2.0",
+    "astro": "^7.3.3"
+  }
+}

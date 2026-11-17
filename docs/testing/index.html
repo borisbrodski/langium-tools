@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" data-astro-cid-hkbrpulz>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Generator tests — langium-tools</title>
+    <meta name="description" content="Snapshot-test Langium generators by committing the generated tree and comparing it in CI. Regenerate when the change is intentional.">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <meta property="og:title" content="Generator tests — langium-tools">
+    <meta property="og:description" content="Snapshot-test Langium generators by committing the generated tree and comparing it in CI. Regenerate when the change is intentional.">
+    <meta property="og:image" content="/img/logo.png">
+    <meta name="theme-color" content="#0c1110">
+    <link rel="canonical" href="https://langium-tools.openbrod.org/testing/">
+    <script>
+      (() => {
+        const url = new URLSearchParams(location.search).get('theme');
+        const saved = localStorage.getItem('theme');
+        const preferred = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.dataset.theme = url ?? saved ?? preferred;
+      })();
+    </script>
+  <link rel="stylesheet" href="/_astro/CodeBlock.B3B9K8Lo.css"></head>
+  <body data-astro-cid-hkbrpulz>
+    <header class="site-header" data-astro-cid-hkbrpulz>
+      <div class="container nav" data-astro-cid-hkbrpulz>
+        <a class="logo" href="/" data-astro-cid-hkbrpulz>
+          <img src="/img/logo.png" alt="" width="28" height="28" data-astro-cid-hkbrpulz>
+          <span class="logo-name" data-astro-cid-hkbrpulz>langium-<span class="brand-text" data-astro-cid-hkbrpulz>tools</span></span>
+        </a>
+        <button class="nav-burger" type="button" aria-label="Open menu" data-nav-toggle data-astro-cid-hkbrpulz>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-astro-cid-hkbrpulz><path d="M4 7h16M4 12h16M4 17h16" data-astro-cid-hkbrpulz></path></svg>
+        </button>
+        <nav class="links" data-nav data-astro-cid-hkbrpulz>
+          <a href="/#quickstart" data-astro-cid-hkbrpulz>Getting started</a>
+          <div class="navmenu" data-astro-cid-hkbrpulz>
+            <a href="/issues/" class="navmenu-top" aria-haspopup="true" data-astro-cid-hkbrpulz>Guides <span class="caret" aria-hidden="true" data-astro-cid-hkbrpulz>▾</span></a>
+            <div class="navmenu-panel" role="menu" data-astro-cid-hkbrpulz>
+              <a role="menuitem" href="/issues/" data-astro-cid-hkbrpulz>Document issues</a><a role="menuitem" href="/generator/" data-astro-cid-hkbrpulz>Code generation</a><a role="menuitem" href="/testing/" aria-current="page" data-astro-cid-hkbrpulz>Generator tests</a><a role="menuitem" href="/matchers/" data-astro-cid-hkbrpulz>Vitest matchers</a><a role="menuitem" href="/java/" data-astro-cid-hkbrpulz>Java</a><a role="menuitem" href="/helpers/" data-astro-cid-hkbrpulz>Text helpers</a>
+            </div>
+          </div>
+          <a href="/#why" data-astro-cid-hkbrpulz>Why</a>
+          <a href="/api" data-astro-cid-hkbrpulz>API</a>
+        </nav>
+        <div class="actions" data-astro-cid-hkbrpulz>
+          <button class="theme-toggle" type="button" aria-label="Toggle color theme" data-theme-toggle data-astro-cid-hkbrpulz>
+            <svg class="moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-astro-cid-hkbrpulz><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" data-astro-cid-hkbrpulz></path></svg>
+            <svg class="sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-astro-cid-hkbrpulz><circle cx="12" cy="12" r="4" data-astro-cid-hkbrpulz></circle><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" data-astro-cid-hkbrpulz></path></svg>
+          </button>
+          <a class="gh" href="https://github.com/borisbrodski/langium-tools" aria-label="GitHub" data-astro-cid-hkbrpulz>
+            <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" data-astro-cid-hkbrpulz><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" data-astro-cid-hkbrpulz></path></svg>
+          </a>
+          <a class="btn btn-primary btn-sm" href="/#quickstart" data-astro-cid-hkbrpulz>Get started</a>
+        </div>
+      </div>
+    </header>
+
+    
+  <article class="doc">
+    <header class="doc-hero container">
+      <div class="kicker">langium-tools/testing</div>
+      <h1>Generator tests</h1>
+      <p class="lead">
+        Generated code is part of the contract. Commit it. The test builds a real
+        Langium workspace, runs your generator in memory, and checks every file.
+        When you mean to change the output, regenerate and review the diff.
+      </p>
+    </header>
+
+    <div class="container">
+      <h2>Two modes</h2>
+      <ul>
+        <li><b>Verify</b> — the default. In-memory output must match the committed files, byte for byte, and the overwrite flags must match the metadata.</li>
+        <li><b>Generate</b> — <span class="inline-code">GENERATOR_TEST=generate</span>. The <span class="inline-code">generated/</span> directory is replaced and the metadata file is rewritten.</li>
+      </ul>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>package.json</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#E06C75">  "scripts"</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#E06C75">    "test"</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#032F62;--shiki-dark:#98C379">"vitest run"</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#E06C75">    "test:generate"</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#032F62;--shiki-dark:#98C379">"GENERATOR_TEST=generate vitest run"</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">}</span></span></code></pre>
+</div>
+      <p>
+        <span class="inline-code">npm test</span> is what CI runs.
+        <span class="inline-code">npm run test:generate</span> is what you run locally
+        after an intentional generator change. Then <span class="inline-code">git diff</span>
+        and commit.
+      </p>
+
+      <h2>One test per workspace</h2>
+      <p>
+        <span class="inline-code">langiumGeneratorSuite</span> adds a Vitest test for each
+        immediate subdirectory. <span class="inline-code">createServices</span> receives
+        <span class="inline-code">NodeFileSystem</span> from <span class="inline-code">langium/node</span>.
+        When you use <span class="inline-code">generateForModel</span>, the service object
+        must have exactly one entry besides <span class="inline-code">shared</span>.
+        That is the usual Langium shape: <span class="inline-code">{ MyDsl, shared }</span>.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>generator.test.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">langiumGeneratorSuite</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium-tools/testing'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">createMyDslServices</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> '../src/language/my-dsl-module'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">langiumGeneratorSuite</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'./test-workspaces'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, {</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">  createServices</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: (</span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">context</span><span style="color:#24292E;--shiki-dark:#ABB2BF">) </span><span style="color:#D73A49;--shiki-dark:#C678DD">=></span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> createMyDslServices</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">context</span><span style="color:#24292E;--shiki-dark:#ABB2BF">),</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">  generateForModel</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#D73A49;--shiki-dark:#C678DD">async</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> (</span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">_services</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">) </span><span style="color:#D73A49;--shiki-dark:#C678DD">=></span><span style="color:#24292E;--shiki-dark:#ABB2BF"> {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E5C07B">    gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">createFile</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'out/'</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> +</span><span style="color:#24292E;--shiki-dark:#E5C07B"> model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E06C75">name</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> +</span><span style="color:#032F62;--shiki-dark:#98C379"> '.ts'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#6F42C1;--shiki-dark:#61AFEF">render</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">));</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  },</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">});</span></span></code></pre>
+</div>
+
+      <h3>Directory layout</h3>
+      <p>
+        Put DSL files in <span class="inline-code">dsls/</span>. The runner looks for that
+        name before it deletes anything, so a wrong path cannot wipe an unrelated folder.
+        Generated files land in <span class="inline-code">generated/</span>. With the default
+        target, metadata is <span class="inline-code">generated-metadata.json</span> next to
+        <span class="inline-code">dsls/</span>.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>test-workspaces</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>test-workspaces/</span></span>
+<span class="line"><span>  lights/</span></span>
+<span class="line"><span>    dsls/</span></span>
+<span class="line"><span>      room.mydsl</span></span>
+<span class="line"><span>    generated/</span></span>
+<span class="line"><span>      out/Room.ts</span></span>
+<span class="line"><span>    generated-metadata.json</span></span>
+<span class="line"><span>  doors/</span></span>
+<span class="line"><span>    dsls/</span></span>
+<span class="line"><span>      door.mydsl</span></span>
+<span class="line"><span>    generated/</span></span>
+<span class="line"><span>      out/Door.ts</span></span>
+<span class="line"><span>    generated-metadata.json</span></span></code></pre>
+</div>
+
+      <h2>What the default pipeline does</h2>
+      <ol>
+        <li><b>initWorkspace</b> — <span class="inline-code">WorkspaceManager.initializeWorkspace</span> on the test directory.</li>
+        <li><b>buildDocuments</b> — every document Langium loaded, built with validation on.</li>
+        <li><b>validateDocuments</b> — fails the test if the DSL has lexer or parser errors. Validation diagnostics are not treated as failures here, so a workspace can legally contain warnings.</li>
+        <li><b>generate</b> — <span class="inline-code">generateForModel</span> for each document, or your own <span class="inline-code">generateForWorkspace</span> if generation is not one-file-at-a-time.</li>
+        <li><b>compare or write</b> — verify mode reads the tree. Generate mode replaces it.</li>
+      </ol>
+      <p>Any of those steps can be replaced on the options object.</p>
+
+      <h2>A single workspace, from any test runner</h2>
+      <p>
+        <span class="inline-code">langiumGeneratorTest</span> does not call Vitest's
+        <span class="inline-code">test()</span>. Use it when you want one workspace inside
+        a test you wrote yourself. The assertions still use Vitest's <span class="inline-code">expect</span>.
+        <span class="inline-code">using</span>, from the same entry, runs a function with a
+        value and returns that value.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>one-workspace.test.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">GeneratorMode</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#24292E;--shiki-dark:#E06C75">langiumGeneratorTest</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium-tools/testing'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">await</span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> langiumGeneratorTest</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'./test-workspaces/lights'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, {</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">  createServices</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: (</span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">context</span><span style="color:#24292E;--shiki-dark:#ABB2BF">) </span><span style="color:#D73A49;--shiki-dark:#C678DD">=></span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> createMyDslServices</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">context</span><span style="color:#24292E;--shiki-dark:#ABB2BF">),</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">  generateForModel</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#D73A49;--shiki-dark:#C678DD">async</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> (</span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">_services</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">) </span><span style="color:#D73A49;--shiki-dark:#C678DD">=></span><span style="color:#24292E;--shiki-dark:#ABB2BF"> {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E5C07B">    gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">createFile</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'out/'</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> +</span><span style="color:#24292E;--shiki-dark:#E5C07B"> model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E06C75">name</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> +</span><span style="color:#032F62;--shiki-dark:#98C379"> '.ts'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#6F42C1;--shiki-dark:#61AFEF">render</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">));</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  },</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E06C75">  generateMode</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#24292E;--shiki-dark:#E5C07B">GeneratorMode</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E06C75">Verify</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">});</span></span></code></pre>
+</div>
+
+      <h2>Custom targets and stricter validation</h2>
+      <p>
+        Pass targets as the third argument. Once any target is passed, every target
+        is written that way, including the default one:
+        <span class="inline-code">generated/DEFAULT/</span> with
+        <span class="inline-code">DEFAULT-metadata.json</span>, and
+        <span class="inline-code">generated/&lt;name&gt;/</span> with
+        <span class="inline-code">&lt;name&gt;-metadata.json</span>.
+        With no extra targets, files stay in <span class="inline-code">generated/</span>
+        and the metadata file is <span class="inline-code">generated-metadata.json</span>.
+        The check fails when a file is missing, unexpected, different, or when its
+        overwrite flag changed.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>java-target.test.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> { </span><span style="color:#24292E;--shiki-dark:#E06C75">getDocumentIssueSummary</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> } </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium-tools/base'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">function</span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> validateDocuments</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">services</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">documents</span><span style="color:#24292E;--shiki-dark:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">  for</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> (</span><span style="color:#D73A49;--shiki-dark:#C678DD">const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> doc</span><span style="color:#D73A49;--shiki-dark:#C678DD"> of</span><span style="color:#24292E;--shiki-dark:#E06C75"> documents</span><span style="color:#24292E;--shiki-dark:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">    const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> summary</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> =</span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> getDocumentIssueSummary</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">doc</span><span style="color:#24292E;--shiki-dark:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">    expect</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E5C07B">summary</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E06C75">countErrors</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#24292E;--shiki-dark:#E5C07B">summary</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E06C75">message</span><span style="color:#24292E;--shiki-dark:#ABB2BF">).</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">toBe</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#005CC5;--shiki-dark:#D19A66">0</span><span style="color:#24292E;--shiki-dark:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">langiumGeneratorSuite</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'./test-workspaces'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, {</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">  createServices</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: (</span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">context</span><span style="color:#24292E;--shiki-dark:#ABB2BF">) </span><span style="color:#D73A49;--shiki-dark:#C678DD">=></span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> createMyDslServices</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">context</span><span style="color:#24292E;--shiki-dark:#ABB2BF">),</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E06C75">  validateDocuments</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">  generateForModel</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#D73A49;--shiki-dark:#C678DD">async</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> (</span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">_services</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">) </span><span style="color:#D73A49;--shiki-dark:#C678DD">=></span><span style="color:#24292E;--shiki-dark:#ABB2BF"> {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E5C07B">    gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">createFile</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'out/'</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> +</span><span style="color:#24292E;--shiki-dark:#E5C07B"> model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E06C75">name</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> +</span><span style="color:#032F62;--shiki-dark:#98C379"> '.java'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#6F42C1;--shiki-dark:#61AFEF">renderJava</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">), { </span><span style="color:#24292E;--shiki-dark:#E06C75">target</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#032F62;--shiki-dark:#98C379">'java'</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> });</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E5C07B">    gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">createFile</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'src/'</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> +</span><span style="color:#24292E;--shiki-dark:#E5C07B"> model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E06C75">name</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> +</span><span style="color:#032F62;--shiki-dark:#98C379"> '.java'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#6F42C1;--shiki-dark:#61AFEF">stub</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">), { </span><span style="color:#24292E;--shiki-dark:#E06C75">target</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#032F62;--shiki-dark:#98C379">'java'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#24292E;--shiki-dark:#E06C75">overwrite</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#005CC5;--shiki-dark:#D19A66">false</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> });</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  },</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">}, [</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  { </span><span style="color:#24292E;--shiki-dark:#E06C75">name</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#032F62;--shiki-dark:#98C379">'java'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#24292E;--shiki-dark:#E06C75">overwrite</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#005CC5;--shiki-dark:#D19A66">true</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> },</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">]);</span></span></code></pre>
+</div>
+
+      <h3>Metadata</h3>
+      <p>
+        The JSON is how a change from "generate once" to "always overwrite" shows up in
+        review even when the file bytes stayed the same.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>generated-metadata.json</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#005CC5;--shiki-dark:#E06C75">  "generatedFiles"</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">    { </span><span style="color:#005CC5;--shiki-dark:#E06C75">"filename"</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#032F62;--shiki-dark:#98C379">"out/Room.ts"</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#005CC5;--shiki-dark:#E06C75">"overwrite"</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#005CC5;--shiki-dark:#D19A66">true</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> },</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">    { </span><span style="color:#005CC5;--shiki-dark:#E06C75">"filename"</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#032F62;--shiki-dark:#98C379">"src/Room.ts"</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#005CC5;--shiki-dark:#E06C75">"overwrite"</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#005CC5;--shiki-dark:#D19A66">false</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> }</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  ]</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">}</span></span></code></pre>
+</div>
+
+      <div class="note">
+        <p>
+          Verify mode never writes. A failing test leaves the committed tree as it was,
+          and the message names the file, the target, and whether the mismatch is content,
+          a missing file, an extra file, or the overwrite flag.
+        </p>
+      </div>
+      <p>
+        API: <a href="/api/functions/testing.langiumGeneratorSuite.html">langiumGeneratorSuite</a>,
+        <a href="/api/functions/testing.langiumGeneratorTest.html">langiumGeneratorTest</a>,
+        <a href="/api/interfaces/testing.GeneratorTestOptions.html">GeneratorTestOptions</a>.
+      </p>
+      <div class="next-guides">
+        <a href="/generator/">← Code generation</a>
+        <a href="/matchers/">Vitest matchers →</a>
+      </div>
+    </div>
+  </article>
+
+
+    <footer class="site-footer" data-astro-cid-hkbrpulz>
+      <div class="container foot" data-astro-cid-hkbrpulz>
+        <div class="foot-brand" data-astro-cid-hkbrpulz>
+          <img src="/img/logo.png" alt="" width="28" height="28" data-astro-cid-hkbrpulz>
+          <div data-astro-cid-hkbrpulz>
+            <div class="logo-name" data-astro-cid-hkbrpulz>langium-<span class="brand-text" data-astro-cid-hkbrpulz>tools</span></div>
+            <p data-astro-cid-hkbrpulz>Helpers for Langium DSLs · MIT</p>
+          </div>
+        </div>
+        <div class="foot-cols" data-astro-cid-hkbrpulz>
+          <div data-astro-cid-hkbrpulz>
+            <h4 data-astro-cid-hkbrpulz>Project</h4>
+            <a href="https://github.com/borisbrodski/langium-tools" data-astro-cid-hkbrpulz>GitHub</a>
+            <a href="https://www.npmjs.com/package/langium-tools" data-astro-cid-hkbrpulz>npm</a>
+            <a href="/api" data-astro-cid-hkbrpulz>Typedoc API</a>
+            <a href="https://github.com/borisbrodski/langium-tools/issues" data-astro-cid-hkbrpulz>Issues</a>
+          </div>
+          <div data-astro-cid-hkbrpulz>
+            <h4 data-astro-cid-hkbrpulz>Guides</h4>
+            <a href="/issues/" data-astro-cid-hkbrpulz>Document issues</a><a href="/generator/" data-astro-cid-hkbrpulz>Code generation</a><a href="/testing/" data-astro-cid-hkbrpulz>Generator tests</a><a href="/matchers/" data-astro-cid-hkbrpulz>Vitest matchers</a><a href="/java/" data-astro-cid-hkbrpulz>Java</a><a href="/helpers/" data-astro-cid-hkbrpulz>Text helpers</a>
+          </div>
+          <div data-astro-cid-hkbrpulz>
+            <h4 data-astro-cid-hkbrpulz>On this site</h4>
+            <a href="/#why" data-astro-cid-hkbrpulz>Why use it</a>
+            <a href="/#quickstart" data-astro-cid-hkbrpulz>Getting started</a>
+            <a href="/#modules" data-astro-cid-hkbrpulz>Modules</a>
+            <a href="/#fit" data-astro-cid-hkbrpulz>Where it fits</a>
+          </div>
+        </div>
+      </div>
+      <div class="container foot-note" data-astro-cid-hkbrpulz>
+        © 2026 Boris Brodski · langium-tools 0.3.3 · hosted at langium-tools.openbrod.org
+      </div>
+    </footer>
+
+    
+    <script type="module">document.querySelector(`[data-theme-toggle]`)?.addEventListener(`click`,()=>{let e=document.documentElement,t=e.dataset.theme===`light`?`dark`:`light`;e.dataset.theme=t,localStorage.setItem(`theme`,t)}),document.querySelector(`[data-nav-toggle]`)?.addEventListener(`click`,()=>{document.querySelector(`[data-nav]`)?.classList.toggle(`open`)}),document.querySelectorAll(`[data-copy]`).forEach(e=>{e.addEventListener(`click`,()=>{let t=e.closest(`.codebox`)?.querySelector(`pre`);if(!t)return;navigator.clipboard.writeText(t.innerText??``);let n=e.textContent;e.textContent=`Copied`,setTimeout(()=>{e.textContent=n},1400)})});</script>
+  </body>
+</html>

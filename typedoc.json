@@ -2,7 +2,7 @@
   "entryPoints": [
     "src"
   ],
-  "out": "docs",
+  "out": "typedoc",
   "includeVersion": true,
   "highlightLanguages": [
     "typescript",

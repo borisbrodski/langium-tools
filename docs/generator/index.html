@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" data-astro-cid-hkbrpulz>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Code generation — langium-tools</title>
+    <meta name="description" content="Collect generated files in memory with GeneratedContentManager, then write them to disk only when the content or the overwrite flag says to.">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <meta property="og:title" content="Code generation — langium-tools">
+    <meta property="og:description" content="Collect generated files in memory with GeneratedContentManager, then write them to disk only when the content or the overwrite flag says to.">
+    <meta property="og:image" content="/img/logo.png">
+    <meta name="theme-color" content="#0c1110">
+    <link rel="canonical" href="https://langium-tools.openbrod.org/generator/">
+    <script>
+      (() => {
+        const url = new URLSearchParams(location.search).get('theme');
+        const saved = localStorage.getItem('theme');
+        const preferred = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.dataset.theme = url ?? saved ?? preferred;
+      })();
+    </script>
+  <link rel="stylesheet" href="/_astro/CodeBlock.B3B9K8Lo.css"></head>
+  <body data-astro-cid-hkbrpulz>
+    <header class="site-header" data-astro-cid-hkbrpulz>
+      <div class="container nav" data-astro-cid-hkbrpulz>
+        <a class="logo" href="/" data-astro-cid-hkbrpulz>
+          <img src="/img/logo.png" alt="" width="28" height="28" data-astro-cid-hkbrpulz>
+          <span class="logo-name" data-astro-cid-hkbrpulz>langium-<span class="brand-text" data-astro-cid-hkbrpulz>tools</span></span>
+        </a>
+        <button class="nav-burger" type="button" aria-label="Open menu" data-nav-toggle data-astro-cid-hkbrpulz>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-astro-cid-hkbrpulz><path d="M4 7h16M4 12h16M4 17h16" data-astro-cid-hkbrpulz></path></svg>
+        </button>
+        <nav class="links" data-nav data-astro-cid-hkbrpulz>
+          <a href="/#quickstart" data-astro-cid-hkbrpulz>Getting started</a>
+          <div class="navmenu" data-astro-cid-hkbrpulz>
+            <a href="/issues/" class="navmenu-top" aria-haspopup="true" data-astro-cid-hkbrpulz>Guides <span class="caret" aria-hidden="true" data-astro-cid-hkbrpulz>▾</span></a>
+            <div class="navmenu-panel" role="menu" data-astro-cid-hkbrpulz>
+              <a role="menuitem" href="/issues/" data-astro-cid-hkbrpulz>Document issues</a><a role="menuitem" href="/generator/" aria-current="page" data-astro-cid-hkbrpulz>Code generation</a><a role="menuitem" href="/testing/" data-astro-cid-hkbrpulz>Generator tests</a><a role="menuitem" href="/matchers/" data-astro-cid-hkbrpulz>Vitest matchers</a><a role="menuitem" href="/java/" data-astro-cid-hkbrpulz>Java</a><a role="menuitem" href="/helpers/" data-astro-cid-hkbrpulz>Text helpers</a>
+            </div>
+          </div>
+          <a href="/#why" data-astro-cid-hkbrpulz>Why</a>
+          <a href="/api" data-astro-cid-hkbrpulz>API</a>
+        </nav>
+        <div class="actions" data-astro-cid-hkbrpulz>
+          <button class="theme-toggle" type="button" aria-label="Toggle color theme" data-theme-toggle data-astro-cid-hkbrpulz>
+            <svg class="moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-astro-cid-hkbrpulz><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" data-astro-cid-hkbrpulz></path></svg>
+            <svg class="sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-astro-cid-hkbrpulz><circle cx="12" cy="12" r="4" data-astro-cid-hkbrpulz></circle><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" data-astro-cid-hkbrpulz></path></svg>
+          </button>
+          <a class="gh" href="https://github.com/borisbrodski/langium-tools" aria-label="GitHub" data-astro-cid-hkbrpulz>
+            <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" data-astro-cid-hkbrpulz><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" data-astro-cid-hkbrpulz></path></svg>
+          </a>
+          <a class="btn btn-primary btn-sm" href="/#quickstart" data-astro-cid-hkbrpulz>Get started</a>
+        </div>
+      </div>
+    </header>
+
+    
+  <article class="doc">
+    <header class="doc-hero container">
+      <div class="kicker">langium-tools/generator</div>
+      <h1>Code generation</h1>
+      <p class="lead">
+        A generator should decide the files. The filesystem should be a later step.
+        <span class="inline-code">GeneratedContentManager</span> collects every file in
+        memory, from as many models as you have, and writes them when you ask.
+      </p>
+    </header>
+
+    <div class="container">
+      <h2>Why keep it in memory</h2>
+      <ul>
+        <li>Tests compare the map of files. They do not need a temp directory for the happy path.</li>
+        <li>Two models that emit the same path with different text fail immediately, with both document paths in the error.</li>
+        <li>Unchanged files are not rewritten, so timestamps stay put and file watchers stay quiet.</li>
+        <li>A file marked <span class="inline-code">overwrite: false</span> is created if it is missing and left alone if someone has edited it.</li>
+      </ul>
+
+      <h2>The usual shape</h2>
+      <p>
+        One manager for the run. One <span class="inline-code">GeneratorManager</span> per model.
+        <span class="inline-code">createFile</span> records a path relative to the output directory.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>generate.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">import</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> {</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E06C75">  GeneratedContentManager</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">  type</span><span style="color:#24292E;--shiki-dark:#E06C75"> GeneratorManager</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">} </span><span style="color:#D73A49;--shiki-dark:#C678DD">from</span><span style="color:#032F62;--shiki-dark:#98C379"> 'langium-tools/generator'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> manager</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> =</span><span style="color:#D73A49;--shiki-dark:#C678DD"> new</span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> GeneratedContentManager</span><span style="color:#24292E;--shiki-dark:#ABB2BF">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">function</span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> generate</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">gen</span><span style="color:#D73A49;--shiki-dark:#ABB2BF">:</span><span style="color:#6F42C1;--shiki-dark:#E5C07B"> GeneratorManager</span><span style="color:#24292E;--shiki-dark:#ABB2BF">&#x3C;</span><span style="color:#6F42C1;--shiki-dark:#E5C07B">Model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">>) {</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">  const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> model</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> =</span><span style="color:#24292E;--shiki-dark:#E5C07B"> gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">getModel</span><span style="color:#24292E;--shiki-dark:#ABB2BF">();</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E5C07B">  gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">createFile</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">    'src-gen/'</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> +</span><span style="color:#24292E;--shiki-dark:#E5C07B"> model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E06C75">name</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> +</span><span style="color:#032F62;--shiki-dark:#98C379"> '.ts'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">    '// Generated. Do not edit.</span><span style="color:#005CC5;--shiki-dark:#56B6C2">\n</span><span style="color:#032F62;--shiki-dark:#98C379">export const name = '</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> +</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> JSON</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">stringify</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E5C07B">model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E06C75">name</span><span style="color:#24292E;--shiki-dark:#ABB2BF">) </span><span style="color:#D73A49;--shiki-dark:#56B6C2">+</span><span style="color:#032F62;--shiki-dark:#98C379"> ';</span><span style="color:#005CC5;--shiki-dark:#56B6C2">\n</span><span style="color:#032F62;--shiki-dark:#98C379">'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  );</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E5C07B">  gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">createFile</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">    'src/'</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> +</span><span style="color:#24292E;--shiki-dark:#E5C07B"> model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E06C75">name</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> +</span><span style="color:#032F62;--shiki-dark:#98C379"> '.ts'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">    'export const name = '</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> +</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> JSON</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">stringify</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E5C07B">model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#24292E;--shiki-dark:#E06C75">name</span><span style="color:#24292E;--shiki-dark:#ABB2BF">) </span><span style="color:#D73A49;--shiki-dark:#56B6C2">+</span><span style="color:#032F62;--shiki-dark:#98C379"> ';</span><span style="color:#005CC5;--shiki-dark:#56B6C2">\n</span><span style="color:#032F62;--shiki-dark:#98C379">'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">    { </span><span style="color:#24292E;--shiki-dark:#E06C75">overwrite</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#005CC5;--shiki-dark:#D19A66">false</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> },</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">  );</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">for</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> (</span><span style="color:#D73A49;--shiki-dark:#C678DD">const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> model</span><span style="color:#D73A49;--shiki-dark:#C678DD"> of</span><span style="color:#24292E;--shiki-dark:#E06C75"> models</span><span style="color:#24292E;--shiki-dark:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#61AFEF">  generate</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E5C07B">manager</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">generatorManagerFor</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#24292E;--shiki-dark:#E06C75">model</span><span style="color:#24292E;--shiki-dark:#ABB2BF">));</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">await</span><span style="color:#24292E;--shiki-dark:#E5C07B"> manager</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">writeToDisk</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'./generated'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">);</span></span></code></pre>
+</div>
+
+      <h2>What the generator can see</h2>
+      <p>
+        The manager hangs off the AST node. If that node was parsed by Langium,
+        <span class="inline-code">$document</span> is set and the helpers below resolve.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>context.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">function</span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> generate</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#E36209;--shiki-light-font-style:inherit;--shiki-dark:#E06C75;--shiki-dark-font-style:italic">gen</span><span style="color:#D73A49;--shiki-dark:#ABB2BF">:</span><span style="color:#6F42C1;--shiki-dark:#E5C07B"> GeneratorManager</span><span style="color:#24292E;--shiki-dark:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">  const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> model</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> =</span><span style="color:#24292E;--shiki-dark:#E5C07B"> gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">getModel</span><span style="color:#24292E;--shiki-dark:#ABB2BF">();</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">  const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> document</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> =</span><span style="color:#24292E;--shiki-dark:#E5C07B"> gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">getDocument</span><span style="color:#24292E;--shiki-dark:#ABB2BF">();          </span><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// LangiumDocument, if the AST was parsed</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">  const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> workspace</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> =</span><span style="color:#24292E;--shiki-dark:#E5C07B"> gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">getWorkspaceURI</span><span style="color:#24292E;--shiki-dark:#ABB2BF">();     </span><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// which workspace folder contains it</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">  const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> localPath</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> =</span><span style="color:#24292E;--shiki-dark:#E5C07B"> gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">getDocumentLocalPath</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(); </span><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// path inside that folder, '/' separators</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">}</span></span></code></pre>
+</div>
+      <p>
+        Pass workspace directory URIs into the constructor when a document should be
+        described by a path inside a workspace rather than by its full URI.
+        <span class="inline-code">getDocumentLocalPath</span> uses <span class="inline-code">/</span>
+        on every platform. If the file sits in none of the workspaces, you get the basename.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>workspaces.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">const</span><span style="color:#005CC5;--shiki-dark:#E5C07B"> manager</span><span style="color:#D73A49;--shiki-dark:#56B6C2"> =</span><span style="color:#D73A49;--shiki-dark:#C678DD"> new</span><span style="color:#6F42C1;--shiki-dark:#61AFEF"> GeneratedContentManager</span><span style="color:#24292E;--shiki-dark:#ABB2BF">([</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">  'file:///workspace/app'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#032F62;--shiki-dark:#98C379">  'file:///workspace/lib'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#ABB2BF">]);</span></span></code></pre>
+</div>
+
+      <h2>Overwrite</h2>
+      <p>
+        The default target is named <span class="inline-code">DEFAULT</span> and overwrites.
+        Pass <span class="inline-code">{ overwrite: false }</span> for a file that should
+        exist after the first generation and then belong to the user. On disk the rule is:
+      </p>
+      <ul>
+        <li>Missing file: write it.</li>
+        <li>Existing file, same bytes: do nothing. The timestamp does not change.</li>
+        <li>Existing file, different bytes, overwrite true: replace it.</li>
+        <li>Existing file, different bytes, overwrite false: leave the user's file.</li>
+      </ul>
+      <p>
+        Recording the same path twice with different content, or with a different overwrite
+        flag, throws. Generating the same bytes twice is allowed.
+      </p>
+
+      <h2>Targets</h2>
+      <p>
+        A target is a named output tree with its own default overwrite flag. This is the
+        same idea as an Xtext outlet: generated sources in one directory, once-only stubs
+        in another. The path you pass to <span class="inline-code">createFile</span> is
+        relative to whichever directory you later pass to <span class="inline-code">writeToDisk</span>.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>targets.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#24292E;--shiki-dark:#E5C07B">manager</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">addTarget</span><span style="color:#24292E;--shiki-dark:#ABB2BF">({ </span><span style="color:#24292E;--shiki-dark:#E06C75">name</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#032F62;--shiki-dark:#98C379">'once'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#24292E;--shiki-dark:#E06C75">overwrite</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#005CC5;--shiki-dark:#D19A66">false</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> });</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E5C07B">gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">createFile</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'Model.ts'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#24292E;--shiki-dark:#E06C75">generated</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, { </span><span style="color:#24292E;--shiki-dark:#E06C75">target</span><span style="color:#24292E;--shiki-dark:#ABB2BF">: </span><span style="color:#032F62;--shiki-dark:#98C379">'once'</span><span style="color:#24292E;--shiki-dark:#ABB2BF"> });</span></span>
+<span class="line"><span style="color:#24292E;--shiki-dark:#E5C07B">gen</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">createFile</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'Model.ts'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#24292E;--shiki-dark:#E06C75">generated</span><span style="color:#24292E;--shiki-dark:#ABB2BF">); </span><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// default target, overwrite true</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">await</span><span style="color:#24292E;--shiki-dark:#E5C07B"> manager</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">writeToDisk</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'./src-gen'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">);          </span><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// default target</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">await</span><span style="color:#24292E;--shiki-dark:#E5C07B"> manager</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">writeToDisk</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'./src'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#032F62;--shiki-dark:#98C379">'once'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">);      </span><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// the "once" target</span></span></code></pre>
+</div>
+
+      <h2>Cleaning the output directory</h2>
+      <p>
+        <span class="inline-code">writeToDisk</span> does not delete leftovers.
+        <span class="inline-code">cleanAndWriteToDisk</span> writes first, then removes
+        files in that directory that were not part of this generation. Files whose
+        content did not change are not deleted and recreated.
+      </p>
+      <div class="codebox">
+  <div class="codebox-head">
+    <span>clean.ts</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <pre class="astro-code astro-code-themes github-light one-dark-pro" style="background-color:#fff;--shiki-dark-bg:#282c34;color:#24292e;--shiki-dark:#abb2bf; overflow-x: auto;" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// Delete files in the output directory that this generation did not produce.</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">await</span><span style="color:#24292E;--shiki-dark:#E5C07B"> manager</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">cleanAndWriteToDisk</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'./src-gen'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D;--shiki-light-font-style:inherit;--shiki-dark:#7F848E;--shiki-dark-font-style:italic">// Same thing, explicit:</span></span>
+<span class="line"><span style="color:#D73A49;--shiki-dark:#C678DD">await</span><span style="color:#24292E;--shiki-dark:#E5C07B"> manager</span><span style="color:#24292E;--shiki-dark:#ABB2BF">.</span><span style="color:#6F42C1;--shiki-dark:#61AFEF">writeToDisk</span><span style="color:#24292E;--shiki-dark:#ABB2BF">(</span><span style="color:#032F62;--shiki-dark:#98C379">'./src-gen'</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#005CC5;--shiki-dark:#D19A66">undefined</span><span style="color:#24292E;--shiki-dark:#ABB2BF">, </span><span style="color:#005CC5;--shiki-dark:#D19A66">true</span><span style="color:#24292E;--shiki-dark:#ABB2BF">);</span></span></code></pre>
+</div>
+
+      <div class="note">
+        <p>
+          The generator test runner uses this manager. In verify mode it never writes.
+          It compares the in-memory map to the committed tree, including the overwrite
+          flag stored in the metadata JSON. See the <a href="/testing/">generator tests guide</a>.
+        </p>
+      </div>
+      <p>
+        Types: <a href="/api/classes/generator.GeneratedContentManager.html">GeneratedContentManager</a>,
+        <a href="/api/interfaces/generator.GeneratorManager.html">GeneratorManager</a>,
+        <a href="/api/interfaces/generator.CreateFileOptions.html">CreateFileOptions</a>.
+      </p>
+      <div class="next-guides">
+        <a href="/testing/">Generator tests →</a>
+        <a href="/java/">Java files →</a>
+      </div>
+    </div>
+  </article>
+
+
+    <footer class="site-footer" data-astro-cid-hkbrpulz>
+      <div class="container foot" data-astro-cid-hkbrpulz>
+        <div class="foot-brand" data-astro-cid-hkbrpulz>
+          <img src="/img/logo.png" alt="" width="28" height="28" data-astro-cid-hkbrpulz>
+          <div data-astro-cid-hkbrpulz>
+            <div class="logo-name" data-astro-cid-hkbrpulz>langium-<span class="brand-text" data-astro-cid-hkbrpulz>tools</span></div>
+            <p data-astro-cid-hkbrpulz>Helpers for Langium DSLs · MIT</p>
+          </div>
+        </div>
+        <div class="foot-cols" data-astro-cid-hkbrpulz>
+          <div data-astro-cid-hkbrpulz>
+            <h4 data-astro-cid-hkbrpulz>Project</h4>
+            <a href="https://github.com/borisbrodski/langium-tools" data-astro-cid-hkbrpulz>GitHub</a>
+            <a href="https://www.npmjs.com/package/langium-tools" data-astro-cid-hkbrpulz>npm</a>
+            <a href="/api" data-astro-cid-hkbrpulz>Typedoc API</a>
+            <a href="https://github.com/borisbrodski/langium-tools/issues" data-astro-cid-hkbrpulz>Issues</a>
+          </div>
+          <div data-astro-cid-hkbrpulz>
+            <h4 data-astro-cid-hkbrpulz>Guides</h4>
+            <a href="/issues/" data-astro-cid-hkbrpulz>Document issues</a><a href="/generator/" data-astro-cid-hkbrpulz>Code generation</a><a href="/testing/" data-astro-cid-hkbrpulz>Generator tests</a><a href="/matchers/" data-astro-cid-hkbrpulz>Vitest matchers</a><a href="/java/" data-astro-cid-hkbrpulz>Java</a><a href="/helpers/" data-astro-cid-hkbrpulz>Text helpers</a>
+          </div>
+          <div data-astro-cid-hkbrpulz>
+            <h4 data-astro-cid-hkbrpulz>On this site</h4>
+            <a href="/#why" data-astro-cid-hkbrpulz>Why use it</a>
+            <a href="/#quickstart" data-astro-cid-hkbrpulz>Getting started</a>
+            <a href="/#modules" data-astro-cid-hkbrpulz>Modules</a>
+            <a href="/#fit" data-astro-cid-hkbrpulz>Where it fits</a>
+          </div>
+        </div>
+      </div>
+      <div class="container foot-note" data-astro-cid-hkbrpulz>
+        © 2026 Boris Brodski · langium-tools 0.3.3 · hosted at langium-tools.openbrod.org
+      </div>
+    </footer>
+
+    
+    <script type="module">document.querySelector(`[data-theme-toggle]`)?.addEventListener(`click`,()=>{let e=document.documentElement,t=e.dataset.theme===`light`?`dark`:`light`;e.dataset.theme=t,localStorage.setItem(`theme`,t)}),document.querySelector(`[data-nav-toggle]`)?.addEventListener(`click`,()=>{document.querySelector(`[data-nav]`)?.classList.toggle(`open`)}),document.querySelectorAll(`[data-copy]`).forEach(e=>{e.addEventListener(`click`,()=>{let t=e.closest(`.codebox`)?.querySelector(`pre`);if(!t)return;navigator.clipboard.writeText(t.innerText??``);let n=e.textContent;e.textContent=`Copied`,setTimeout(()=>{e.textContent=n},1400)})});</script>
+  </body>
+</html>

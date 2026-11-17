@@ -1,0 +1,142 @@
+---
+import Base from '../layouts/Base.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { SITE } from '../lib/site';
+
+const adjustedSample = `import { adjusted, adjustedUnix } from 'langium-tools/base';
+
+const cmds = 'console.log("Hello,");\\nconsole.log("World!");';
+
+const text = adjusted\`
+  \${cmds}
+  if (sayAgain) {
+    \${cmds}
+  }
+\`;`;
+
+const adjustedOut = `console.log("Hello,");
+console.log("World!");
+if (sayAgain) {
+  console.log("Hello,");
+  console.log("World!");
+}`;
+
+const caseSample = `import { toFirstUpper, toFirstLower } from 'langium-tools/base';
+
+toFirstUpper('door'); // "Door"
+toFirstLower('Door'); // "door"
+
+// Importing the module also adds the methods on String:
+'door'.toFirstUpper();
+'Door'.toFirstLower();`;
+
+const sortSample = `import { arraySortBy } from 'langium-tools/base';
+
+const people = [
+  { name: 'Ada', size: 2 },
+  { name: 'Max', size: 1 },
+];
+arraySortBy(people, (p) => p.name);
+arraySortBy(people, 'size');
+
+// or, after importing the module:
+people.sortBy((p) => p.name);`;
+
+const markers = `import { parseMarkedText } from 'langium-tools/base';
+
+const { text, markers } = parseMarkedText(
+  'state [[[Open]]] [[[Close]]]',
+  '[[[',
+  ']]]',
+);
+// text === 'state Open Close'
+// markers[0] covers "Open", markers[1] covers "Close"
+// offsets, lines, and columns are 0-based
+// endOffset / endColumn point at the character after the span`;
+---
+<Base
+  title="Text helpers — langium-tools"
+  description="Indentation-aware templates, first-letter case, in-place sorting, and a marker parser for tests. All exported from langium-tools/base."
+>
+  <article class="doc">
+    <header class="doc-hero container">
+      <div class="kicker">langium-tools/base</div>
+      <h1>Text helpers</h1>
+      <p class="lead">
+        Small functions that show up in every generator and every test.
+        They live next to <a href="/issues/">document issues</a> on
+        <span class="inline-code">langium-tools/base</span>.
+      </p>
+    </header>
+
+    <div class="container">
+      <h2>Templates that keep their indent</h2>
+      <p>
+        <span class="inline-code">adjusted</span> is Langium's
+        <span class="inline-code">expandToNode</span> plus <span class="inline-code">toString</span>.
+        A substituted value is re-indented to the column of the placeholder, which is what
+        you want when the value is itself a block of code. Newlines follow the platform.
+        <span class="inline-code">adjustedUnix</span> is the same text with <span class="inline-code">\r</span> removed,
+        so a snapshot does not depend on the operating system.
+      </p>
+      <CodeBlock code={adjustedSample} filename="template.ts" />
+      <p>The value of <span class="inline-code">text</span>:</p>
+      <CodeBlock code={adjustedOut} lang="text" filename="output" />
+      <p>
+        The leading indent of the whole template is removed. A line that is only
+        whitespace disappears. That is why multi-line samples in the
+        <a href="/matchers/">matcher guide</a> start at column 0.
+      </p>
+
+      <h2>First letter</h2>
+      <p>
+        <span class="inline-code">undefined</span> stays <span class="inline-code">undefined</span>,
+        which matters when a name in the AST is optional. Importing the module patches
+        <span class="inline-code">String.prototype</span> with
+        <span class="inline-code">toFirstUpper</span> and <span class="inline-code">toFirstLower</span>.
+        The functions do not change the rest of the string.
+      </p>
+      <CodeBlock code={caseSample} filename="case.ts" />
+
+      <h2>Sort in place</h2>
+      <p>
+        <span class="inline-code">arraySortBy</span> sorts the array you pass and returns it.
+        The key is a property name or a function. Numbers use subtraction, strings use
+        <span class="inline-code">localeCompare</span>, and <span class="inline-code">null</span>
+        and <span class="inline-code">undefined</span> go last. Importing the module adds
+        <span class="inline-code">sortBy</span> on <span class="inline-code">Array</span>.
+      </p>
+      <CodeBlock code={sortSample} filename="sort.ts" />
+
+      <h2>Markers</h2>
+      <p>
+        <span class="inline-code">parseMarkedText</span> removes paired markers and records
+        where they were. <a href="/matchers/"><span class="inline-code">parseWithMarks</span></a> is
+        this function followed by a Langium parse. Use the parser directly when you only
+        need the positions, for a generator test or a editor fixture. The default markers
+        are <span class="inline-code">{`<<{|`}</span> and <span class="inline-code">{`|}>>`}</span>.
+        A marker with nothing between the ends is a point: the start offset equals the end offset.
+      </p>
+      <CodeBlock code={markers} filename="markers.ts" />
+
+      <div class="note">
+        <p>
+          The prototype methods are installed when <span class="inline-code">langium-tools/base</span>
+          is loaded. Named imports run the same patches. That is part of the
+          <span class="inline-code">base</span> API.
+        </p>
+      </div>
+      <p>
+        API: <a href={`${SITE.typedoc}/functions/base.adjusted.html`}>adjusted</a>,
+        <a href={`${SITE.typedoc}/functions/base.adjustedUnix.html`}>adjustedUnix</a>,
+        <a href={`${SITE.typedoc}/functions/base.toFirstUpper.html`}>toFirstUpper</a>,
+        <a href={`${SITE.typedoc}/functions/base.arraySortBy.html`}>arraySortBy</a>,
+        <a href={`${SITE.typedoc}/functions/base.parseMarkedText.html`}>parseMarkedText</a>.
+      </p>
+      <div class="next-guides">
+        <a href="/issues/">← Document issues</a>
+        <a href="/matchers/">Vitest matchers →</a>
+      </div>
+    </div>
+  </article>
+</Base>

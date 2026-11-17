@@ -1,0 +1,153 @@
+---
+import Base from '../layouts/Base.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { SITE } from '../lib/site';
+
+const setup = `import 'langium-tools/testing'; // registers the matchers
+import { EmptyFileSystem } from 'langium';
+import { parseHelper } from 'langium/test';
+import { adjusted } from 'langium-tools/base';
+import { parseWithMarks } from 'langium-tools/testing';
+
+const services = createMyDslServices(EmptyFileSystem);
+const parse = parseHelper(services.MyDsl);`;
+
+const clean = `const document = await parse('statemachine Door\\n', { validation: true });
+
+expect(document).toHaveNoErrors();  // warnings are ignored
+expect(document).toHaveNoIssues();  // warnings, hints, and errors all count`;
+
+const marked = `import { DocumentIssueSeverity, DocumentIssueSource } from 'langium-tools/base';
+
+const parsed = await parseWithMarks(
+  parse,
+  adjusted\`
+    statemachine Door
+    state [[[Unused]]];
+  \`,
+  '[[[',
+  ']]]',
+);
+
+expect(parsed).toHaveDocumentIssues([
+  {
+    source: DocumentIssueSource.VALIDATION,
+    severity: DocumentIssueSeverity.WARNING,
+    message: 'This state is declared but never referenced.',
+    markerId: 0,
+  },
+]);`;
+
+const contain = `import { DocumentIssueSeverity, DocumentIssueSource } from 'langium-tools/base';
+
+expect(document).toContainIssue({
+  message: /Unexpected character/,
+  severity: DocumentIssueSeverity.ERROR,
+  source: DocumentIssueSource.LEXER,
+});`;
+
+const ignore = `import { DocumentIssueSeverity } from 'langium-tools/base';
+
+expect(document).toHaveNoErrors({ ignoreLexerErrors: true });
+
+expect(parsed).toHaveDocumentIssues(
+  [{ message: 'This state is declared but never referenced.', severity: DocumentIssueSeverity.WARNING }],
+  { ignoreValidationErrors: true },
+);`;
+---
+<Base
+  title="Vitest matchers — langium-tools"
+  description="Vitest matchers for Langium documents: no errors, no issues, an issue at a marker, or a single expected diagnostic."
+>
+  <article class="doc">
+    <header class="doc-hero container">
+      <div class="kicker">langium-tools/testing</div>
+      <h1>Vitest matchers</h1>
+      <p class="lead">
+        Importing <span class="inline-code">langium-tools/testing</span> adds four matchers
+        to Vitest. They assert the same <a href="/issues/">document issues</a> you print
+        in a CLI, so a test and a log cannot disagree about what an error is.
+      </p>
+    </header>
+
+    <div class="container">
+      <h2>Setup</h2>
+      <p>
+        The import is a side effect: it calls <span class="inline-code">expect.extend</span>.
+        Parsing stays Langium's <span class="inline-code">parseHelper</span>. The matchers
+        are written for Vitest 2, which is a peer dependency.
+      </p>
+      <CodeBlock code={setup} filename="setup.ts" />
+
+      <h2>No errors, no issues</h2>
+      <p>
+        <span class="inline-code">toHaveNoErrors</span> ignores warnings, information, and hints.
+        <span class="inline-code">toHaveNoIssues</span> does not. Both accept a
+        <span class="inline-code">LangiumDocument</span> or the object returned by
+        <span class="inline-code">parseWithMarks</span>. A failure prints the issue summary.
+      </p>
+      <CodeBlock code={clean} filename="clean.test.ts" />
+
+      <h2>Put the location in the sample</h2>
+      <p>
+        <span class="inline-code">parseWithMarks</span> strips a begin/end pair, parses the
+        remaining text with validation on, and remembers where each marker was.
+        The default pair is <span class="inline-code">{`<<{|`}</span> and <span class="inline-code">{`|}>>`}</span>.
+        Pick a pair that cannot appear in the DSL. Markers are numbered from 0 in the order
+        they occur. <span class="inline-code">adjusted</span> removes the indent of the template
+        so line 1 of the DSL is the first line of content.
+      </p>
+      <CodeBlock code={marked} filename="marked.test.ts" />
+      <p>An <span class="inline-code">IssueExpectation</span> has:</p>
+      <ul>
+        <li><b>message</b> — a string, or a regular expression. Required.</li>
+        <li><b>severity</b> — defaults to <span class="inline-code">ERROR</span>.</li>
+        <li><b>source</b> — <span class="inline-code">LEXER</span>, <span class="inline-code">PARSER</span>, or <span class="inline-code">VALIDATION</span>. Omitted means "do not care".</li>
+        <li><b>markerId</b> — 0-based index. Omitted means "do not care where".</li>
+      </ul>
+      <p>
+        <span class="inline-code">toHaveDocumentIssues</span> matches each expectation to one
+        actual issue and fails if anything is left over on either side. The message lists
+        the unmatched expected issues and the unmatched actual ones.
+      </p>
+
+      <h2>One issue among others</h2>
+      <p>
+        <span class="inline-code">toContainIssue</span> succeeds when at least one issue matches.
+        Extra issues are fine. Pass a parsed document with markers if the expectation has a
+        <span class="inline-code">markerId</span>.
+      </p>
+      <CodeBlock code={contain} filename="contain.test.ts" />
+
+      <h2>Ignore a class of issues</h2>
+      <p>
+        Every matcher takes <span class="inline-code">IgnoreParameters</span>:
+        <span class="inline-code">ignoreParserErrors</span>,
+        <span class="inline-code">ignoreLexerErrors</span>,
+        <span class="inline-code">ignoreValidationErrors</span>,
+        <span class="inline-code">ignoreNonErrorDiagnostics</span>.
+        The last one defaults to true only for <span class="inline-code">toHaveNoErrors</span>.
+      </p>
+      <CodeBlock code={ignore} filename="ignore.test.ts" />
+
+      <div class="note">
+        <p>
+          A marker comparison uses the positions the issue actually has. Lexer and parser
+          issues often have a start and no end. Validation issues have a start and an end.
+          A zero-length marker is a point: start and end offsets are equal.
+        </p>
+      </div>
+      <p>
+        API: <a href={`${SITE.typedoc}/functions/testing.toHaveNoErrors.html`}>toHaveNoErrors</a>,
+        <a href={`${SITE.typedoc}/functions/testing.toHaveNoIssues.html`}>toHaveNoIssues</a>,
+        <a href={`${SITE.typedoc}/functions/testing.toHaveDocumentIssues.html`}>toHaveDocumentIssues</a>,
+        <a href={`${SITE.typedoc}/functions/testing.toContainIssue.html`}>toContainIssue</a>,
+        <a href={`${SITE.typedoc}/functions/testing.parseWithMarks.html`}>parseWithMarks</a>.
+      </p>
+      <div class="next-guides">
+        <a href="/issues/">← Document issues</a>
+        <a href="/helpers/">Text helpers →</a>
+      </div>
+    </div>
+  </article>
+</Base>

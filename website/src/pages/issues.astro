@@ -1,0 +1,144 @@
+---
+import Base from '../layouts/Base.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { SITE } from '../lib/site';
+
+const basic = `import { getDocumentIssues } from 'langium-tools/base';
+
+const issues = getDocumentIssues(document);`;
+
+const filtered = `const errorsOnly = getDocumentIssues(document, {
+  skipNonErrorDiagnostics: true, // drop warnings, information, hints
+  skipLexerErrors: false,
+  skipParserErrors: false,
+  skipValidation: false,
+});`;
+
+const summary = `import { getDocumentIssueSummary } from 'langium-tools/base';
+
+const summary = getDocumentIssueSummary(document);
+console.log(summary.countErrors); // every ERROR, including lexer and parser
+console.log(summary.summary);
+// "1 lexer error(s), 1 parser error(s), 1 error diagnostic(s), 2 non-error diagnostic(s)"
+console.log(summary.message);`;
+
+const summaryOut = `Lexer errors:
+Error at 2:5 - Invalid character.
+Parser errors:
+Error - Unexpected token.
+Diagnostics:
+Warning at 5:1 - Unused import.
+Hint at 6:10 - Consider renaming variable for clarity.
+Error at 8:15 - Type mismatch.
+
+1 lexer error(s), 1 parser error(s), 1 error diagnostic(s), 2 non-error diagnostic(s)`;
+
+const printOne = `import { documentIssueToString } from 'langium-tools/base';
+
+for (const issue of issues) {
+  console.log(documentIssueToString(issue));
+}
+// Error at 3:15 - unexpected character
+// Warning at 5:10-18 - Deprecated.`;
+---
+<Base
+  title="Document issues — langium-tools"
+  description="Collect lexer errors, parser errors, and validation diagnostics from a Langium document into one list, then print or summarize them."
+>
+  <article class="doc">
+    <header class="doc-hero container">
+      <div class="kicker">langium-tools/base</div>
+      <h1>Document issues</h1>
+      <p class="lead">
+        A Langium document keeps syntax failures on <span class="inline-code">parseResult</span>
+        and semantic diagnostics on <span class="inline-code">diagnostics</span>. Callers that
+        read only one of those miss the other. This module returns a single list, with a
+        source, a severity, a message, and a position.
+      </p>
+    </header>
+
+    <div class="container">
+      <h2>Read every issue</h2>
+      <p>
+        <span class="inline-code">getDocumentIssues</span> walks lexer errors, parser errors,
+        and validation diagnostics. Each item is a <span class="inline-code">DocumentIssue</span>.
+      </p>
+      <CodeBlock code={basic} filename="issues.ts" />
+
+      <h3>What goes into the list</h3>
+      <ul>
+        <li><b>LEXER</b> — tokenization failures. Always an error. Offset, line, and column come from the lexer and are stored 0-based.</li>
+        <li><b>PARSER</b> — syntax errors. Always an error. The position is the token that failed, or the previous token when Chevrotain reports an inserted EOF at <span class="inline-code">-1</span>.</li>
+        <li><b>VALIDATION</b> — diagnostics from your validators. Severity follows the language server: error, warning, information, hint.</li>
+      </ul>
+      <p>
+        Printed strings from <span class="inline-code">documentIssueToString</span> are 1-based
+        (<span class="inline-code">Error at 4:13-20</span>). The fields on the object stay 0-based,
+        which matches LSP ranges and the marker parser.
+      </p>
+
+      <h2>Skip what you do not care about</h2>
+      <p>
+        A generator often wants to stop on syntax errors and ignore hints. A test for a
+        warning wants the opposite. The second argument filters the list. Every flag
+        defaults to <span class="inline-code">false</span>, so the default call returns everything.
+      </p>
+      <CodeBlock code={filtered} filename="errors-only.ts" />
+
+      <h2>A summary you can log</h2>
+      <p>
+        <span class="inline-code">getDocumentIssueSummary</span> counts errors and everything
+        else, builds a one-line summary, and builds a message grouped by source.
+        <span class="inline-code">summary.countErrors</span> is the number to branch on in a CLI.
+        Headings are <span class="inline-code">Lexer errors</span>,
+        <span class="inline-code">Parser errors</span>, and
+        <span class="inline-code">Diagnostics</span>. Validation is not called
+        “validation issues” in the one-line summary: errors become
+        <span class="inline-code">error diagnostic(s)</span> and the rest become
+        <span class="inline-code">non-error diagnostic(s)</span>.
+        <span class="inline-code">getDocumentIssueSummaryFromIssues</span> is the same
+        summary for a list you already have.
+      </p>
+      <CodeBlock code={summary} filename="summary.ts" />
+      <p><span class="inline-code">summary.message</span> looks like this:</p>
+      <CodeBlock code={summaryOut} lang="text" filename="stdout" />
+
+      <h2>One issue, one line</h2>
+      <CodeBlock code={printOne} filename="print.ts" />
+
+      <div class="note">
+        <p>
+          Parser end positions are left unset on purpose. Chevrotain's recovered end offset
+          is not reliable enough to draw a span. Validation issues do carry an end line and
+          end column, taken from the diagnostic range.
+        </p>
+      </div>
+
+      <h2>The enums</h2>
+      <ul>
+        <li><span class="inline-code">DocumentIssueSource</span> — <span class="inline-code">LEXER</span>, <span class="inline-code">PARSER</span>, <span class="inline-code">VALIDATION</span>.</li>
+        <li><span class="inline-code">DocumentIssueSeverity</span> — <span class="inline-code">ERROR</span>, <span class="inline-code">WARNING</span>, <span class="inline-code">INFORMATION</span>, <span class="inline-code">HINT</span>, <span class="inline-code">UNKNOWN</span>.</li>
+      </ul>
+      <p>
+        <span class="inline-code">severityToString</span> maps a language-server
+        <span class="inline-code">DiagnosticSeverity</span> to <span class="inline-code">Error</span>,
+        <span class="inline-code">Warning</span>, <span class="inline-code">Information</span>, or <span class="inline-code">Hint</span>.
+        A printed issue uses the enum value instead:
+        <span class="inline-code">INFORMATION</span> is stored as <span class="inline-code">INFO</span>
+        and prints as <span class="inline-code">Info</span>. A parser issue with no usable
+        position prints as <span class="inline-code">Error - …</span> with no
+        <span class="inline-code">at</span> clause. The end column on one line is the
+        1-based column after the span, so <span class="inline-code">4:13-20</span> covers
+        columns 13 through 20.
+      </p>
+      <p>
+        Full types: <a href={`${SITE.typedoc}/modules/base.html`}>base module in the Typedoc</a>.
+        The Vitest matchers in <a href="/matchers/">the matchers guide</a> assert this same shape.
+      </p>
+      <div class="next-guides">
+        <a href="/matchers/">Vitest matchers →</a>
+        <a href="/generator/">Code generation →</a>
+      </div>
+    </div>
+  </article>
+</Base>

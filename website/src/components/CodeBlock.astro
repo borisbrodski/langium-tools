@@ -1,0 +1,17 @@
+---
+import { Code } from 'astro:components';
+
+interface Props {
+  code: string;
+  lang?: string;
+  filename?: string;
+}
+const { code, lang = 'typescript', filename } = Astro.props;
+---
+<div class="codebox">
+  <div class="codebox-head">
+    <span>{filename ?? lang}</span>
+    <button class="copy-btn" type="button" data-copy>Copy</button>
+  </div>
+  <Code code={code} lang={lang} themes={{ light: 'github-light', dark: 'one-dark-pro' }} />
+</div>
