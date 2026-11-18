@@ -60,5 +60,8 @@
     "*.config.*",
     "package-lock.json",
     "*.json"
-  ]
+  ],
+  "volta": {
+    "node": "22.22.2"
+  }
 }
