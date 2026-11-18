@@ -110,7 +110,7 @@ This section should list any major frameworks/libraries used to bootstrap your p
 
 - Add package to your project
 - Start using one or more features it provides
-- Check out example project to see `langium-tools` in action
+- Read the [state machine showcase](https://github.com/borisbrodski/langium-tools-showcases/tree/main/statemachine) for a full language that uses the library
 
 ### Installation
 
@@ -124,9 +124,29 @@ Add the package to your `package.json`
 
 ### Example project
 
-You can check out The Umltimative Example: the default langium example project <strong>statemachine</strong> enhanced with all features of `langium-tools`:
+The [state machine showcase](https://github.com/borisbrodski/langium-tools-showcases/tree/main/statemachine) is the official Langium statemachine. The grammar and the C++ program are the original example. langium-tools replaces the hand-written parts around them. `git diff upstream -- statemachine` in that repository is the extension.
 
-- TODO - ADD LINK HERE
+Clone it next to this repository. The example depends on `file:../../langium-tools`, and this package exports `dist/`, so build here first:
+
+```sh
+git clone https://github.com/borisbrodski/langium-tools.git
+git clone https://github.com/borisbrodski/langium-tools-showcases.git
+cd langium-tools && npm install && npm run build
+cd ../langium-tools-showcases/statemachine && npm install && npm test
+```
+
+What that language uses, and why it is less code:
+
+- `getDocumentIssueSummary` is the CLI's only error report. Lexer, parser, and validation errors share one count. Warnings are printed and generation continues. The old loop kept diagnostics of severity 1 and could miss a syntax error.
+- `toHaveNoErrors` ignores warnings. `toHaveNoIssues` does not. A lowercase state name is the test that shows the difference, so a style warning does not have to fail a parse test.
+- `parseWithMarks` and `toHaveDocumentIssues` use `<<{|` … `|}>>` as the expected range. The matcher fails when an issue is missing and when an extra issue appears. Hard-coded ranges such as `[1:19..1:26]` do not.
+- `generate` only calls `createFile`. The CLI writes the directory. Identical bytes keep their modification time. The same path with different text throws before a file is overwritten. The C++ templates themselves are unchanged.
+- `npm test` verifies `generated/` and `generated-metadata.json`. `npm run test:generate` rewrites them. The mode is `GENERATOR_TEST`. The C++ no longer has to be pasted into the test source.
+- `JavaImportManager` turns the events into a Java enum. `useClass('java.util.function.Consumer')` prints `Consumer` and adds the import. A second type with that simple name stays fully qualified. Classes in the current package are not imported.
+
+`generateJavaFile` is the one-call wrapper around the import manager. It builds the file with generator nodes from this package's Langium install. A project that also depends on Langium has a second copy, and those nodes print as `[object Object]`. The showcase calls the import manager and `createFile` instead. The note is in `statemachine/src/cli/generator.ts`.
+
+`arraySortBy`, `adjustedUnix`, and named generator targets are real features. The state machine does not use them: event order is the language order, the snapshots are `\n`, and the `.cpp` and `.java` share one output directory. Named targets are the next step when those two files must land in different directories.
 
 ## Documentation
 
