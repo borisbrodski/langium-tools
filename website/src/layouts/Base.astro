@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { GUIDES, SITE } from '../lib/site';
+import { GUIDES, SHOWCASES_PAGE, SITE } from '../lib/site';
 
 interface Props {
   title: string;
@@ -54,6 +54,7 @@ const path = Astro.url.pathname;
               ))}
             </div>
           </div>
+          <a href={SHOWCASES_PAGE} aria-current={path === SHOWCASES_PAGE ? 'page' : undefined}>Showcases</a>
           <a href="/#why">Why</a>
           <a href={SITE.typedoc}>API</a>
         </nav>
@@ -99,6 +100,7 @@ const path = Astro.url.pathname;
             <a href="/#quickstart">Getting started</a>
             <a href="/#modules">Modules</a>
             <a href="/#fit">Where it fits</a>
+            <a href={SHOWCASES_PAGE}>Showcases</a>
           </div>
         </div>
       </div>

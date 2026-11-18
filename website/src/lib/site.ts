@@ -6,7 +6,11 @@ export const SITE = {
   typedoc: '/api',
   version: '0.3.3',
   langium: '4.4',
+  showcases: 'https://github.com/borisbrodski/langium-tools-showcases',
 };
+
+/** On-site index. Another language is another entry, plus a section on the page. */
+export const SHOWCASES_PAGE = '/showcases/';
 
 export const GUIDES = [
   {
@@ -38,5 +42,15 @@ export const GUIDES = [
     href: '/helpers/',
     title: 'Text helpers',
     blurb: 'Indentation-aware templates, case helpers, sorting, and the marker parser.',
+  },
+] as const;
+
+export const SHOWCASES = [
+  {
+    slug: 'statemachine',
+    title: 'State machine',
+    href: `${SITE.showcases}/tree/main/statemachine`,
+    blurb:
+      'The official Langium state-machine example. Same grammar, same C++ program, plus issues, an in-memory generator, a Java event file, and snapshot tests.',
   },
 ] as const;

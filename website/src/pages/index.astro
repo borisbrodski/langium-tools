@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import CodeBlock from '../components/CodeBlock.astro';
-import { GUIDES, SITE } from '../lib/site';
+import { GUIDES, SHOWCASES, SHOWCASES_PAGE, SITE } from '../lib/site';
 
 const install = `npm install langium-tools`;
 
@@ -222,6 +222,29 @@ langiumGeneratorSuite('./test-workspaces', {
         <div><span class="inline-code">langium-tools/testing</span><span>Vitest matchers and generator suites</span></div>
         <div><span class="inline-code">langium-tools/lang</span><span>namespace that exposes <span class="inline-code">java</span></span></div>
         <div><span class="inline-code">langium-tools/lang/java</span><span>imports and Java file layout</span></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="sep" />
+
+  <section class="section" id="showcases">
+    <div class="container">
+      <div class="kicker">Showcases</div>
+      <h2>Working languages you can clone</h2>
+      <p class="lead">
+        The guides above are the API. The showcase repository is a complete language
+        you can clone, build, and diff against the official Langium example.
+        Each directory is one language. The next one is another directory.
+      </p>
+      <div class="grid3">
+        {SHOWCASES.map((item) => (
+          <a class="card" href={`${SHOWCASES_PAGE}#${item.slug}`}>
+            <h3>{item.title}</h3>
+            <p>{item.blurb}</p>
+            <span class="more">See how it uses the library →</span>
+          </a>
+        ))}
       </div>
     </div>
   </section>

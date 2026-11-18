@@ -150,7 +150,7 @@ What that language uses, and why it is less code:
 
 ## Documentation
 
-Guides for every part of the library, with examples, are on the website: [langium-tools.openbrod.org](https://langium-tools.openbrod.org).
+Guides for every part of the library, with examples, are on the website: [langium-tools.openbrod.org](https://langium-tools.openbrod.org). The [showcases](https://langium-tools.openbrod.org/showcases/) page is the index of working languages, starting with the state machine.
 
 The generated API reference is [typedoc](https://langium-tools.openbrod.org/api).
 

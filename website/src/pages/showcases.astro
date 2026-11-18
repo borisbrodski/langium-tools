@@ -1,0 +1,177 @@
+---
+import Base from '../layouts/Base.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { SHOWCASES, SITE } from '../lib/site';
+
+const layout = `langium-tools/
+langium-tools-showcases/
+  statemachine/`;
+
+const clone = `git clone https://github.com/borisbrodski/langium-tools.git
+git clone https://github.com/borisbrodski/langium-tools-showcases.git
+cd langium-tools && npm install && npm run build
+cd ../langium-tools-showcases/statemachine
+npm install
+npm test`;
+
+const diff = `git diff upstream -- statemachine`;
+
+const markers = '<<{| … |}>>';
+const servicesShape = '{ shared, statemachine }';
+
+const javaImports = `const imports = new JavaImportManager('com.example');
+const consumer = imports.useClass('java.util.function.Consumer');
+// consumer === 'Consumer'
+// imports.generateImports() === 'import java.util.function.Consumer;'`;
+---
+<Base
+  title="Showcases — langium-tools"
+  description="Working Langium languages that use langium-tools. The state machine keeps the official grammar and C++ program and adds issues, generation, Java imports, and snapshot tests."
+>
+  <article class="doc">
+    <header class="doc-hero container">
+      <div class="kicker">Examples</div>
+      <h1>Showcases</h1>
+      <p class="lead">
+        Each directory in <a href={SITE.showcases}>langium-tools-showcases</a> is one
+        language. The projects do not share a package.json or a build. Add the next
+        language as another directory and point it at the same sibling checkout of langium-tools.
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href={SITE.showcases}>Repository</a>
+        <a class="btn btn-ghost" href="#statemachine">State machine</a>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="grid3 showcase-grid">
+        {SHOWCASES.map((item) => (
+          <a class="card" href={`#${item.slug}`}>
+            <h3>{item.title}</h3>
+            <p>{item.blurb}</p>
+            <span class="more">Read the walkthrough →</span>
+          </a>
+        ))}
+      </div>
+
+      <h2>Clone it next to the library</h2>
+      <p>
+        The state machine depends on <span class="inline-code">file:../../langium-tools</span>.
+        This package publishes <span class="inline-code">dist/</span>, so build the library
+        before <span class="inline-code">npm install</span> in the showcase. Node must be
+        <span class="inline-code">^22.22.2</span>, <span class="inline-code">^24.15.0</span>, or <span class="inline-code">&gt;=26</span>.
+      </p>
+      <CodeBlock code={layout} lang="text" filename="directories" />
+      <CodeBlock code={clone} lang="bash" filename="terminal" />
+      <p>
+        <span class="inline-code">npm test</span> builds the language and compares
+        <span class="inline-code">generated/</span> with <span class="inline-code">GENERATOR_TEST=verify</span>.
+        <span class="inline-code">npm run test:generate</span> rewrites those snapshots.
+      </p>
+
+      <h2 id="statemachine">State machine</h2>
+      <p>
+        <a href={SHOWCASES[0].href}>statemachine</a> is the official Langium state-machine
+        example. The grammar and the C++ program stay that example. langium-tools is the
+        CLI report, the file collector, the Java event file, and the tests around them.
+        Branch <span class="inline-code">upstream</span> is the official copy.
+        <span class="inline-code">main</span> is the extension. The diff is the lesson.
+      </p>
+      <CodeBlock code={diff} lang="bash" filename="langium-tools-showcases" />
+
+      <h3>Issues in the CLI</h3>
+      <p>
+        <a href="/issues/"><span class="inline-code">getDocumentIssueSummary</span></a> is the
+        only error report. Lexer, parser, and validation errors share one count. Warnings
+        are printed and generation continues. Errors stop the command.
+      </p>
+
+      <h3>Markers in the tests</h3>
+      <p>
+        <a href="/matchers/"><span class="inline-code">toHaveNoErrors</span></a> ignores warnings.
+        <span class="inline-code">toHaveNoIssues</span> includes them. A lowercase state name is
+        the sample that shows the difference, so a style warning does not fail a parse test.
+        <span class="inline-code">parseWithMarks</span> and
+        <span class="inline-code">toHaveDocumentIssues</span> use
+        <span class="inline-code">{markers}</span>
+        as the expected range. The markers are stripped before Langium sees the text.
+      </p>
+
+      <h3>Generate, then write</h3>
+      <p>
+        <span class="inline-code">generate</span> only calls
+        <a href="/generator/"><span class="inline-code">createFile</span></a>.
+        The CLI calls <span class="inline-code">writeToDisk</span>. Identical bytes keep
+        their modification time. The same path with different text throws before a file
+        is overwritten. The C++ templates themselves are unchanged. A Java file for the
+        events is a second artifact of the same model. Pass workspace directories as
+        <span class="inline-code">URI.file</span>. A raw filesystem string goes through
+        <span class="inline-code">URI.parse</span> and is not a file URI.
+      </p>
+
+      <h3>Snapshot tests</h3>
+      <p>
+        <a href="/testing/"><span class="inline-code">langiumGeneratorSuite</span></a> builds
+        each workspace under <span class="inline-code">test/generator/</span>, generates in
+        memory, and compares content and the overwrite flag to
+        <span class="inline-code">generated/</span> and
+        <span class="inline-code">generated-metadata.json</span>.
+        <span class="inline-code">createServices</span> returns the official
+        <span class="inline-code">{servicesShape}</span> pair, which is the
+        one non-shared service the suite requires.
+      </p>
+
+      <h3>Java events</h3>
+      <p>
+        <a href="/java/"><span class="inline-code">JavaImportManager</span></a> and
+        <span class="inline-code">packageToPath</span> build
+        <span class="inline-code">com/example/TrafficLightEvents.java</span>.
+        <span class="inline-code">useClass</span> runs before
+        <span class="inline-code">generateImports</span>. The current package is not imported.
+        A second type with the same simple name stays fully qualified. The file is written
+        with <span class="inline-code">createFile</span>. An empty event list cannot be a
+        Java enum, so that model emits a final class with a private constructor.
+      </p>
+      <CodeBlock code={javaImports} filename="generator.ts" />
+      <div class="note">
+        <p>
+          <span class="inline-code">generateJavaFile</span> is the one-call wrapper in the
+          <a href="/java/">Java guide</a>. It builds the file with generator nodes from the
+          Langium install inside langium-tools. A project that also depends on Langium has
+          a second copy, and those nodes print as <span class="inline-code">[object Object]</span>.
+          The showcase calls <span class="inline-code">JavaImportManager</span> and
+          <span class="inline-code">createFile</span>. The note is in
+          <span class="inline-code">statemachine/src/cli/generator.ts</span>.
+        </p>
+      </div>
+
+      <h3>Left for a language that needs them</h3>
+      <p>
+        <span class="inline-code">arraySortBy</span> would reorder events, and declaration
+        order is the language order. <span class="inline-code">adjustedUnix</span> is for
+        templates whose newlines must be <span class="inline-code">\n</span> on every
+        platform. The snapshots here already are. <span class="inline-code">toFirstUpper</span>
+        and <span class="inline-code">toFirstLower</span> are unused because the names
+        already fit the output. The <span class="inline-code">.cpp</span> and
+        <span class="inline-code">.java</span> files share one output directory, so there
+        is no named generator target. A named target is the next step when those files
+        must land in different directories. Once any custom target is passed to the suite,
+        every target, including the default, is written under
+        <span class="inline-code">generated/&lt;name&gt;/</span>.
+      </p>
+
+      <div class="next-guides">
+        <a href={SHOWCASES[0].href}>State machine on GitHub →</a>
+        <a href="/issues/">Document issues</a>
+        <a href="/generator/">Code generation</a>
+        <a href="/testing/">Generator tests</a>
+        <a href="/matchers/">Vitest matchers</a>
+        <a href="/java/">Java</a>
+      </div>
+    </div>
+  </article>
+  <style>
+    .hero-cta { display: flex; gap: 14px; margin: 8px 0 8px; flex-wrap: wrap; }
+    .showcase-grid { margin: 28px 0 8px; }
+  </style>
+</Base>
