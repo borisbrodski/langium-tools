@@ -1,10 +1,12 @@
+declare const __LANGIUM_TOOLS_VERSION__: string;
+
 export const SITE = {
   name: 'langium-tools',
   domain: 'https://langium-tools.openbrod.org',
   github: 'https://github.com/borisbrodski/langium-tools',
   npm: 'https://www.npmjs.com/package/langium-tools',
   typedoc: '/api',
-  version: '0.3.3',
+  version: __LANGIUM_TOOLS_VERSION__,
   langium: '4.4',
   showcases: 'https://github.com/borisbrodski/langium-tools-showcases',
 };
