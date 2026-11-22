@@ -412,8 +412,9 @@ expect.extend({
 
 /**
  * Interface extending Vitest's matchers with Langium-specific assertions.
+ * `R` is the received value. `Return` is Vitest's assertion result (`void`, or `Promise<void>` for `resolves`).
  */
-interface LangiumMatchers<R = unknown> {
+interface LangiumMatchers<R = unknown, Return extends void | Promise<void> = void> {
   /**
    * Asserts that a document has no errors after parsing.
    * Non-error diagnostics (warnings, hints) are ignored by default.
@@ -421,7 +422,7 @@ interface LangiumMatchers<R = unknown> {
    * @param parameters - Optional parameters to customize which errors to ignore.
    */
   toHaveNoErrors: R extends LangiumDocument | ParsedDocument
-  ? (parameters?: IgnoreParameters) => void
+  ? (parameters?: IgnoreParameters) => Return
   : never;
 
   /**
@@ -430,7 +431,7 @@ interface LangiumMatchers<R = unknown> {
    * @param parameters - Optional parameters to customize which issues to ignore.
    */
   toHaveNoIssues: R extends LangiumDocument | ParsedDocument
-  ? (parameters?: IgnoreParameters) => void
+  ? (parameters?: IgnoreParameters) => Return
   : never;
 
   /**
@@ -443,7 +444,7 @@ interface LangiumMatchers<R = unknown> {
   ? (
     expectedIssues: Array<IssueExpectation>,
     parameters?: IgnoreParameters
-  ) => void
+  ) => Return
   : never;
 
   /**
@@ -453,7 +454,7 @@ interface LangiumMatchers<R = unknown> {
    * @param parameters - Optional parameters to customize which issues to ignore.
    */
   toContainIssue: R extends LangiumDocument | ParsedDocument
-  ? (expectedIssue: IssueExpectation, parameters?: IgnoreParameters) => void
+  ? (expectedIssue: IssueExpectation, parameters?: IgnoreParameters) => Return
   : never;
 }
 
@@ -462,9 +463,10 @@ interface LangiumMatchers<R = unknown> {
  */
 declare module 'vitest' {
 
-  interface Assertion<T> extends LangiumMatchers<T> { }
+  // Vitest 5: Assertion<return, actual>. The received value is the second parameter.
+  interface Assertion<R extends void | Promise<void> = void, T = unknown> extends LangiumMatchers<T, R> { }
 
-  interface AsymmetricMatchersContaining<R = unknown> extends LangiumMatchers<R> { }
+  interface AsymmetricMatchersContaining extends LangiumMatchers<unknown> { }
 }
 
 /**

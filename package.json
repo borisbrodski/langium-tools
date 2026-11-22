@@ -39,7 +39,7 @@
     "langium": "^4.4.2"
   },
   "peerDependencies": {
-    "vitest": "~2.0.5"
+    "vitest": "^5.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
@@ -49,7 +49,7 @@
     "typedoc-plugin-markdown": "^3.0.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^7.18.0",
-    "vitest": "~2.0.5"
+    "vitest": "^5.1.1"
   },
   "overrides": {
     "eslint": "^9.8.0"
