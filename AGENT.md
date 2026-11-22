@@ -166,7 +166,7 @@ Issue tests assert exact offsets and message fragments (`unexpected character`, 
 
 ## CI
 
-`.github/workflows/build-and-test.yml` runs on push and pull request to `main`. One job runs for Vitest `2.1.9`, `3.2.7`, `4.1.12`, and `5.1.1`: `npm install`, then `npm install vitest@<version> --no-save --legacy-peer-deps`, then `npm run build` and `npm test`. `--legacy-peer-deps` is required because npm's arborist crashes while installing Vitest 4 into this tree. Node is 22, which must stay inside Langium's engines range (`^22.22.2` or newer 22, or 24.15+, or 26+). Do not pin npm 6. Langium 4 declares `npm >= 10.2.3`, and the lockfile is npm 7+.
+`.github/workflows/build-and-test.yml` runs on push and pull request to `main`. One job runs for Vitest `2.1.9`, `3.2.7`, `4.1.12`, and `5.1.1`. Each job runs `npm install`, then `npm run build` and `npm test`. The `5.1.1` job keeps the lockfile install. The other three replace Vitest with `npm install vitest@<version> --no-save --legacy-peer-deps`. Reinstalling `5.1.1` that way drops its peer `vite`, and Vitest 5 fails to start. `--legacy-peer-deps` is required for Vitest 4 because npm's arborist crashes while installing it into this tree. Node is 22, which must stay inside Langium's engines range (`^22.22.2` or newer 22, or 24.15+, or 26+). Do not pin npm 6. Langium 4 declares `npm >= 10.2.3`, and the lockfile is npm 7+.
 
 ## Out of scope for casual edits
 

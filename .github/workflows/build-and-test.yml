@@ -30,10 +30,15 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # npm's arborist throws "Cannot read properties of null (reading 'edgesOut')"
-      # when Vitest 4 is installed into this tree without --legacy-peer-deps.
+      # The lockfile already installs Vitest 5 with its peer Vite. Reinstalling that
+      # same version with --legacy-peer-deps drops Vite, and Vitest 5 then fails to start.
+      # npm's arborist throws "edgesOut" when Vitest 4 is installed without --legacy-peer-deps.
       - name: Select Vitest ${{ matrix.vitest }}
-        run: npm install vitest@${{ matrix.vitest }} --no-save --legacy-peer-deps
+        run: |
+          installed=$(node -p "require('./node_modules/vitest/package.json').version")
+          if [ "$installed" != "${{ matrix.vitest }}" ]; then
+            npm install vitest@${{ matrix.vitest }} --no-save --legacy-peer-deps
+          fi
 
       - name: Require the selected Vitest
         run: node -e "const version=require('./node_modules/vitest/package.json').version; if (version !== '${{ matrix.vitest }}') { console.error('expected ${{ matrix.vitest }}, found ' + version); process.exit(1); }"
