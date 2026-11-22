@@ -86,7 +86,7 @@ Default pipeline, all overridable on `GeneratorTestOptions`:
 2. `defaultInitWorkspace` calls `shared.workspace.WorkspaceManager.initializeWorkspace`.
 3. `defaultBuildDocuments` takes `LangiumDocuments.all` and `DocumentBuilder.build(documents, { validation: true })`.
 4. `defaultValidateDocuments` fails the test when lexer or parser issues exist. Validation diagnostics are skipped here (`skipValidation: true`).
-5. Generate, then either write `generated/` plus `generated-metadata.json` (or `<target>-metadata.json`) or compare in-memory content and overwrite flags to those files.
+5. Generate, then either write `generated/` plus `generated-metadata.json` (or `<target>-metadata.json`) or compare in-memory content and overwrite flags to those files. A target with no files, including `DEFAULT` when only named targets were written, gets neither a directory nor a metadata file. A missing directory in the comparing run is an empty target.
 
 Generate mode deletes `generated/` only when a sibling directory named `dsls` exists.
 

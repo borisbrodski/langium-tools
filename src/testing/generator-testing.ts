@@ -153,12 +153,20 @@ export async function langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL exte
   if (generateMode === GeneratorMode.Generate) {
     cleanDir(outputDir);
     for (const { dir, metadataFile, target } of dirsAndTargets) {
+      // An empty target has nothing to commit. Git does not keep the empty directory.
+      if (generatedContentManager.getGeneratedContent(target.name).size === 0) {
+        continue;
+      }
       await generatedContentManager.writeToDisk(dir, target.name);
       writeMetaData(generatedContentManager, metadataFile, target.name);
     }
   } else {
     for (const { dir, metadataFile, target } of dirsAndTargets) {
-      verifyFiles(generatedContentManager.getGeneratedContent(target.name), dir, target.name);
+      const generatedContent = generatedContentManager.getGeneratedContent(target.name);
+      if (generatedContent.size === 0 && !fs.existsSync(dir) && !fs.existsSync(metadataFile)) {
+        continue;
+      }
+      verifyFiles(generatedContent, dir, target.name);
       verifyMetaData(generatedContentManager, metadataFile, target.name);
     }
   }

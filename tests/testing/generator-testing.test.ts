@@ -238,6 +238,35 @@ describe('Generator Testing Framework', () => {
     ).rejects.toThrow(/File: out\/output.txt. Overwrite flag was changed: expected true to be false/);
   });
 
+  test('Named target with no default output needs no DEFAULT folder', async () => {
+    fs.writeFileSync(
+      path.join(workspaceDir, 'sample.langium'),
+      'grammar simple entry Model: name="model";'
+    );
+
+    const targets = [{ name: 'postgresql', overwrite: true }];
+    const generate = async (_services: unknown, _model: unknown, generator: GeneratorManager) => {
+      generator.createFile('schema.sql', 'create table model ();\n', { target: 'postgresql' });
+    };
+
+    await langiumGeneratorTest(testDir, {
+      ...options,
+      generateForModel: generate,
+      generateMode: GeneratorMode.Generate,
+    }, targets);
+
+    expect(fs.existsSync(path.join(generatedDir, 'DEFAULT'))).toBe(false);
+    expect(fs.existsSync(path.join(testDir, 'DEFAULT-metadata.json'))).toBe(false);
+    expect(fs.existsSync(path.join(generatedDir, 'postgresql', 'schema.sql'))).toBe(true);
+    expect(fs.existsSync(path.join(testDir, 'postgresql-metadata.json'))).toBe(true);
+
+    await langiumGeneratorTest(testDir, {
+      ...options,
+      generateForModel: generate,
+      generateMode: GeneratorMode.Verify,
+    }, targets);
+  });
+
   test('Custom target - Detect changes in generated content', async () => {
     fs.writeFileSync(
       path.join(workspaceDir, 'sample.langium'),
