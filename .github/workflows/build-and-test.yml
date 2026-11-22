@@ -10,7 +10,13 @@ on:
 
 jobs:
   build-and-test:
+    name: Vitest ${{ matrix.vitest }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # One release from each peer range: ^2.1.9, ^3.2.6, and >=4.1.0 (4.x and 5.x).
+        vitest: ['2.1.9', '3.2.7', '4.1.12', '5.1.1']
 
     steps:
       - name: Check out the repository
@@ -23,6 +29,14 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      # npm's arborist throws "Cannot read properties of null (reading 'edgesOut')"
+      # when Vitest 4 is installed into this tree without --legacy-peer-deps.
+      - name: Select Vitest ${{ matrix.vitest }}
+        run: npm install vitest@${{ matrix.vitest }} --no-save --legacy-peer-deps
+
+      - name: Require the selected Vitest
+        run: node -e "const version=require('./node_modules/vitest/package.json').version; if (version !== '${{ matrix.vitest }}') { console.error('expected ${{ matrix.vitest }}, found ' + version); process.exit(1); }"
 
       - name: Build the project
         run: npm run build
