@@ -688,8 +688,12 @@ describe('Langium matchers', () => {
           message: /Expecting: one of these possible Token sequences/,
         }, {
           source: DocumentIssueSource.VALIDATION,
+          severity: DocumentIssueSeverity.HINT,
+          message: 'This rule is declared but never referenced.',
+        }, {
+          source: DocumentIssueSource.VALIDATION,
           severity: DocumentIssueSeverity.ERROR,
-          message: /Expecting: one of these possible Token sequences/,
+          message: 'An error occurred during validation: Root node must be an AstNode.',
         }, {
           source: DocumentIssueSource.VALIDATION,
           severity: DocumentIssueSeverity.ERROR,

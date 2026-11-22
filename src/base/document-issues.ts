@@ -1,6 +1,6 @@
 import "./string.js";
 import { LangiumDocument } from "langium";
-import { DiagnosticSeverity, MarkupContent } from "vscode-languageserver";
+import { Diagnostic, DiagnosticSeverity, MarkupContent } from "vscode-languageserver";
 import type { IToken } from 'chevrotain';
 import { EOL } from "node:os";
 
@@ -139,6 +139,83 @@ function diagnosticMessage(message: string | MarkupContent): string {
   return typeof message === 'string' ? message : message.value;
 }
 
+/** Codes Langium's `DocumentValidator` stores on copied lexer and parser diagnostics. */
+const LEXING_ERROR = "lexing-error";
+const PARSING_ERROR = "parsing-error";
+
+function diagnosticCode(diagnostic: Diagnostic): string | undefined {
+  const data = diagnostic.data;
+  if (typeof data !== "object" || data === null || !("code" in data)) {
+    return undefined;
+  }
+  const code = (data as { code?: unknown }).code;
+  return typeof code === "string" ? code : undefined;
+}
+
+function syntaxSource(diagnostic: Diagnostic): DocumentIssueSource.LEXER | DocumentIssueSource.PARSER | undefined {
+  const code = diagnosticCode(diagnostic);
+  if (code === LEXING_ERROR) {
+    return DocumentIssueSource.LEXER;
+  }
+  if (code === PARSING_ERROR) {
+    return DocumentIssueSource.PARSER;
+  }
+  return undefined;
+}
+
+/**
+ * Langium copies each lexer and parser error into `document.diagnostics` after validation.
+ * Prefer that copy: its range has an end position. Keep the offset from `parseResult`.
+ * A `parseResult` error with no matching diagnostic is kept as it is.
+ */
+function mergeSyntaxErrors<T>(
+  errors: readonly T[],
+  diagnostics: readonly Diagnostic[],
+  source: DocumentIssueSource,
+  fromParseResult: (error: T) => DocumentIssue,
+  messageOf: (error: T) => string,
+): DocumentIssue[] {
+  const issues: DocumentIssue[] = [];
+  const used = new Set<number>();
+  for (const error of errors) {
+    const message = messageOf(error);
+    const match = diagnostics.findIndex((diagnostic, index) =>
+      !used.has(index) && diagnosticMessage(diagnostic.message) === message
+    );
+    const parsed = fromParseResult(error);
+    if (match >= 0) {
+      used.add(match);
+      const diagnostic = diagnostics[match];
+      issues.push({
+        source,
+        severity: mapSeverity(diagnostic.severity),
+        message: diagnosticMessage(diagnostic.message),
+        startOffset: parsed.startOffset,
+        startLine: diagnostic.range.start.line,
+        startColumn: diagnostic.range.start.character,
+        endLine: diagnostic.range.end.line,
+        endColumn: diagnostic.range.end.character,
+      });
+    } else {
+      issues.push(parsed);
+    }
+  }
+  diagnostics.forEach((diagnostic, index) => {
+    if (!used.has(index)) {
+      issues.push({
+        source,
+        severity: mapSeverity(diagnostic.severity),
+        message: diagnosticMessage(diagnostic.message),
+        startLine: diagnostic.range.start.line,
+        startColumn: diagnostic.range.start.character,
+        endLine: diagnostic.range.end.line,
+        endColumn: diagnostic.range.end.character,
+      });
+    }
+  });
+  return issues;
+}
+
 function mapSeverity(severity?: DiagnosticSeverity): DocumentIssueSeverity {
   if (!severity) {
     return DocumentIssueSeverity.UNKNOWN;
@@ -180,43 +257,52 @@ export function getDocumentIssues(
     skipValidation = false,
   } = params || {};
 
+  const diagnostics = document.diagnostics ?? [];
   const issues: DocumentIssue[] = [];
   if (!skipLexerErrors) {
-    document.parseResult.lexerErrors.forEach((lexerIssue) => {
-      issues.push({
+    issues.push(...mergeSyntaxErrors(
+      document.parseResult.lexerErrors,
+      diagnostics.filter((diagnostic) => syntaxSource(diagnostic) === DocumentIssueSource.LEXER),
+      DocumentIssueSource.LEXER,
+      (lexerIssue) => ({
         source: DocumentIssueSource.LEXER,
         message: lexerIssue.message,
         severity: DocumentIssueSeverity.ERROR,
         startOffset: lexerIssue.offset,
         startLine: plus(lexerIssue.line, -1),
         startColumn: plus(lexerIssue.column, -1),
-      });
-    });
+      }),
+      (lexerIssue) => lexerIssue.message,
+    ));
   }
 
   if (!skipParserErrors) {
-    document.parseResult.parserErrors.forEach((parserError) => {
-      // Chevrotain exposes the token before the failure. Inserted EOF tokens use -1
-      // for offset, line, and column, which is not a real position.
-      const previousToken = (parserError as unknown as { previousToken: IToken })?.previousToken as IToken;
-      issues.push({
-        source: DocumentIssueSource.PARSER,
-        severity: DocumentIssueSeverity.ERROR,
-        message: parserError.message,
-        startOffset: firstDefinedNumber(parserError.token.startOffset, previousToken?.startOffset),
-        startLine: plus(firstDefinedNumber(parserError.token.startLine, previousToken?.startLine), -1),
-        startColumn: plus(firstDefinedNumber(parserError.token.startColumn, previousToken?.startColumn), -1),
-
-        // Unrelieable end position returned by Chevrotain (24.09.2024)
-        // endOffset: firstDefinedNumber(parserError.token.endOffset, previousToken?.endOffset),
-        // endLine: plus(firstDefinedNumber(parserError.token.endLine, previousToken?.endLine), -1),
-        // endColumn: plus(firstDefinedNumber(parserError.token.endColumn, previousToken?.endColumn), 1),
-      });
-    });
+    issues.push(...mergeSyntaxErrors(
+      document.parseResult.parserErrors,
+      diagnostics.filter((diagnostic) => syntaxSource(diagnostic) === DocumentIssueSource.PARSER),
+      DocumentIssueSource.PARSER,
+      (parserError) => {
+        // Chevrotain exposes the token before the failure. Inserted EOF tokens use -1
+        // for offset, line, and column, which is not a real position.
+        const previousToken = (parserError as unknown as { previousToken: IToken })?.previousToken as IToken;
+        return {
+          source: DocumentIssueSource.PARSER,
+          severity: DocumentIssueSeverity.ERROR,
+          message: parserError.message,
+          startOffset: firstDefinedNumber(parserError.token.startOffset, previousToken?.startOffset),
+          startLine: plus(firstDefinedNumber(parserError.token.startLine, previousToken?.startLine), -1),
+          startColumn: plus(firstDefinedNumber(parserError.token.startColumn, previousToken?.startColumn), -1),
+        };
+      },
+      (parserError) => parserError.message,
+    ));
   }
 
   if (!skipValidation) {
-    document.diagnostics?.forEach((diagnostic) => {
+    diagnostics.forEach((diagnostic) => {
+      if (syntaxSource(diagnostic)) {
+        return;
+      }
       if (!skipNonErrorDiagnostics || diagnostic.severity === DiagnosticSeverity.Error) {
         issues.push({
           source: DocumentIssueSource.VALIDATION,

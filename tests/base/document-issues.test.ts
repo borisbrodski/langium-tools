@@ -134,6 +134,48 @@ describe('Document issues', () => {
       })
     });
 
+    test('Validated parser error is reported once', async () => {
+      document = await parse(adjustedUnix`
+      grammar LangiumGrammar
+
+      entry Grammar: id=ID;
+
+      terminal ID: /\\^?[_a-zA-Z][\\w_]*/;
+      terminal ID2: ;
+      terminal ID3: 'x';
+    `, { validation: true })
+      const issues = getDocumentIssues(document);
+      const parserIssues = issues.filter((issue) => issue.source === DocumentIssueSource.PARSER);
+      expect(parserIssues).toHaveLength(1);
+      expect(issues.filter((issue) => issue.message.includes("Expecting: one of these possible Token sequences"))).toHaveLength(1);
+      using(parserIssues[0], issue => {
+        expect(issue.severity).toEqual(DocumentIssueSeverity.ERROR);
+        expect(issue.message).toContain("Expecting: one of these possible Token sequences");
+        expect(issue.startOffset).toEqual(96);
+        expect(issue.startLine).toEqual(5);
+        expect(issue.startColumn).toEqual(14);
+        expect(issue.endLine).toEqual(5);
+        expect(issue.endColumn).toEqual(15);
+      })
+    });
+
+    test('Validated lexer error is reported once', async () => {
+      document = await parse(adjustedUnix`
+        grammar test '
+      `, { validation: true })
+      const issues = getDocumentIssues(document);
+      expect(issues.filter((issue) => issue.source === DocumentIssueSource.LEXER)).toHaveLength(1);
+      expect(issues.filter((issue) => issue.source === DocumentIssueSource.VALIDATION && issue.message.includes("unexpected character"))).toHaveLength(0);
+      using(issues.find((issue) => issue.source === DocumentIssueSource.LEXER)!, issue => {
+        expect(issue.message).toContain("unexpected character: ->'<- at offset: 13, skipped 1 characters.");
+        expect(issue.startOffset).toEqual(13);
+        expect(issue.startLine).toEqual(0);
+        expect(issue.startColumn).toEqual(13);
+        expect(issue.endLine).toEqual(0);
+        expect(issue.endColumn).toEqual(14);
+      })
+    });
+
     test('Parser error skipped', async () => {
       document = await parse(adjustedUnix`
       grammar LangiumGrammar

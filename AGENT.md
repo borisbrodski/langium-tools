@@ -114,7 +114,8 @@ These are the seams that break across Langium majors. Check them first after a b
 Issue collection reads:
 
 - `document.parseResult.lexerErrors` (`offset`, `line`, `column`, `message`). Lexer line/column are 1-based and converted to 0-based.
-- `document.parseResult.parserErrors` (`message`, `token.startOffset` / `startLine` / `startColumn`, else `previousToken`). Negative positions are ignored. Chevrotain 13 sets them to `-1` on an inserted EOF. End positions are intentionally not recorded. Chevrotain's end position was unreliable.
+- `document.parseResult.parserErrors` (`message`, `token.startOffset` / `startLine` / `startColumn`, else `previousToken`). Negative positions are ignored. Chevrotain 13 sets them to `-1` on an inserted EOF. Chevrotain's end position is not used.
+- After validation, Langium copies lexer and parser errors into `document.diagnostics` with `data.code` `lexing-error` or `parsing-error`. `getDocumentIssues` reports each of those once, as `LEXER` or `PARSER`, and uses the diagnostic range, including the end. The matching `parseResult` entry supplies the offset. Those diagnostics are not reported again as `VALIDATION`.
 - `document.diagnostics[].message` may be `string | MarkupContent` since LSP 3.18. `getDocumentIssues` stores `MarkupContent.value` so `DocumentIssue.message` stays a string.
 - `document.diagnostics` for validation (`range` is already 0-based LSP).
 
