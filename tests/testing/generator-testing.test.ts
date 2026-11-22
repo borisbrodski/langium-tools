@@ -2,12 +2,22 @@ import path from 'path';
 import * as fs from 'fs'
 import { expect, test, describe, beforeAll, beforeEach } from 'vitest';
 import { Grammar } from 'langium';
-import { GeneratorMode, GeneratorTestOptions, langiumGeneratorTest } from '../../src/testing/generator-testing.js';
+import { GeneratorMode, GeneratorTestOptions, generatorWorkspaceTestName, langiumGeneratorTest } from '../../src/testing/generator-testing.js';
 import { createLangiumGrammarServices, LangiumGrammarServices } from 'langium/grammar';
 import { DefaultSharedModuleContext, LangiumSharedServices } from 'langium/lsp';
 
 import { kebabCase } from 'change-case';
 import { GeneratorManager } from '../../src/generator/generated-content-manager.js';
+
+describe('Generator workspace test names', () => {
+  test('comparing run has no generating suffix', () => {
+    expect(generatorWorkspaceTestName('traffic-light', GeneratorMode.Verify)).toBe('DSL-Workspace "traffic-light"');
+  });
+
+  test('generate run is marked as generating', () => {
+    expect(generatorWorkspaceTestName('traffic-light', GeneratorMode.Generate)).toBe('DSL-Workspace "traffic-light" (generating)');
+  });
+});
 
 describe('Generator Testing Framework', () => {
   let testSuiteDir: string;

@@ -66,6 +66,16 @@ export interface GeneratorTestOptions<SERVICES, SHARED_SERVICES, MODEL extends A
 const globalGenerateMode = process.env.GENERATOR_TEST === "generate" ? GeneratorMode.Generate : GeneratorMode.Verify;
 
 /**
+ * Vitest title for one workspace.
+ * The `(generating)` suffix is only present in generate mode.
+ * `GeneratorMode.Generate` is `0`, so the mode must be compared by value.
+ */
+export function generatorWorkspaceTestName(testDirName: string, generateMode: GeneratorMode): string {
+  const suffix = generateMode === GeneratorMode.Generate ? ' (generating)' : '';
+  return `DSL-Workspace "${testDirName}"${suffix}`;
+}
+
+/**
  * Run generator snapshot tests for all workspaces (subdirectories of the `testSuiteDir` directory).
  * For each workspace there will be a tests added to vitest suite.
  *
@@ -80,7 +90,7 @@ export function langiumGeneratorSuite<SERVICES, SHARED_SERVICES, MODEL extends A
     .forEach((dirent) => {
       const testDirName = dirent.name;
 
-      test(`DSL-Workspace "${testDirName}"${generateMode ? ' (generating)' : ''}`, async () => {
+      test(generatorWorkspaceTestName(testDirName, generateMode), async () => {
         await langiumGeneratorTest<SERVICES, SHARED_SERVICES, MODEL>(path.join(testSuiteDir, testDirName), options, targets);
       });
     });
