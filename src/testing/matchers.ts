@@ -411,63 +411,72 @@ expect.extend({
 });
 
 /**
- * Interface extending Vitest's matchers with Langium-specific assertions.
- * `R` is the received value. `Return` is Vitest's assertion result (`void`, or `Promise<void>` for `resolves`).
+ * Vitest builds `expect()` from Chai's `Assertion` in every supported line.
+ * Vitest's own `Assertion` is `Assertion<T>` before version 5 and `Assertion<R, T>` from 5 on.
+ * Those two declarations cannot be merged, so the matchers are added here instead.
  */
-interface LangiumMatchers<R = unknown, Return extends void | Promise<void> = void> {
-  /**
-   * Asserts that a document has no errors after parsing.
-   * Non-error diagnostics (warnings, hints) are ignored by default.
-   *
-   * @param parameters - Optional parameters to customize which errors to ignore.
-   */
-  toHaveNoErrors: R extends LangiumDocument | ParsedDocument
-  ? (parameters?: IgnoreParameters) => Return
-  : never;
+declare global {
+  // Chai publishes this surface as a global namespace. Vitest copies it onto `expect()`.
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Chai {
+    interface Assertion {
+      /**
+       * Asserts that a document has no errors after parsing.
+       * Non-error diagnostics (warnings, hints) are ignored by default.
+       *
+       * @param parameters - Optional parameters to customize which errors to ignore.
+       */
+      toHaveNoErrors(parameters?: IgnoreParameters): void;
 
-  /**
-   * Asserts that a document has no issues after parsing.
-   *
-   * @param parameters - Optional parameters to customize which issues to ignore.
-   */
-  toHaveNoIssues: R extends LangiumDocument | ParsedDocument
-  ? (parameters?: IgnoreParameters) => Return
-  : never;
+      /**
+       * Asserts that a document has no issues after parsing.
+       *
+       * @param parameters - Optional parameters to customize which issues to ignore.
+       */
+      toHaveNoIssues(parameters?: IgnoreParameters): void;
 
-  /**
-   * Asserts that a parsed document has specific issues at specified markers.
-   *
-   * @param expectedIssues - An array of expected issues.
-   * @param parameters - Optional parameters to customize which issues to ignore.
-   */
-  toHaveDocumentIssues: R extends ParsedDocument
-  ? (
-    expectedIssues: Array<IssueExpectation>,
-    parameters?: IgnoreParameters
-  ) => Return
-  : never;
+      /**
+       * Asserts that a parsed document has specific issues at specified markers.
+       *
+       * @param expectedIssues - An array of expected issues.
+       * @param parameters - Optional parameters to customize which issues to ignore.
+       */
+      toHaveDocumentIssues(
+        expectedIssues: Array<IssueExpectation>,
+        parameters?: IgnoreParameters
+      ): void;
 
-  /**
-   * Asserts that a document contains a specific issue.
-   *
-   * @param expectedIssue - The expected issue to look for.
-   * @param parameters - Optional parameters to customize which issues to ignore.
-   */
-  toContainIssue: R extends LangiumDocument | ParsedDocument
-  ? (expectedIssue: IssueExpectation, parameters?: IgnoreParameters) => Return
-  : never;
+      /**
+       * Asserts that a document contains a specific issue.
+       *
+       * @param expectedIssue - The expected issue to look for.
+       * @param parameters - Optional parameters to customize which issues to ignore.
+       */
+      toContainIssue(expectedIssue: IssueExpectation, parameters?: IgnoreParameters): void;
+    }
+  }
 }
+
+type AssertTrue<T extends true> = T;
+type ExpectOf<T> = typeof expect extends (value: T) => infer R ? R : never;
 
 /**
- * Augments Vitest's assertion interface with Langium-specific matchers.
+ * Fails the build when Vitest stops copying these Chai methods onto `expect()`.
  */
-declare module 'vitest' {
-
-  // Vitest 5: Assertion<return, actual>. The received value is the second parameter.
-  interface Assertion<R extends void | Promise<void> = void, T = unknown> extends LangiumMatchers<T, R> { }
-
-  interface AsymmetricMatchersContaining extends LangiumMatchers<unknown> { }
-}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _LangiumMatchersOnExpect = AssertTrue<
+  ExpectOf<LangiumDocument> extends {
+    toHaveNoErrors(parameters?: IgnoreParameters): void;
+    toHaveNoIssues(parameters?: IgnoreParameters): void;
+    toContainIssue(expectedIssue: IssueExpectation, parameters?: IgnoreParameters): void;
+  }
+    ? ExpectOf<ParsedDocument> extends {
+        toHaveDocumentIssues(expectedIssues: Array<IssueExpectation>, parameters?: IgnoreParameters): void;
+      }
+      ? true
+      : false
+    : false
+>;
 
 /**
  * Converts an issue expectation into a readable string representation.

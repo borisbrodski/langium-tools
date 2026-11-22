@@ -39,7 +39,7 @@
     "langium": "^4.4.2"
   },
   "peerDependencies": {
-    "vitest": "^5.1.1"
+    "vitest": "^2.1.9 || ^3.2.6 || >=4.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",

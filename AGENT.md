@@ -90,7 +90,7 @@ Default pipeline, all overridable on `GeneratorTestOptions`:
 
 Generate mode deletes `generated/` only when a sibling directory named `dsls` exists.
 
-Peer dependency: `vitest` `^5.1.1`. Matchers augment Vitest 5's `Assertion<R, T>`. Vitest 3 declares `Assertion<T>`, so one augmentation cannot cover both lines. Vitest 2.0.5 is outside the range.
+Peer dependency: `vitest` `^2.1.9 || ^3.2.6 || >=4.1.0`. Matchers are added on Chai's `Assertion`, which Vitest copies onto `expect()`. Vitest's own `Assertion` is `Assertion<T>` before version 5 and `Assertion<R, T>` from 5 on, so those declarations are not merged. The dev dependency stays on Vitest 5. `2.0.5` and `4.0.x` are outside the peer range.
 
 ### `lang/java`
 
